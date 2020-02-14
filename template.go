@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"html/template"
 
-	"github.com/Joker/jade"
-	"github.com/aymerick/raymond"
-	"github.com/cbroglie/mustache"
-	"github.com/eknkc/amber"
+	amber "github.com/gofiber/amber"
+	handlebars "github.com/gofiber/handlebars"
+	mustache "github.com/gofiber/mustache"
+	pug "github.com/gofiber/pug"
+	// "github.com/gofiber/jet"
 )
 
 // Amber https://github.com/eknkc/amber
@@ -28,7 +29,7 @@ func Amber(raw string, binding interface{}) (out string, err error) {
 
 // Handlebars https://github.com/aymerick/raymond
 func Handlebars(raw string, data interface{}) (out string, err error) {
-	return raymond.Render(raw, data)
+	return handlebars.Render(raw, data)
 }
 
 // HTML https://golang.org/pkg/text/template/
@@ -57,7 +58,7 @@ func Pug(raw string, binding interface{}) (html string, err error) {
 	var buf bytes.Buffer
 	var tmpl *template.Template
 
-	if raw, err = jade.Parse("", []byte(raw)); err != nil {
+	if raw, err = pug.Parse("", []byte(raw)); err != nil {
 		return html, err
 	}
 	if tmpl, err = template.New("").Parse(raw); err != nil {
