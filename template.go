@@ -3,11 +3,10 @@ package template
 import (
 	"bytes"
 	"html/template"
-
-	amber "github.com/gofiber/amber"
-	handlebars "github.com/gofiber/handlebars"
-	mustache "github.com/gofiber/mustache"
-	pug "github.com/gofiber/pug"
+	pug "github.com/Joker/jade"
+	handlebars "github.com/aymerick/raymond"
+	mustache "github.com/cbroglie/mustache"
+	amber "github.com/eknkc/amber"
 	// "github.com/gofiber/jet"
 )
 
