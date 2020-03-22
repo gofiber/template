@@ -24,6 +24,7 @@ import (
 
 func main() {
   app := fiber.New()
+
   // Optional
   app.Settings.TemplateFolder = "./views"
   app.Settings.TemplateExtension = ".mustache"
@@ -33,18 +34,18 @@ func main() {
   // app.Settings.TemplateEngine = template.Handlebars
   // app.Settings.TemplateEngine = template.Pug
 
-	app.Get("/", func(c *fiber.Ctx) {
-		bind := fiber.Map{
-			"name": "John",
-			"age":  "35",
-		}
-		if err := c.Render("index", bind); err != nil {
-			c.Status(500).Send(err.Error())
+  app.Get("/", func(c *fiber.Ctx) {
+    bind := fiber.Map{
+      "name": "John",
+      "age":  "35",
+    }
+    if err := c.Render("index", bind); err != nil {
+      c.Status(500).Send(err.Error())
     }
     // <html><head><title>Template Demo</title></head>
     // <body>Hi, my name is John and im 35 years old
     // </body></html>
-	})
+  })
 
 	app.Listen(3000)
 }
