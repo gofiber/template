@@ -25,21 +25,17 @@ import (
 func main() {
   app := fiber.New()
 
-  // Optional
-  app.Settings.TemplateFolder = "./views"
-  app.Settings.TemplateExtension = ".mustache"
-  // Template engine
-  app.Settings.TemplateEngine = template.Mustache
-  // app.Settings.TemplateEngine = template.Amber
-  // app.Settings.TemplateEngine = template.Handlebars
-  // app.Settings.TemplateEngine = template.Pug
+  app.Settings.TemplateEngine = template.Mustache()
+  // app.Settings.TemplateEngine = template.Amber()
+  // app.Settings.TemplateEngine = template.Handlebars()
+  // app.Settings.TemplateEngine = template.Pug()
 
   app.Get("/", func(c *fiber.Ctx) {
     bind := fiber.Map{
       "name": "John",
       "age":  35,
     }
-    if err := c.Render("index", bind); err != nil {
+    if err := c.Render("./views/index.mustache", bind); err != nil {
       c.Status(500).Send(err.Error())
     }
     // <html><head><title>Template Demo</title></head>
