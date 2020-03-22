@@ -18,8 +18,8 @@ Hi, my name is {{{name}}} and im {{{age}}} years old
 package main
 
 import (
-	"github.com/gofiber/fiber"
-	"github.com/gofiber/template"
+  "github.com/gofiber/fiber"
+  "github.com/gofiber/template"
 )
 
 func main() {
