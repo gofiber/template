@@ -37,7 +37,7 @@ func main() {
   app.Get("/", func(c *fiber.Ctx) {
     bind := fiber.Map{
       "name": "John",
-      "age":  "35",
+      "age":  35,
     }
     if err := c.Render("index", bind); err != nil {
       c.Status(500).Send(err.Error())
