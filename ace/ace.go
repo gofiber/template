@@ -68,7 +68,7 @@ func (e *Engine) load() error {
 		// Remove ext from name 'index.tmpl' -> 'index'
 		name = strings.ReplaceAll(name, e.extension, "")
 		// Currently ACE has no partial include support
-		tmpl, err := ace.Load(filepath.Clean(path), "", &ace.Options{
+		tmpl, err := ace.Load(path, "", &ace.Options{
 			Extension: " ",
 			FuncMap:   e.funcs,
 		})
@@ -77,7 +77,7 @@ func (e *Engine) load() error {
 		}
 		e.Templates[name] = tmpl
 		// Debugging
-		fmt.Printf("[Engine] Registered view: %s\n", name)
+		fmt.Printf("[Engine] Registered view: %s\n", path)
 		return err
 	})
 	return err

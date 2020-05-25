@@ -15,4 +15,4 @@ jobs:
     - name: Fetch Repository
       uses: actions/checkout@v2
     - name: Run Test
-      run: go test ./... -race
+      run: go test ./... -race -v
