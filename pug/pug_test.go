@@ -20,7 +20,7 @@ func Test_Pug_Render(t *testing.T) {
 	})
 	expect := `<h2>Header</h2> <h1>Hello, World!</h1> <h2>Footer</h2>`
 
-	result := strings.ReplaceAll(trim(buf.String()), " </h1>", "</h1>")
+	result := strings.Replace(trim(buf.String()), " </h1>", "</h1>", -1)
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
