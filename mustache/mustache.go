@@ -1,48 +1,46 @@
-package ace
+package mustache
 
 import (
 	"fmt"
-	"html/template"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/yosssi/ace"
+	"github.com/cbroglie/mustache"
 )
 
 // Engine struct
 type Engine struct {
 	directory string
 	extension string
-	funcs     map[string]interface{}
 
-	Templates map[string]*template.Template
+	Templates map[string]*mustache.Template
 }
 
-// New returns a Ace render engine for Fiber
+// New returns a Handlebar render engine for Fiber
 func New(directory, extension string, funcmap ...map[string]interface{}) *Engine {
 	engine := &Engine{
 		directory: directory,
 		extension: extension,
-		funcs:     make(map[string]interface{}),
-		Templates: make(map[string]*template.Template),
+
+		Templates: make(map[string]*mustache.Template),
 	}
 	if len(funcmap) > 0 {
-		engine.funcs = funcmap[0]
+		//raymond.RegisterHelpers(funcmap[0])
 	}
 	if err := engine.load(); err != nil {
-		log.Fatalf("ace.New(): %v", err)
+		log.Fatalf("mustache.New(): %v", err)
 	}
 	return engine
 }
 
-// load parses the templates to the engine.
+// Load parses the templates to the engine.
 func (e *Engine) load() error {
 	// Loop trough each directory and register template files
 	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
-		path = strings.TrimRight(path, ".")
 		// Return error if exist
 		if err != nil {
 			return err
@@ -68,11 +66,17 @@ func (e *Engine) load() error {
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
 		name = strings.Replace(name, e.extension, "", -1)
-		// Currently ACE has no partial include support
-		tmpl, err := ace.Load(strings.Replace(path, e.extension, "", -1), "", &ace.Options{
-			Extension: e.extension[1:],
-			FuncMap:   e.funcs,
-		})
+		// Read the file
+		// #gosec G304
+		buf, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		// Create new template associated with the current one
+		// This enable use to invoke other templates {{ template .. }}
+		tmpl, err := mustache.ParseString(string(buf))
+		//mustache.ParseStringPartials()
+
 		if err != nil {
 			return err
 		}
@@ -90,5 +94,10 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}) error {
 	if !ok {
 		return fmt.Errorf("Template %s does not exist", name)
 	}
-	return tmpl.Execute(out, binding)
+	parsed, err := tmpl.Render(binding)
+	if err != nil {
+		return err
+	}
+	_, err = out.Write([]byte(parsed))
+	return err
 }
