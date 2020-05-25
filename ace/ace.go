@@ -42,6 +42,7 @@ func New(directory, extension string, funcmap ...map[string]interface{}) *Engine
 func (e *Engine) load() error {
 	// Loop trough each directory and register template files
 	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
+		path = strings.TrimRight(path, ".")
 		// Return error if exist
 		if err != nil {
 			return err

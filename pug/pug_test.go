@@ -18,9 +18,9 @@ func Test_Pug_Render(t *testing.T) {
 	engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
 	})
-	expect := `<h2>Header</h2> <h1>Hello, World! </h1> <h2>Footer</h2>`
+	expect := `<h2>Header</h2> <h1>Hello, World!</h1> <h2>Footer</h2>`
 
-	result := trim(buf.String())
+	result := strings.ReplaceAll(trim(buf.String()), " </h1>", "</h1>")
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
