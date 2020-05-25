@@ -1,5 +1,6 @@
 ### Template Engines for Fiber v1.10.0
-This package contains 7 template engines that can be used with [Fiber v1.10.0](https://github.com/gofiber/fiber)
+This package contains 8 template engines that can be used with [Fiber v1.10.0](https://github.com/gofiber/fiber)
+Go version `1.13` or higher is required.
 
 ### Installation
 ```
