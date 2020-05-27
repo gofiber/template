@@ -4,6 +4,7 @@ Go version `1.13` or higher is required.
 
 ### Installation
 ```
+go get github.com/gofiber/fiber@v1.10.0
 go get github.com/gofiber/template
 ```
 
