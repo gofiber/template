@@ -1,7 +1,6 @@
 package html
 
 import (
-	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -77,7 +76,7 @@ func (e *Engine) load() error {
 			return err
 		}
 		// Debugging
-		fmt.Printf("[Engine] Registered view: %s\n", name)
+		//fmt.Printf("[Engine] Registered view: %s\n", name)
 		return err
 	})
 	return err

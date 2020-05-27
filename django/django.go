@@ -79,7 +79,7 @@ func (e *Engine) load() error {
 		}
 		e.Templates[name] = tmpl
 		// Debugging
-		fmt.Printf("[Engine] Registered view: %s\n", name)
+		//fmt.Printf("[Engine] Registered view: %s\n", name)
 		return err
 	})
 	return err
