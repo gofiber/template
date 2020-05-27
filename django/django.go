@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aymerick/raymond"
 	"github.com/flosch/pongo2"
 )
 
@@ -30,7 +29,7 @@ func New(directory, extension string, funcmap ...map[string]interface{}) *Engine
 		Templates: make(map[string]*pongo2.Template),
 	}
 	if len(funcmap) > 0 {
-		raymond.RegisterHelpers(funcmap[0])
+		// pongo2.RegisterFilter()
 	}
 	if err := engine.load(); err != nil {
 		log.Fatalf("django.New(): %v", err)
