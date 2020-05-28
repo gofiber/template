@@ -1,4 +1,9 @@
-### Template Engines for Fiber v1.10.0
+# Template
+
+![Test](https://github.com/gofiber/template/workflows/Test/badge.svg)
+![Security](https://github.com/gofiber/template/workflows/Security/badge.svg)
+![Linter](https://github.com/gofiber/template/workflows/Linter/badge.svg)
+
 This package contains 8 template engines that can be used with [Fiber v1.10.0](https://github.com/gofiber/fiber)
 Go version `1.13` or higher is required.
 
