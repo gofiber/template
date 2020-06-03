@@ -28,14 +28,14 @@ func New(directory, extension string, funcmap ...map[string]interface{}) *Engine
 	if len(funcmap) > 0 {
 		engine.Templates.Funcs(funcmap[0])
 	}
-	if err := engine.load(); err != nil {
+	if err := engine.Parse(); err != nil {
 		log.Fatalf("html.New(): %v", err)
 	}
 	return engine
 }
 
-// load parses the templates to the engine.
-func (e *Engine) load() error {
+// Parse parses the templates to the engine.
+func (e *Engine) Parse() error {
 	// Loop trough each directory and register template files
 	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
