@@ -2,6 +2,7 @@ package jet
 
 import (
 	"io"
+	"log"
 
 	"github.com/CloudyKit/jet"
 )
@@ -19,14 +20,22 @@ func New(directory, extension string, funcmap ...map[string]interface{}) *Engine
 	engine := &Engine{
 		directory: directory,
 		extension: extension,
-		Templates: jet.NewHTMLSet(directory),
 	}
 	if len(funcmap) > 0 {
 		for key, value := range funcmap[0] {
 			engine.Templates.AddGlobal(key, value)
 		}
 	}
+	if err := engine.Parse(); err != nil {
+		log.Fatalf("jet.New(): %v", err)
+	}
 	return engine
+}
+
+// Parse parses the templates to the engine.
+func (e *Engine) Parse() error {
+	e.Templates = jet.NewHTMLSet(e.directory)
+	return nil
 }
 
 func getJetBinding(binding interface{}) jet.VarMap {
