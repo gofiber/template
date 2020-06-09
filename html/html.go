@@ -23,12 +23,14 @@ type Engine struct {
 	options []string
 	// template funcmap
 	funcmap map[string]interface{}
-
+	// reload on each render
+	reload bool
+	// templates
 	Templates *template.Template
 }
 
 // New returns a HTML render engine for Fiber
-func New(directory, extension string, funcmap ...map[string]interface{}) *Engine {
+func New(directory, extension string) *Engine {
 	e := &Engine{
 		left:      "{{",
 		right:     "}}",
@@ -36,10 +38,6 @@ func New(directory, extension string, funcmap ...map[string]interface{}) *Engine
 		extension: extension,
 		funcmap:   make(map[string]interface{}),
 		Templates: template.New(directory),
-	}
-	if len(funcmap) > 0 {
-		fmt.Println("funcmap argument is deprecated, please us engine.AddFunc")
-		e.funcmap = funcmap[0]
 	}
 	e.AddFunc("yield", func() error {
 		return fmt.Errorf("yield called unexpectedly.")
@@ -65,6 +63,12 @@ func (e *Engine) Delims(left, right string) *Engine {
 // AddFunc adds the function to the template's function map.
 func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
 	e.funcmap[name] = fn
+	return e
+}
+
+// Reload if set to true the templates are reloading on each render
+func (e *Engine) Reload(enabled bool) *Engine {
+	e.reload = enabled
 	return e
 }
 
@@ -123,6 +127,12 @@ func (e *Engine) Load() error {
 
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
+	// reload the views
+	if e.reload {
+		if err := e.Load(); err != nil {
+			return err
+		}
+	}
 	// Render layouts if provided
 	if len(layouts) > 0 {
 		for i := range layouts {
