@@ -123,13 +123,13 @@ func (e *Engine) Load() error {
 
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
-	// Render layouts
+	// Render layouts if provided
 	if len(layouts) > 0 {
 		for i := range layouts {
 			// Find layout
 			tmpl := e.Templates.Lookup(layouts[i])
 			if tmpl != nil {
-				// Add custom yield function to layour
+				// Add custom yield function to layout
 				tmpl.Funcs(map[string]interface{}{
 					"yield": func() error {
 						return e.Templates.ExecuteTemplate(out, template, binding)
