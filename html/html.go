@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // Engine struct
@@ -19,19 +20,21 @@ type Engine struct {
 	directory string
 	// views extension
 	extension string
-	// template options
-	options []string
-	// template funcmap
-	funcmap map[string]interface{}
 	// reload on each render
 	reload bool
+	// debug prints the parsed templates
+	debug bool
+	// lock for funcmap and templates
+	mutex sync.RWMutex
+	// template funcmap
+	funcmap map[string]interface{}
 	// templates
 	Templates *template.Template
 }
 
 // New returns a HTML render engine for Fiber
 func New(directory, extension string) *Engine {
-	e := &Engine{
+	engine := &Engine{
 		left:      "{{",
 		right:     "}}",
 		directory: directory,
@@ -39,17 +42,10 @@ func New(directory, extension string) *Engine {
 		funcmap:   make(map[string]interface{}),
 		Templates: template.New(directory),
 	}
-	e.AddFunc("yield", func() error {
+	engine.AddFunc("yield", func() error {
 		return fmt.Errorf("yield called unexpectedly.")
 	})
-	return e
-}
-
-// Option sets options for the template. Options are described by
-// strings, either a simple string or "key=value".
-func (e *Engine) Option(opt ...string) *Engine {
-	e.options = append(e.options, opt...)
-	return e
+	return engine
 }
 
 // Delims sets the action delimiters to the specified strings, to be used in
@@ -61,22 +57,36 @@ func (e *Engine) Delims(left, right string) *Engine {
 }
 
 // AddFunc adds the function to the template's function map.
+// It is legal to overwrite elements of the default actions
 func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
+	e.mutex.Lock()
 	e.funcmap[name] = fn
+	e.mutex.Unlock()
 	return e
 }
 
-// Reload if set to true the templates are reloading on each render
+// Reload if set to true the templates are reloading on each render,
+// use it when you're in development and you don't want to restart
+// the application when you edit a template file.
 func (e *Engine) Reload(enabled bool) *Engine {
 	e.reload = enabled
 	return e
 }
 
+// Debug will print the parsed templates when Load is triggered.
+func (e *Engine) Debug(enabled bool) *Engine {
+	e.debug = enabled
+	return e
+}
+
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
+	// race safe
+	e.mutex.Lock()
+	defer e.mutex.Unlock()
+
 	// Set template settings
 	e.Templates.Delims(e.left, e.right)
-	e.Templates.Option(e.options...)
 	e.Templates.Funcs(e.funcmap)
 
 	// Loop trough each directory and register template files
@@ -119,7 +129,9 @@ func (e *Engine) Load() error {
 			return err
 		}
 		// Debugging
-		// fmt.Printf("[Engine] Registered view: %s\n", name)
+		if e.debug {
+			fmt.Printf("views: parsed template: %s\n", name)
+		}
 		return err
 	})
 	return err

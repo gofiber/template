@@ -4,41 +4,59 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/cbroglie/mustache"
 )
 
 // Engine struct
 type Engine struct {
+	// views folder
 	directory string
+	// views extension
 	extension string
-
+	// reload on each render
+	reload bool
+	// debug prints the parsed templates
+	debug bool
+	// lock for funcmap and templates
+	mutex sync.RWMutex
+	// templates
 	Templates map[string]*mustache.Template
 }
 
 // New returns a Handlebar render engine for Fiber
-func New(directory, extension string, funcmap ...map[string]interface{}) *Engine {
+func New(directory, extension string) *Engine {
 	engine := &Engine{
 		directory: directory,
 		extension: extension,
-
 		Templates: make(map[string]*mustache.Template),
-	}
-	if len(funcmap) > 0 {
-		//raymond.RegisterHelpers(funcmap[0])
-	}
-	if err := engine.Parse(); err != nil {
-		log.Fatalf("mustache.New(): %v", err)
 	}
 	return engine
 }
 
-// Parse parses the templates to the engine.
-func (e *Engine) Parse() error {
+// Reload if set to true the templates are reloading on each render,
+// use it when you're in development and you don't want to restart
+// the application when you edit a template file.
+func (e *Engine) Reload(enabled bool) *Engine {
+	e.reload = enabled
+	return e
+}
+
+// Debug will print the parsed templates when Load is triggered.
+func (e *Engine) Debug(enabled bool) *Engine {
+	e.debug = enabled
+	return e
+}
+
+// Load parses the templates to the engine.
+func (e *Engine) Load() error {
+	// race safe
+	e.mutex.Lock()
+	defer e.mutex.Unlock()
 	// Loop trough each directory and register template files
 	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
@@ -82,17 +100,25 @@ func (e *Engine) Parse() error {
 		}
 		e.Templates[name] = tmpl
 		// Debugging
-		//fmt.Printf("[Engine] Registered view: %s\n", name)
+		if e.debug {
+			fmt.Printf("views: parsed template: %s\n", name)
+		}
 		return err
 	})
 	return err
 }
 
 // Execute will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding interface{}) error {
-	tmpl, ok := e.Templates[name]
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
+	// reload the views
+	if e.reload {
+		if err := e.Load(); err != nil {
+			return err
+		}
+	}
+	tmpl, ok := e.Templates[template]
 	if !ok {
-		return fmt.Errorf("Template %s does not exist", name)
+		return fmt.Errorf("render: template %s does not exist", template)
 	}
 	parsed, err := tmpl.Render(binding)
 	if err != nil {

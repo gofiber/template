@@ -13,6 +13,9 @@ func trim(str string) string {
 
 func Test_Mustache_Render(t *testing.T) {
 	engine := New("./views", ".mustache")
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
 	// Partials
 	var buf bytes.Buffer
 	engine.Render(&buf, "index", map[string]interface{}{

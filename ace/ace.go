@@ -4,42 +4,92 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/yosssi/ace"
 )
 
 // Engine struct
 type Engine struct {
+	// delimiters
+	left  string
+	right string
+	// views folder
 	directory string
+	// views extension
 	extension string
-	funcs     map[string]interface{}
-
+	// reload on each render
+	reload bool
+	// debug prints the parsed templates
+	debug bool
+	// lock for funcmap and templates
+	mutex sync.RWMutex
+	// template funcmap
+	funcmap map[string]interface{}
+	// templates
 	Templates map[string]*template.Template
 }
 
 // New returns a Ace render engine for Fiber
-func New(directory, extension string, funcmap ...map[string]interface{}) *Engine {
+func New(directory, extension string) *Engine {
 	engine := &Engine{
+		left:      "{{",
+		right:     "}}",
 		directory: directory,
 		extension: extension,
-		funcs:     make(map[string]interface{}),
+		funcmap:   make(map[string]interface{}),
 		Templates: make(map[string]*template.Template),
 	}
-	if len(funcmap) > 0 {
-		engine.funcs = funcmap[0]
-	}
-	if err := engine.Parse(); err != nil {
-		log.Fatalf("ace.New(): %v", err)
-	}
+	engine.AddFunc("yield", func() error {
+		return fmt.Errorf("yield called unexpectedly.")
+	})
 	return engine
 }
 
-// Parse parses the templates to the engine.
-func (e *Engine) Parse() error {
+// Delims sets the action delimiters to the specified strings, to be used in
+// templates. An empty delimiter stands for the
+// corresponding default: {{ or }}.
+func (e *Engine) Delims(left, right string) *Engine {
+	e.left, e.right = left, right
+	return e
+}
+
+// AddFunc adds the function to the template's function map.
+// It is legal to overwrite elements of the default actions
+func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
+	e.mutex.Lock()
+	e.funcmap[name] = fn
+	e.mutex.Unlock()
+	return e
+}
+
+// Reload if set to true the templates are reloading on each render,
+// use it when you're in development and you don't want to restart
+// the application when you edit a template file.
+func (e *Engine) Reload(enabled bool) *Engine {
+	e.reload = enabled
+	return e
+}
+
+// Debug will print the parsed templates when Load is triggered.
+func (e *Engine) Debug(enabled bool) *Engine {
+	e.debug = enabled
+	return e
+}
+
+// Load parses the templates to the engine.
+func (e *Engine) Load() error {
+	// race safe
+	e.mutex.Lock()
+	defer e.mutex.Unlock()
+
+	// Set template settings
+	// e.Templates.Delims(e.left, e.right)
+	// e.Templates.Funcs(e.funcmap)
+
 	// Loop trough each directory and register template files
 	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
 		path = strings.TrimRight(path, ".")
@@ -70,25 +120,35 @@ func (e *Engine) Parse() error {
 		name = strings.Replace(name, e.extension, "", -1)
 		// Currently ACE has no partial include support
 		tmpl, err := ace.Load(strings.Replace(path, e.extension, "", -1), "", &ace.Options{
-			Extension: e.extension[1:],
-			FuncMap:   e.funcs,
+			Extension:  e.extension[1:],
+			FuncMap:    e.funcmap,
+			DelimLeft:  e.left,
+			DelimRight: e.right,
 		})
 		if err != nil {
 			return err
 		}
 		e.Templates[name] = tmpl
 		// Debugging
-		//fmt.Printf("[Engine] Registered view: %s\n", name)
+		if e.debug {
+			fmt.Printf("views: parsed template: %s\n", name)
+		}
 		return err
 	})
 	return err
 }
 
 // Execute will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding interface{}) error {
-	tmpl, ok := e.Templates[name]
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
+	// reload the views
+	if e.reload {
+		if err := e.Load(); err != nil {
+			return err
+		}
+	}
+	tmpl, ok := e.Templates[template]
 	if !ok {
-		return fmt.Errorf("Template %s does not exist", name)
+		return fmt.Errorf("Template %s does not exist", template)
 	}
 	return tmpl.Execute(out, binding)
 }

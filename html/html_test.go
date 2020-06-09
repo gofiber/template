@@ -74,26 +74,6 @@ func Test_HTML_AddFunc(t *testing.T) {
 	}
 }
 
-func Test_HTML_Option(t *testing.T) {
-	engine := New("./views", ".html")
-	engine.AddFunc("isAdmin", func(user string) bool {
-		return user == "admin"
-	})
-	engine.Option("title=invalid")
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
-
-	// Option
-	var buf bytes.Buffer
-	engine.Render(&buf, "index", map[string]interface{}{})
-	expect := `<h2>Header</h2> <h1>Hello, World!</h1> <h2>Footer</h2>`
-	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
-}
-
 func Test_HTML_Layout(t *testing.T) {
 	engine := New("./views", ".html")
 
