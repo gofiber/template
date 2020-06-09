@@ -86,10 +86,6 @@ func (e *Engine) Load() error {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
-	// Set template settings
-	// e.Templates.Delims(e.left, e.right)
-	// e.Templates.Funcs(e.funcmap)
-
 	// Loop trough each directory and register template files
 	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
 		path = strings.TrimRight(path, ".")
