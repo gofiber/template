@@ -1,10 +1,10 @@
 package html
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,30 +12,69 @@ import (
 
 // Engine struct
 type Engine struct {
+	// delimiters
+	left  string
+	right string
+	// views folder
 	directory string
+	// views extension
 	extension string
+	// template options
+	options []string
+	// template funcmap
+	funcmap map[string]interface{}
 
 	Templates *template.Template
 }
 
 // New returns a HTML render engine for Fiber
 func New(directory, extension string, funcmap ...map[string]interface{}) *Engine {
-	engine := &Engine{
+	e := &Engine{
+		left:      "{{",
+		right:     "}}",
 		directory: directory,
 		extension: extension,
+		funcmap:   make(map[string]interface{}),
 		Templates: template.New(directory),
 	}
 	if len(funcmap) > 0 {
-		engine.Templates.Funcs(funcmap[0])
+		fmt.Println("funcmap argument is deprecated, please us engine.AddFunc")
+		e.funcmap = funcmap[0]
 	}
-	if err := engine.Parse(); err != nil {
-		log.Fatalf("html.New(): %v", err)
-	}
-	return engine
+	e.AddFunc("yield", func() error {
+		return fmt.Errorf("yield called unexpectedly.")
+	})
+	return e
 }
 
-// Parse parses the templates to the engine.
-func (e *Engine) Parse() error {
+// Option sets options for the template. Options are described by
+// strings, either a simple string or "key=value".
+func (e *Engine) Option(opt ...string) *Engine {
+	e.options = append(e.options, opt...)
+	return e
+}
+
+// Delims sets the action delimiters to the specified strings, to be used in
+// templates. An empty delimiter stands for the
+// corresponding default: {{ or }}.
+func (e *Engine) Delims(left, right string) *Engine {
+	e.left, e.right = left, right
+	return e
+}
+
+// AddFunc adds the function to the template's function map.
+func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
+	e.funcmap[name] = fn
+	return e
+}
+
+// Load parses the templates to the engine.
+func (e *Engine) Load() error {
+	// Set template settings
+	e.Templates.Delims(e.left, e.right)
+	e.Templates.Option(e.options...)
+	e.Templates.Funcs(e.funcmap)
+
 	// Loop trough each directory and register template files
 	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
@@ -76,13 +115,34 @@ func (e *Engine) Parse() error {
 			return err
 		}
 		// Debugging
-		//fmt.Printf("[Engine] Registered view: %s\n", name)
+		// fmt.Printf("[Engine] Registered view: %s\n", name)
 		return err
 	})
 	return err
 }
 
-// Execute will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding interface{}) error {
-	return e.Templates.ExecuteTemplate(out, name, binding)
+// Render will execute the template name along with the given values.
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
+	// Render layouts
+	if len(layouts) > 0 {
+		for i := range layouts {
+			// Find layout
+			tmpl := e.Templates.Lookup(layouts[i])
+			if tmpl != nil {
+				// Add custom yield function to layour
+				tmpl.Funcs(map[string]interface{}{
+					"yield": func() error {
+						return e.Templates.ExecuteTemplate(out, template, binding)
+					},
+				})
+				// Execute layout
+				if err := e.Templates.ExecuteTemplate(out, layouts[i], binding); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+	// No layouts
+	return e.Templates.ExecuteTemplate(out, template, binding)
 }
