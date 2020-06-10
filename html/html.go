@@ -94,11 +94,15 @@ func (e *Engine) Parse() error {
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if len(layout) > 0 {
 		tmpl := e.Templates.Lookup(layout[0])
+		if tmpl == nil {
+			return fmt.Errorf("missing layout %v", layout[0])
+		}
 		tmpl.Funcs(template.FuncMap{
 			"yield": func() error {
 				return e.Templates.ExecuteTemplate(out, name, binding)
 			},
 		})
+
 		return e.Templates.ExecuteTemplate(out, layout[0], binding)
 	}
 	return e.Templates.ExecuteTemplate(out, name, binding)
