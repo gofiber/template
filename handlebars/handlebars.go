@@ -64,6 +64,12 @@ func (e *Engine) Debug(enabled bool) *Engine {
 	return e
 }
 
+// Parse is deprecated, please use Load() instead
+func (e *Engine) Parse() error {
+	fmt.Println("Parse() is deprecated, please use Load() instead.")
+	return e.Load()
+}
+
 // Parse parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
@@ -122,7 +128,7 @@ func (e *Engine) Load() error {
 }
 
 // Execute will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
@@ -131,38 +137,36 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	}
 	tmpl, ok := e.Templates[template]
 	if !ok {
-		return fmt.Errorf("render: emplate %s does not exist", template)
+		return fmt.Errorf("render: template %s does not exist", template)
 	}
 	parsed, err := tmpl.Exec(binding)
 	if err != nil {
 		return err
 	}
 	// Render layouts if provided
-	if len(layouts) > 0 {
+	if len(layout) > 0 {
 		var context map[string]interface{}
 		if binding == nil {
 			context = make(map[string]interface{}, 1)
 		} else if m, ok := binding.(map[string]interface{}); ok {
 			context = m
 		}
-		// raymond.RegisterPartialTemplate(name, tmpl)
 		context["yield"] = raymond.SafeString(parsed)
 		if err != nil {
 			return err
 		}
-		for i := range layouts {
-			// Find layout
-			lay, ok := e.Templates[layouts[i]]
-			if ok {
-				parsed, err := lay.Exec(binding)
-				if err != nil {
-					return err
-				}
-				_, err = out.Write([]byte(parsed))
-				if err != nil {
-					return err
-				}
-			}
+
+		lay := e.Templates[layout[0]]
+		if lay == nil {
+			return fmt.Errorf("render: layout %s does not exist", layout[0])
+		}
+		parsed, err := lay.Exec(binding)
+		if err != nil {
+			return err
+		}
+		_, err = out.Write([]byte(parsed))
+		if err != nil {
+			return err
 		}
 		return nil
 	}

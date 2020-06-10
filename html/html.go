@@ -79,6 +79,12 @@ func (e *Engine) Debug(enabled bool) *Engine {
 	return e
 }
 
+// Parse is deprecated, please use Load() instead
+func (e *Engine) Parse() error {
+	fmt.Println("Parse() is deprecated, please use Load() instead.")
+	return e.Load()
+}
+
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
@@ -138,33 +144,28 @@ func (e *Engine) Load() error {
 }
 
 // Render will execute the template name along with the given values.
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
-	// Render layouts if provided
-	if len(layouts) > 0 {
-		for i := range layouts {
-			// Find layout
-			tmpl := e.Templates.Lookup(layouts[i])
-			if tmpl != nil {
-				// Add custom yield function to layout
-				tmpl.Funcs(map[string]interface{}{
-					"yield": func() error {
-						return e.Templates.ExecuteTemplate(out, template, binding)
-					},
-				})
-				// Execute layout
-				if err := e.Templates.ExecuteTemplate(out, layouts[i], binding); err != nil {
-					return err
-				}
-			}
+	// Render layout if provided
+	if len(layout) > 0 {
+		// Find layout
+		lay := e.Templates.Lookup(layout[0])
+		if lay == nil {
+			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
-		return nil
+		// Add custom yield function to layout
+		lay.Funcs(map[string]interface{}{
+			"yield": func() error {
+				return e.Templates.ExecuteTemplate(out, template, binding)
+			},
+		})
+		return lay.Execute(out, binding)
 	}
-	// No layouts
+	// No layout
 	return e.Templates.ExecuteTemplate(out, template, binding)
 }

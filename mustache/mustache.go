@@ -52,6 +52,12 @@ func (e *Engine) Debug(enabled bool) *Engine {
 	return e
 }
 
+// Parse is deprecated, please use Load() instead
+func (e *Engine) Parse() error {
+	fmt.Println("Parse() is deprecated, please use Load() instead.")
+	return e.Load()
+}
+
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
@@ -94,7 +100,6 @@ func (e *Engine) Load() error {
 		// This enable use to invoke other templates {{ template .. }}
 		tmpl, err := mustache.ParseString(string(buf))
 		//mustache.ParseStringPartials()
-
 		if err != nil {
 			return err
 		}
@@ -109,21 +114,23 @@ func (e *Engine) Load() error {
 }
 
 // Execute will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
-	tmpl, ok := e.Templates[template]
-	if !ok {
+	tmpl := e.Templates[template]
+	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", template)
 	}
-	parsed, err := tmpl.Render(binding)
-	if err != nil {
-		return err
+	if len(layout) > 0 {
+		lay := e.Templates[layout[0]]
+		if lay == nil {
+			return fmt.Errorf("render: layout %s does not exist", layout[0])
+		}
+		return tmpl.FRenderInLayout(out, lay, binding)
 	}
-	_, err = out.Write([]byte(parsed))
-	return err
+	return tmpl.FRender(out, binding)
 }

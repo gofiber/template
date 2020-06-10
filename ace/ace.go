@@ -80,6 +80,12 @@ func (e *Engine) Debug(enabled bool) *Engine {
 	return e
 }
 
+// Parse is deprecated, please use Load() instead
+func (e *Engine) Parse() error {
+	fmt.Println("Parse() is deprecated, please use Load() instead.")
+	return e.Load()
+}
+
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
@@ -135,7 +141,7 @@ func (e *Engine) Load() error {
 }
 
 // Execute will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {

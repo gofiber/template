@@ -93,15 +93,4 @@ func Test_HTML_Layout(t *testing.T) {
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
-
-	// Nested Layout
-	buf.Reset()
-	engine.Render(&buf, "index", map[string]interface{}{
-		"Title": "Hello, World!",
-	}, "layouts/main", "layouts/nested")
-	expect = `<!DOCTYPE html> <html> <head> <title>Main</title> </head> <body> <h2>Header</h2> <h1>Hello, World!</h1> <h2>Footer</h2> </body> </html><div id="nest"><h2>Header</h2> <h1>Hello, World!</h1> <h2>Footer</h2></div>`
-	result = trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
 }

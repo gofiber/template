@@ -77,6 +77,12 @@ func (e *Engine) Debug(enabled bool) *Engine {
 	return e
 }
 
+// Parse is deprecated, please use Load() instead
+func (e *Engine) Parse() error {
+	fmt.Println("Parse() is deprecated, please use Load() instead.")
+	return e.Load()
+}
+
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
@@ -146,11 +152,14 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	if binds, ok := binding.(pongo2.Context); ok {
 		return binds
 	}
-	return binding.(map[string]interface{})
+	if binds, ok := binding.(map[string]interface{}); ok {
+		return binds
+	}
+	return nil
 }
 
 // Execute will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layouts ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
@@ -159,32 +168,27 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	}
 	tmpl, ok := e.Templates[template]
 	if !ok {
-		return fmt.Errorf("Template %s does not exist", template)
+		return fmt.Errorf("template %s does not exist", template)
 	}
+	context := getPongoBinding(binding)
+
 	// Render layouts if provided
-	if len(layouts) > 0 {
+	if len(layout) > 0 {
 		parsed, err := tmpl.Execute(getPongoBinding(binding))
 		if err != nil {
 			return err
 		}
-		var context map[string]interface{}
-		if binding == nil {
+		if context == nil {
 			context = make(map[string]interface{}, 1)
-		} else if m, ok := binding.(map[string]interface{}); ok {
-			context = m
 		}
 		context["yield"] = parsed
-		for i := range layouts {
-			// Find layout
-			lay, ok := e.Templates[layouts[i]]
-			if ok {
-				if err := lay.ExecuteWriter(context, out); err != nil {
-					fmt.Println(err)
-					return err
-				}
-			}
+		// Find layout
+		lay := e.Templates[layout[0]]
+		if lay == nil {
+			return fmt.Errorf("layout %s does not exist", layout[0])
 		}
-		return nil
+		return lay.ExecuteWriter(context, out)
+
 	}
-	return tmpl.ExecuteWriter(getPongoBinding(binding), out)
+	return tmpl.ExecuteWriter(context, out)
 }
