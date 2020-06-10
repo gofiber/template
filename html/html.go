@@ -1,6 +1,7 @@
 package html
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -28,6 +29,13 @@ func New(directory, extension string, funcmap ...map[string]interface{}) *Engine
 	if len(funcmap) > 0 {
 		engine.Templates.Funcs(funcmap[0])
 	}
+	funcs := template.FuncMap{
+		"yield": func() error {
+			return fmt.Errorf("yield called unexpectedly.")
+		},
+	}
+	engine.Templates.Funcs(funcs)
+
 	if err := engine.Parse(); err != nil {
 		log.Fatalf("html.New(): %v", err)
 	}
@@ -83,6 +91,15 @@ func (e *Engine) Parse() error {
 }
 
 // Execute will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding interface{}) error {
+func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
+	if len(layout) > 0 {
+		tmpl := e.Templates.Lookup(layout[0])
+		tmpl.Funcs(template.FuncMap{
+			"yield": func() error {
+				return e.Templates.ExecuteTemplate(out, name, binding)
+			},
+		})
+		return e.Templates.ExecuteTemplate(out, layout[0], binding)
+	}
 	return e.Templates.ExecuteTemplate(out, name, binding)
 }
