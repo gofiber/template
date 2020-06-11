@@ -113,6 +113,7 @@ func (e *Engine) Load() error {
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
 		name = strings.Replace(name, e.extension, "", -1)
+
 		// Read the file
 		// #gosec G304
 		buf, err := ioutil.ReadFile(path)
@@ -122,17 +123,25 @@ func (e *Engine) Load() error {
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
 		tmpl, err := raymond.Parse(string(buf))
-		raymond.RegisterPartialTemplate(name, tmpl)
 		if err != nil {
 			return err
 		}
+		// This will panic, see solution at the end of the function
+		// raymond.RegisterPartialTemplate(name, tmpl)
 		e.Templates[name] = tmpl
+
 		// Debugging
 		if e.debug {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	})
+	// Register all templates with each other
+	for i := range e.Templates {
+		for n, t := range e.Templates {
+			e.Templates[i].RegisterPartialTemplate(n, t)
+		}
+	}
 	return err
 }
 
