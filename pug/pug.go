@@ -23,6 +23,8 @@ type Engine struct {
 	directory string
 	// views extension
 	extension string
+	// layout variable name that incapsulates the template
+	layout string
 	// reload on each render
 	reload bool
 	// debug prints the parsed templates
@@ -42,13 +44,20 @@ func New(directory, extension string) *Engine {
 		right:     "}}",
 		directory: directory,
 		extension: extension,
+		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
 		Templates: template.New(directory),
 	}
-	engine.AddFunc("yield", func() error {
-		return fmt.Errorf("yield called unexpectedly.")
+	engine.AddFunc(engine.layout, func() error {
+		return fmt.Errorf("layout called unexpectedly.")
 	})
 	return engine
+}
+
+// Layout defines the variable name that will incapsulate the template
+func (e *Engine) Layout(key string) *Engine {
+	e.layout = key
+	return e
 }
 
 // Delims sets the action delimiters to the specified strings, to be used in
@@ -167,7 +176,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
 		lay.Funcs(map[string]interface{}{
-			"yield": func() error {
+			e.layout: func() error {
 				return tmpl.Execute(out, binding)
 			},
 		})

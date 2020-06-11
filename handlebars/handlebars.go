@@ -18,6 +18,8 @@ type Engine struct {
 	directory string
 	// views extension
 	extension string
+	// layout variable name that incapsulates the template
+	layout string
 	// reload on each render
 	reload bool
 	// debug prints the parsed templates
@@ -35,10 +37,17 @@ func New(directory, extension string) *Engine {
 	engine := &Engine{
 		directory: directory,
 		extension: extension,
+		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
 		Templates: make(map[string]*raymond.Template),
 	}
 	return engine
+}
+
+// Layout defines the variable name that will incapsulate the template
+func (e *Engine) Layout(key string) *Engine {
+	e.layout = key
+	return e
 }
 
 // AddFunc adds the function to the template's function map.
@@ -153,7 +162,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		} else if m, ok := binding.(map[string]interface{}); ok {
 			bind = m
 		}
-		bind["yield"] = raymond.SafeString(parsed)
+		bind[e.layout] = raymond.SafeString(parsed)
 		parsed, err := lay.Exec(bind)
 		if err != nil {
 			return err

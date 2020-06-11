@@ -18,6 +18,8 @@ type Engine struct {
 	directory string
 	// views extension
 	extension string
+	// layout variable name that incapsulates the template
+	layout string
 	// reload on each render
 	reload bool
 	// lock for funcmap and templates
@@ -50,12 +52,17 @@ func New(directory, extension string) *Engine {
 	engine := &Engine{
 		directory: directory,
 		extension: extension,
+		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
 	}
-	engine.AddFunc("yield", func() error {
-		return fmt.Errorf("yield called unexpectedly.")
-	})
+
 	return engine
+}
+
+// Layout defines the variable name that will incapsulate the template
+func (e *Engine) Layout(key string) *Engine {
+	e.layout = key
+	return e
 }
 
 // Delims sets the action delimiters to the specified strings, to be used in
@@ -129,8 +136,8 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		if err != nil {
 			return err
 		}
-		bind.Set("yield", func() error {
-			return tmpl.Execute(out, bind, nil)
+		bind.Set(e.layout, func() {
+			_ = tmpl.Execute(out, bind, nil)
 		})
 		return lay.Execute(out, bind, nil)
 	}

@@ -50,7 +50,7 @@ func Test_Jet_Layout(t *testing.T) {
 	engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
 	}, "layouts/main")
-	expect := `<!DOCTYPE html> <html> <head> <title>Main</title> </head> <body> <h2>Header</h2> <h1>Hello, World!</h1> <h2>Footer</h2> </body> </html>`
+	expect := `<!DOCTYPE html> <html> <head> <title>Title</title> </head> <body> <h2>Header</h2> <h1>Hello, World!</h1> <h2>Footer</h2> </body> </html>`
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)

@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/cbroglie/mustache"
+	"github.com/valyala/bytebufferpool"
 )
 
 // Engine struct
@@ -18,6 +19,8 @@ type Engine struct {
 	directory string
 	// views extension
 	extension string
+	// layout variable name that incapsulates the template
+	layout string
 	// reload on each render
 	reload bool
 	// debug prints the parsed templates
@@ -33,9 +36,16 @@ func New(directory, extension string) *Engine {
 	engine := &Engine{
 		directory: directory,
 		extension: extension,
+		layout:    "embed",
 		Templates: make(map[string]*mustache.Template),
 	}
 	return engine
+}
+
+// Layout defines the variable name that will incapsulate the template
+func (e *Engine) Layout(key string) *Engine {
+	e.layout = key
+	return e
 }
 
 // Reload if set to true the templates are reloading on each render,
@@ -125,11 +135,25 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		return fmt.Errorf("render: template %s does not exist", template)
 	}
 	if len(layout) > 0 {
+		buf := bytebufferpool.Get()
+		defer bytebufferpool.Put(buf)
+		if err := tmpl.FRender(buf, binding); err != nil {
+			return err
+		}
+		var bind map[string]interface{}
+		if bind == nil {
+			bind = make(map[string]interface{}, 1)
+		} else if context, ok := binding.(map[string]interface{}); ok {
+			bind = context
+		} else {
+			bind = make(map[string]interface{}, 1)
+		}
+		bind[e.layout] = buf.String()
 		lay := e.Templates[layout[0]]
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
-		return tmpl.FRenderInLayout(out, lay, binding)
+		return lay.FRender(out, bind)
 	}
 	return tmpl.FRender(out, binding)
 }
