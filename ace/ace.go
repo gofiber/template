@@ -148,9 +148,21 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl, ok := e.Templates[template]
-	if !ok {
-		return fmt.Errorf("Template %s does not exist", template)
+	tmpl := e.Templates[template]
+	if tmpl == nil {
+		return fmt.Errorf("render: template %s does not exist", template)
+	}
+	if len(layout) > 0 {
+		lay := e.Templates[layout[0]]
+		if lay == nil {
+			return fmt.Errorf("render: layout %s does not exist", layout[0])
+		}
+		lay.Funcs(map[string]interface{}{
+			"yield": func() error {
+				return tmpl.Execute(out, binding)
+			},
+		})
+		return lay.Execute(out, binding)
 	}
 	return tmpl.Execute(out, binding)
 }

@@ -129,7 +129,6 @@ func (e *Engine) Load() error {
 
 // Execute will render the template by name
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
-	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
 			return err
@@ -143,24 +142,19 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	if err != nil {
 		return err
 	}
-	// Render layouts if provided
 	if len(layout) > 0 {
-		var context map[string]interface{}
-		if binding == nil {
-			context = make(map[string]interface{}, 1)
-		} else if m, ok := binding.(map[string]interface{}); ok {
-			context = m
-		}
-		context["yield"] = raymond.SafeString(parsed)
-		if err != nil {
-			return err
-		}
-
 		lay := e.Templates[layout[0]]
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
-		parsed, err := lay.Exec(binding)
+		var bind map[string]interface{}
+		if binding == nil {
+			bind = make(map[string]interface{}, 1)
+		} else if m, ok := binding.(map[string]interface{}); ok {
+			bind = m
+		}
+		bind["yield"] = raymond.SafeString(parsed)
+		parsed, err := lay.Exec(bind)
 		if err != nil {
 			return err
 		}

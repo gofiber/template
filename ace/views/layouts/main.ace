@@ -1,6 +1,6 @@
-doctype html
+= doctype html
 html
   head
     title Main
   body
-    #{yield}
+    {{.yield}}

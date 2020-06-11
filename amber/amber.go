@@ -145,7 +145,6 @@ func (e *Engine) Load() error {
 
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
-	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
 			return err
@@ -155,18 +154,15 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", template)
 	}
-	// Render layout if provided
 	if len(layout) > 0 {
-		// Find layout
 		lay := e.Templates[layout[0]]
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
-		// Add custom yield function to layout
+		// TODO: Doesn't work, see amber_test.go#41
 		lay.Funcs(map[string]interface{}{
-			"yield": func() error {
-				return tmpl.ExecuteTemplate(out, template, binding)
-				//return tmpl.Execute(out, binding)
+			"Yield": func() error {
+				return tmpl.Execute(out, binding)
 			},
 		})
 		return lay.Execute(out, binding)

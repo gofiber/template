@@ -160,7 +160,6 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 
 // Execute will render the template by name
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
-	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
 			return err
@@ -170,25 +169,23 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	if !ok {
 		return fmt.Errorf("template %s does not exist", template)
 	}
-	context := getPongoBinding(binding)
-
-	// Render layouts if provided
+	bind := getPongoBinding(binding)
+	parsed, err := tmpl.Execute(bind)
+	if err != nil {
+		return err
+	}
 	if len(layout) > 0 {
-		parsed, err := tmpl.Execute(getPongoBinding(binding))
-		if err != nil {
-			return err
+		if bind == nil {
+			bind = make(map[string]interface{}, 1)
 		}
-		if context == nil {
-			context = make(map[string]interface{}, 1)
-		}
-		context["yield"] = parsed
-		// Find layout
+		bind["yield"] = parsed
 		lay := e.Templates[layout[0]]
 		if lay == nil {
 			return fmt.Errorf("layout %s does not exist", layout[0])
 		}
-		return lay.ExecuteWriter(context, out)
+		return lay.ExecuteWriter(bind, out)
 
 	}
-	return tmpl.ExecuteWriter(context, out)
+	_, err = out.Write([]byte(parsed))
+	return err
 }

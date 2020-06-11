@@ -115,7 +115,6 @@ func (e *Engine) Load() error {
 
 // Execute will render the template by name
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
-	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
 			return err

@@ -145,27 +145,26 @@ func (e *Engine) Load() error {
 
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
-	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
-	// Render layout if provided
+	tmpl := e.Templates.Lookup(template)
+	if tmpl == nil {
+		return fmt.Errorf("render: template %s does not exist", template)
+	}
 	if len(layout) > 0 {
-		// Find layout
 		lay := e.Templates.Lookup(layout[0])
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
-		// Add custom yield function to layout
 		lay.Funcs(map[string]interface{}{
 			"yield": func() error {
-				return e.Templates.ExecuteTemplate(out, template, binding)
+				return tmpl.Execute(out, binding)
 			},
 		})
 		return lay.Execute(out, binding)
 	}
-	// No layout
-	return e.Templates.ExecuteTemplate(out, template, binding)
+	return tmpl.Execute(out, binding)
 }
