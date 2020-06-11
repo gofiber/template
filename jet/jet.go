@@ -113,53 +113,43 @@ func (e *Engine) Load() error {
 
 // Execute will render the template by name
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
-	// reload the views
 	if e.reload {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
-	// load main template
 	tmpl, err := e.Templates.GetTemplate(template)
-	if err != nil {
-		return err
+	if err != nil || tmpl == nil {
+		return fmt.Errorf("render: template %s does not exist", template)
 	}
+	bind := jetVarMap(binding)
+	// TODO: layout does not work
 	// if len(layout) > 0 {
 	// 	lay, err := e.Templates.GetTemplate(layout[0])
 	// 	if err != nil {
-	// 		fmt.Println(err)
 	// 		return err
 	// 	}
-	// 	buf := bytebufferpool.Get()
-	// 	defer bytebufferpool.Put(buf)
-
-	// 	binds := jetVarMap(binding)
-	// 	fmt.Println("binds, ", binds)
-	// 	if err := tmpl.Execute(buf, binds, nil); err != nil {
-	// 		fmt.Println(err)
-	// 		return err
-	// 	}
-
-	// 	binds.Set("Content", html.UnescapeString(buf.String()))
-	// 	return lay.Execute(out, binds, nil)
+	// 	context := bind
+	// 	context.Set("yield", func() error {
+	// 		return tmpl.Execute(out, bind, nil)
+	// 	})
+	// 	return lay.Execute(out, context, nil)
 	// }
-	return tmpl.Execute(out, jetVarMap(binding), nil)
+	return tmpl.Execute(out, bind, nil)
 }
 
 func jetVarMap(binding interface{}) jet.VarMap {
-	var jetVarMap jet.VarMap
-	if binding != nil {
-		if binds, ok := binding.(jet.VarMap); ok {
-			jetVarMap = binds
-		} else {
-			binds, ok := binding.(map[string]interface{})
-			if ok {
-				jetVarMap = make(jet.VarMap)
-				for key, value := range binds {
-					jetVarMap.Set(key, value)
-				}
-			}
-		}
+	var bind jet.VarMap
+	if binding == nil {
+		return bind
 	}
-	return jetVarMap
+	if binds, ok := binding.(map[string]interface{}); ok {
+		bind = make(jet.VarMap)
+		for key, value := range binds {
+			bind.Set(key, value)
+		}
+	} else if binds, ok := binding.(jet.VarMap); ok {
+		bind = binds
+	}
+	return bind
 }

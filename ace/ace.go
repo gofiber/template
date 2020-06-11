@@ -152,6 +152,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", template)
 	}
+	// TODO: layout does not work
 	if len(layout) > 0 {
 		lay := e.Templates[layout[0]]
 		if lay == nil {
