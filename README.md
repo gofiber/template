@@ -37,21 +37,21 @@ func main() {
 	// engine := amber.New("./views", ".amber")
 	// engine := django.New("./views", ".django")
 	// engine := handlebars.New("./views", ".hbs")
-  // engine := jet.New("./views", ".jet")
+	// engine := jet.New("./views", ".jet")
 	// engine := mustache.New("./views", ".mustache")
-  // engine := pug.New("./views", ".pug")
+	// engine := pug.New("./views", ".pug")
   
   engine := html.New("./views", ".html")
   engine.Reload(true)       // reload templates on each render
   engine.Debug(true)        // show parsed templates
   engine.Delims("{{", "}}") // custom delimiters
-  engine.AddFunc("greet", func(name string) string {
-    return "Hello, " + name + "!"
-  }) // Add function to global FuncMap
+	engine.AddFunc("greet", func(name string) string {
+		return "Hello, " + name + "!"
+	}) // Add function to global FuncMap
 
-  app := fiber.New(&fiber.Settings{
-    Views: engine,
-  })
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
 
 	app.Get("/", func(c *fiber.Ctx) {
 		c.Render("index", fiber.Map{
