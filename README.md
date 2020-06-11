@@ -26,7 +26,7 @@ import (
 	// "github.com/gofiber/template/amber"
 	// "github.com/gofiber/template/django"
 	// "github.com/gofiber/template/handlebars"
-  // "github.com/gofiber/template/jet"
+	// "github.com/gofiber/template/jet"
 	// "github.com/gofiber/template/mustache"
 	// "github.com/gofiber/template/pug"
 	"github.com/gofiber/template/html"
