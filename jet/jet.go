@@ -124,17 +124,16 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	}
 	bind := jetVarMap(binding)
 	// TODO: layout does not work
-	// if len(layout) > 0 {
-	// 	lay, err := e.Templates.GetTemplate(layout[0])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	context := bind
-	// 	context.Set("yield", func() error {
-	// 		return tmpl.Execute(out, bind, nil)
-	// 	})
-	// 	return lay.Execute(out, context, nil)
-	// }
+	if len(layout) > 0 {
+		lay, err := e.Templates.GetTemplate(layout[0])
+		if err != nil {
+			return err
+		}
+		bind.Set("yield", func() error {
+			return tmpl.Execute(out, bind, nil)
+		})
+		return lay.Execute(out, bind, nil)
+	}
 	return tmpl.Execute(out, bind, nil)
 }
 

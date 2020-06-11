@@ -161,7 +161,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		}
 		// TODO: Doesn't work, see amber_test.go#41
 		lay.Funcs(map[string]interface{}{
-			"Yield": func() error {
+			"yield": func() error {
 				return tmpl.Execute(out, binding)
 			},
 		})
