@@ -159,10 +159,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		}
 		lay.Funcs(map[string]interface{}{
 			"yield": func() error {
-				if err := tmpl.Execute(out, binding); err != nil {
-					return err
-				}
-				return nil
+				return tmpl.Execute(out, binding)
 			},
 		})
 		return lay.Execute(out, binding)
