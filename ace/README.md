@@ -4,15 +4,14 @@ Ace is a template engine create by [yossi](https://github.com/yosssi/ace), to se
 
 ### Basic Example
 
-```pug
-// index.ace
+**./views/layouts/index.ace**
+```jade
 = include ./views/partials/header .
 h1 {{.Title}}
 = include ./views/partials/footer .
 ```
-
-```pug
-// layouts/index.ace
+**./views/layouts/main.ace**
+```jade
 = doctype html
 html
   head
