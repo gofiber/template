@@ -1,5 +1,5 @@
+# Template
 <p align="center">
-  <h1>Template</h1>
   <a href="https://github.com/gofiber/fiber/releases">
     <img src="https://img.shields.io/github/v/release/gofiber/template?color=00ACD7&label=%F0%9F%9A%80%20">
   </a>
