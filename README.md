@@ -43,8 +43,8 @@ func main() {
   
 	engine := html.New("./views", ".html")
 	engine.Reload(true)       // reload templates on each render
-  engine.Debug(true)        // show parsed templates
-  engine.Layout("embed")    // variable name to embed templates, default embed
+	engine.Debug(true)        // show parsed templates
+	engine.Layout("embed")    // variable name to embed templates, default embed
 	engine.Delims("{{", "}}") // custom delimiters
 	engine.AddFunc("greet", func(name string) string {
 		return "Hello, " + name + "!"
