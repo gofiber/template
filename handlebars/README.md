@@ -46,7 +46,7 @@ import (
 
 func main() {
 	// Create a new engine
-	engine := html.New("./views", ".hbs")
+	engine := handlebars.New("./views", ".hbs")
 
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{
