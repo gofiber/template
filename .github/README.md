@@ -1,5 +1,9 @@
 # Template
 <p align="center">
+  <a href="https://gofiber.io">
+    <img alt="Fiber" height="125" src="https://raw.githubusercontent.com/gofiber/docs/master/static/fiber_template_v2_logo.svg">
+  </a>
+  <br>
   <a href="https://github.com/gofiber/fiber/releases">
     <img src="https://img.shields.io/github/v/release/gofiber/template?color=00ACD7&label=%F0%9F%9A%80%20">
   </a>

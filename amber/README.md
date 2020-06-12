@@ -1,33 +1,33 @@
-# Ace
+# Amber
 
-Ace is a template engine create by [yossi](https://github.com/yosssi/ace), to see the original syntax documentation please [click here](https://github.com/yosssi/ace/blob/master/documentation/syntax.md)
+Amber is a template engine create by [eknkc](https://github.com/eknkc/amber), to see the original syntax documentation please [click here](https://github.com/eknkc/amber#tags)
 
 ### Basic Example
 
-_**./views/index.ace**_
+_**./views/index.amber**_
 ```pug
-= include ./views/partials/header .
+import ./views/partials/header
 
-h1 {{.Title}}
+h1 #{Title}
 
-= include ./views/partials/footer .
+import ./views/partials/footer
 ```
-_**./views/partials/header.ace**_
+_**./views/partials/header.amber**_
 ```pug
 h1 Header
 ```
-_**./views/partials/footer.ace**_
+_**./views/partials/footer.amber**_
 ```pug
 h1 Footer
 ```
-_**./views/layouts/main.ace**_
+_**./views/layouts/main.amber**_
 ```pug
-= doctype html
+doctype html
 html
   head
     title Main
   body
-    {{embed}}
+    #{embed()}
 ```
 
 ```go
@@ -35,12 +35,12 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/gofiber/template/ace"
+	"github.com/gofiber/template/amber"
 )
 
 func main() {
 	// Create a new engine
-	engine := html.New("./views", ".ace")
+	engine := html.New("./views", ".amber")
 
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{
