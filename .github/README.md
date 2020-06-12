@@ -43,9 +43,10 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-	// To use a template engine, import as shown below:
+	// To use a specific template engine, import as shown below:
 	// "github.com/gofiber/template/pug"
 	// "github.com/gofiber/template/mustache"
+	// etc..
 
 	// In this example we use the html template engine
 	"github.com/gofiber/template/html"
@@ -97,3 +98,15 @@ func main() {
 }
 
 ```
+
+### More Examples
+
+To view more specific examples, you could visit each engine folder to learn more
+- [html](https://github.com/gofiber/template/tree/master/html)
+- [ace](https://github.com/gofiber/template/tree/master/ace)
+- [amber](https://github.com/gofiber/template/tree/master/amber)
+- [django](https://github.com/gofiber/template/tree/master/django)
+- [handlebars](https://github.com/gofiber/template/tree/master/handlebars)
+- [jet](https://github.com/gofiber/template/tree/master/jet)
+- [mustache](https://github.com/gofiber/template/tree/master/mustache)
+- [pug](https://github.com/gofiber/template/tree/master/pug)
