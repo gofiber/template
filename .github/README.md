@@ -69,7 +69,7 @@ func main() {
 	// Delims sets the action delimiters to the specified strings
 	engine.Delims("{{", "}}") // Optional. Default: engine delimiters
 
-	// AddFunc adds a function to the template's function map.
+	// AddFunc adds a function to the template's global function map.
 	engine.AddFunc("greet", func(name string) string {
 		return "Hello, " + name + "!"
 	})
