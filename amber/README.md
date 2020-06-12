@@ -40,7 +40,7 @@ import (
 
 func main() {
 	// Create a new engine
-	engine := html.New("./views", ".amber")
+	engine := amber.New("./views", ".amber")
 
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{
