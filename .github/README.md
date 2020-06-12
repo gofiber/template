@@ -3,7 +3,7 @@
   <a href="https://github.com/gofiber/fiber/releases">
     <img src="https://img.shields.io/github/v/release/gofiber/template?color=00ACD7&label=%F0%9F%9A%80%20">
   </a>
-  <a href="https://pkg.go.dev/github.com/gofiber/template?tab=doc">
+  <a href="https://pkg.go.dev/github.com/gofiber/template/html?tab=doc">
     <img src="https://img.shields.io/badge/%F0%9F%93%9A%20godoc-pkg-00ACD7.svg?color=00ACD7&style=flat">
   </a>
   <a href="https://github.com/gofiber/fiber/actions?query=workflow%3AGosec">
