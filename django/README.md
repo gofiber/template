@@ -5,7 +5,7 @@ Django is a template engine create by [flosch](https://github.com/flosch/pongo2)
 ### Basic Example
 
 _**./views/index.django**_
-```pug
+```html
 {% include "views/partials/header.django" %}
 
 <h1>{{ Title }}</h1>
@@ -13,15 +13,15 @@ _**./views/index.django**_
 {% include "views/partials/footer.django" %}
 ```
 _**./views/partials/header.django**_
-```pug
+```html
 <h2>Header</h2>
 ```
 _**./views/partials/footer.django**_
-```pug
+```html
 <h2>Footer</h2>
 ```
 _**./views/layouts/main.django**_
-```pug
+```html
 <!DOCTYPE html>
 <html>
 

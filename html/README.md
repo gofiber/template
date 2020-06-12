@@ -1,27 +1,27 @@
-# Handlebars
+# HTML
 
-Handlebars is a template engine create by [aymerick](https://github.com/aymerick/raymond), to see the original syntax documentation please [click here](https://github.com/aymerick/raymond#table-of-contents)
+HTML is the official Go template engine [html/template](https://golang.org/pkg/html/template/), to see the original syntax documentation please [click here](https://curtisvermeeren.github.io/2017/09/14/Golang-Templates-Cheatsheet#actions)
 
 ### Basic Example
 
-_**./views/index.hbs**_
-```pug
-{{> 'partials/header' }}
+_**./views/index.html**_
+```html
+{{template "partials/header" .}}
 
-<h1>{{Title}}</h1>
+<h1>{{.Title}}</h1>
 
-{{> 'partials/footer' }}
+{{template "partials/footer" .}}
 ```
-_**./views/partials/header.hbs**_
-```pug
+_**./views/partials/header.html**_
+```html
 <h2>Header</h2>
 ```
-_**./views/partials/footer.hbs**_
-```pug
+_**./views/partials/footer.html**_
+```html
 <h2>Footer</h2>
 ```
-_**./views/layouts/main.hbs**_
-```pug
+_**./views/layouts/main.html**_
+```html
 <!DOCTYPE html>
 <html>
 
@@ -41,12 +41,12 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/gofiber/template/handlebars"
+	"github.com/gofiber/template/html"
 )
 
 func main() {
 	// Create a new engine
-	engine := html.New("./views", ".hbs")
+	engine := html.New("./views", ".html")
 
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{

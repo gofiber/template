@@ -1,26 +1,26 @@
-# Handlebars
+# Mustache
 
-Handlebars is a template engine create by [aymerick](https://github.com/aymerick/raymond), to see the original syntax documentation please [click here](https://github.com/aymerick/raymond#table-of-contents)
+Mustache is a template engine create by [hoisie/cbroglie](https://github.com/cbroglie/mustache), to see the original syntax documentation please [click here](https://mustache.github.io/mustache.5.html)
 
 ### Basic Example
 
-_**./views/index.hbs**_
+_**./views/index.mustache**_
 ```html
-{{> 'partials/header' }}
+{{> views/partials/header }}
 
 <h1>{{Title}}</h1>
 
-{{> 'partials/footer' }}
+{{> views/partials/footer }}
 ```
-_**./views/partials/header.hbs**_
+_**./views/partials/header.mustache**_
 ```html
 <h2>Header</h2>
 ```
-_**./views/partials/footer.hbs**_
+_**./views/partials/footer.mustache**_
 ```html
 <h2>Footer</h2>
 ```
-_**./views/layouts/main.hbs**_
+_**./views/layouts/main.mustache**_
 ```html
 <!DOCTYPE html>
 <html>
@@ -30,7 +30,7 @@ _**./views/layouts/main.hbs**_
 </head>
 
 <body>
-  {{embed}}
+  {{{embed}}}
 </body>
 
 </html>
@@ -41,12 +41,12 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/gofiber/template/handlebars"
+	"github.com/gofiber/template/mustache"
 )
 
 func main() {
 	// Create a new engine
-	engine := html.New("./views", ".hbs")
+	engine := html.New("./views", ".mustache")
 
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{

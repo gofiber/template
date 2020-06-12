@@ -5,7 +5,7 @@ Amber is a template engine create by [eknkc](https://github.com/eknkc/amber), to
 ### Basic Example
 
 _**./views/index.amber**_
-```pug
+```html
 import ./views/partials/header
 
 h1 #{Title}
@@ -13,15 +13,15 @@ h1 #{Title}
 import ./views/partials/footer
 ```
 _**./views/partials/header.amber**_
-```pug
+```html
 h1 Header
 ```
 _**./views/partials/footer.amber**_
-```pug
+```html
 h1 Footer
 ```
 _**./views/layouts/main.amber**_
-```pug
+```html
 doctype html
 html
   head

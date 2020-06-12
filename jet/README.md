@@ -1,36 +1,36 @@
-# Handlebars
+# Jet
 
-Handlebars is a template engine create by [aymerick](https://github.com/aymerick/raymond), to see the original syntax documentation please [click here](https://github.com/aymerick/raymond#table-of-contents)
+Jet is a template engine create by [cloudykit](github.com/CloudyKit/jet), to see the original syntax documentation please [click here](https://github.com/CloudyKit/jet/wiki/3.-Jet-template-syntax)
 
 ### Basic Example
 
-_**./views/index.hbs**_
+_**./views/index.jet**_
 ```html
-{{> 'partials/header' }}
+{{include "partials/header"}}
 
-<h1>{{Title}}</h1>
+<h1>{{ Title }}</h1>
 
-{{> 'partials/footer' }}
+{{include "partials/footer"}}
 ```
-_**./views/partials/header.hbs**_
+_**./views/partials/header.jet**_
 ```html
 <h2>Header</h2>
 ```
-_**./views/partials/footer.hbs**_
+_**./views/partials/footer.jet**_
 ```html
 <h2>Footer</h2>
 ```
-_**./views/layouts/main.hbs**_
+_**./views/layouts/main.jet**_
 ```html
 <!DOCTYPE html>
 <html>
 
 <head>
-  <title>Main</title>
+  <title>Title</title>
 </head>
 
 <body>
-  {{embed}}
+  {{ embed() }}
 </body>
 
 </html>
@@ -41,12 +41,12 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/gofiber/template/handlebars"
+	"github.com/gofiber/template/jet"
 )
 
 func main() {
 	// Create a new engine
-	engine := html.New("./views", ".hbs")
+	engine := html.New("./views", ".jet")
 
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{

@@ -1,33 +1,33 @@
-# Ace
+# Pug
 
-Ace is a template engine create by [yossi](https://github.com/yosssi/ace), to see the original syntax documentation please [click here](https://github.com/yosssi/ace/blob/master/documentation/syntax.md)
+Pug is a template engine create by [joker](github.com/Joker/jade), to see the original syntax documentation please [click here](https://pugjs.org/language/tags.html)
 
 ### Basic Example
 
-_**./views/index.ace**_
+_**./views/index.pug**_
 ```html
-= include ./views/partials/header .
+include views/partials/header.pug
 
-h1 {{.Title}}
+h1 #{.Title}
 
-= include ./views/partials/footer .
+include views/partials/footer.pug
 ```
-_**./views/partials/header.ace**_
+_**./views/partials/header.pug**_
 ```html
-h1 Header
+h2 Header
 ```
-_**./views/partials/footer.ace**_
+_**./views/partials/footer.pug**_
 ```html
-h1 Footer
+h2 Footer
 ```
-_**./views/layouts/main.ace**_
+_**./views/layouts/main.pug**_
 ```html
-= doctype html
+doctype html
 html
   head
     title Main
   body
-    {{embed}}
+    | {{embed}}
 ```
 
 ```go
@@ -35,12 +35,12 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/gofiber/template/ace"
+	"github.com/gofiber/template/pug"
 )
 
 func main() {
 	// Create a new engine
-	engine := html.New("./views", ".ace")
+	engine := html.New("./views", ".pug")
 
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{
