@@ -174,10 +174,10 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
 		var bind map[string]interface{}
-		if binding == nil {
-			bind = make(map[string]interface{}, 1)
-		} else if m, ok := binding.(map[string]interface{}); ok {
+		if m, ok := binding.(map[string]interface{}); ok {
 			bind = m
+		} else {
+			bind = make(map[string]interface{}, 1)
 		}
 		bind[e.layout] = raymond.SafeString(parsed)
 		parsed, err := lay.Exec(bind)
