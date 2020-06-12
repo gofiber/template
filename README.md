@@ -1,5 +1,3 @@
-# Template
-
 <p align="center">
   <h1>Template</h1>
   <a href="https://github.com/gofiber/fiber/releases">
@@ -7,7 +5,7 @@
   </a>
   <a href="https://pkg.go.dev/github.com/gofiber/template?tab=doc">
     <img src="https://img.shields.io/badge/%F0%9F%93%9A%20godoc-pkg-00ACD7.svg?color=00ACD7&style=flat">
-  </a
+  </a>
   <a href="https://github.com/gofiber/fiber/actions?query=workflow%3AGosec">
     <img src="https://img.shields.io/github/workflow/status/gofiber/template/Security?label=%F0%9F%94%91%20gosec&style=flat&color=75C46B">
   </a>
