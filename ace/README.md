@@ -6,20 +6,24 @@ Ace is a template engine create by [yossi](https://github.com/yosssi/ace), to se
 
 ```pug
 // ./views/index.ace
+
 = include ./views/partials/header .
 h1 {{.Title}}
 = include ./views/partials/footer .
 ```
 ```pug
 // ./views/partials/header.ace
+
 h1 Header
 ```
 ```pug
 // ./views/partials/footer.ace
+
 h1 Footer
 ```
 ```pug
 // ./views/layouts/index.ace
+
 = doctype html
 html
   head
