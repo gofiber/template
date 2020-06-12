@@ -4,22 +4,22 @@ Ace is a template engine create by [yossi](https://github.com/yosssi/ace), to se
 
 ### Basic Example
 
-**./views/layouts/index.ace**
-```jade
+```pug
+// ./views/index.ace
 = include ./views/partials/header .
 h1 {{.Title}}
 = include ./views/partials/footer .
 ```
-**./views/partials/header.ace**
-```jade
+```pug
+// ./views/partials/header.ace
 h1 Header
 ```
-**./views/partials/footer.ace**
-```jade
+```pug
+// ./views/partials/footer.ace
 h1 Footer
 ```
-**./views/layouts/main.ace**
-```jade
+```pug
+// ./views/layouts/index.ace
 = doctype html
 html
   head
