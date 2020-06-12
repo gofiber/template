@@ -8,7 +8,10 @@ import (
 )
 
 func trim(str string) string {
-	return strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllString(str, " "))
+	trimmed := strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllString(str, " "))
+	trimmed = strings.Replace(trimmed, " <", "<", -1)
+	trimmed = strings.Replace(trimmed, "> ", ">", -1)
+	return trimmed
 }
 
 func Test_Ace_Render(t *testing.T) {

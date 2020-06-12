@@ -8,7 +8,10 @@ import (
 )
 
 func trim(str string) string {
-	return strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllString(str, " "))
+	trimmed := strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllString(str, " "))
+	trimmed = strings.Replace(trimmed, " <", "<", -1)
+	trimmed = strings.Replace(trimmed, "> ", ">", -1)
+	return trimmed
 }
 
 func Test_Handlebars_Render(t *testing.T) {
@@ -22,7 +25,7 @@ func Test_Handlebars_Render(t *testing.T) {
 	engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
 	})
-	expect := `<h2>Header</h2><h1>Hello, World!</h1> <h2>Footer</h2>`
+	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
@@ -50,7 +53,7 @@ func Test_Handlebars_Layout(t *testing.T) {
 	engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
 	}, "layouts/main")
-	expect := `<!DOCTYPE html> <html> <head> <title>Main</title> </head> <body> <h2>Header</h2><h1>Hello, World!</h1> <h2>Footer</h2> </body> </html>`
+	expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
