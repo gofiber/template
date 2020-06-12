@@ -20,7 +20,7 @@
   </a>
 </p>
 
-This package provides universal methods to use multiple template engines with the [Fiber web framework](https://github.com/gofiber/fiber).
+This package provides universal methods to use multiple template engines with the [Fiber web framework](https://github.com/gofiber/fiber) using the new [Views]() interface.
 
 8 template engines are supported:
 - [html](https://github.com/gofiber/template/tree/master/html)
