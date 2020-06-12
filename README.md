@@ -1,5 +1,7 @@
 # Template
 
+<p align="center">
+  <h1>Template</h1>
   <a href="https://github.com/gofiber/fiber/releases">
     <img src="https://img.shields.io/github/v/release/gofiber/template?color=00ACD7&label=%F0%9F%9A%80%20">
   </a>
@@ -15,6 +17,7 @@
   <a href="https://gofiber.io/discord">
     <img src="https://img.shields.io/discord/704680098577514527?style=flat&label=%F0%9F%92%AC%20discord&color=00ACD7">
   </a>
+</p>
 
 This package provides universal methods to use multiple template engines with the [Fiber web framework](https://github.com/gofiber/fiber).
 
