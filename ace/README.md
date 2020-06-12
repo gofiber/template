@@ -10,6 +10,14 @@ Ace is a template engine create by [yossi](https://github.com/yosssi/ace), to se
 h1 {{.Title}}
 = include ./views/partials/footer .
 ```
+**./views/partials/header.ace**
+```jade
+h1 Header
+```
+**./views/partials/footer.ace**
+```jade
+h1 Footer
+```
 **./views/layouts/main.ace**
 ```jade
 = doctype html
