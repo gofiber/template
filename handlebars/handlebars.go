@@ -44,6 +44,14 @@ func New(directory, extension string) *Engine {
 	return engine
 }
 
+// Delims sets the action delimiters to the specified strings, to be used in
+// templates. An empty delimiter stands for the
+// corresponding default: {{ or }}.
+func (e *Engine) Delims(left, right string) *Engine {
+	fmt.Println("delims: this method is not supported for handlebars")
+	return e
+}
+
 // Layout defines the variable name that will incapsulate the template
 func (e *Engine) Layout(key string) *Engine {
 	e.layout = key

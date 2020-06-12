@@ -48,6 +48,14 @@ func (e *Engine) Layout(key string) *Engine {
 	return e
 }
 
+// Delims sets the action delimiters to the specified strings, to be used in
+// templates. An empty delimiter stands for the
+// corresponding default: {{ or }}.
+func (e *Engine) Delims(left, right string) *Engine {
+	fmt.Println("delims: this method is not supported for mustache")
+	return e
+}
+
 // Reload if set to true the templates are reloading on each render,
 // use it when you're in development and you don't want to restart
 // the application when you edit a template file.

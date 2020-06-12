@@ -54,6 +54,14 @@ func (e *Engine) Layout(key string) *Engine {
 	return e
 }
 
+// Delims sets the action delimiters to the specified strings, to be used in
+// templates. An empty delimiter stands for the
+// corresponding default: {{ or }}.
+func (e *Engine) Delims(left, right string) *Engine {
+	fmt.Println("delims: this method is not supported for amber")
+	return e
+}
+
 // AddFunc adds the function to the template's function map.
 // It is legal to overwrite elements of the default actions
 func (e *Engine) AddFunc(name string, fn interface{}) *Engine {

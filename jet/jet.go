@@ -90,6 +90,12 @@ func (e *Engine) Reload(enabled bool) *Engine {
 	return e
 }
 
+// Debug will print the parsed templates when Load is triggered.
+func (e *Engine) Debug(enabled bool) *Engine {
+	fmt.Println("debug: this method is not supported for jet")
+	return e
+}
+
 // Parse is deprecated, please use Load() instead
 func (e *Engine) Parse() error {
 	fmt.Println("Parse() is deprecated, please use Load() instead.")

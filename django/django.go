@@ -59,7 +59,7 @@ func (e *Engine) Layout(key string) *Engine {
 // templates. An empty delimiter stands for the
 // corresponding default: {{ or }}.
 func (e *Engine) Delims(left, right string) *Engine {
-	e.left, e.right = left, right
+	fmt.Println("delims: this method is not supported for django")
 	return e
 }
 
