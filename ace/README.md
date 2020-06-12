@@ -4,19 +4,36 @@ Ace is a template engine create by [yossi](https://github.com/yosssi/ace), to se
 
 ### Basic Example
 
+```pug
+// index.ace
+= include ./views/partials/header .
+h1 {{.Title}}
+= include ./views/partials/footer .
+```
+
+```pug
+// layouts/index.ace
+= doctype html
+html
+  head
+    title Main
+  body
+    {{embed}}
+```
+
 ```go
 package main
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/gofiber/template/html"
+	"github.com/gofiber/template/ace"
 )
 
 func main() {
   // Create a new engine
 	engine := html.New("./views", ".ace")
 
-	// After you created your engine, you can pass it to Fiber's Views Engine
+	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{
 		Views: engine,
 	})
