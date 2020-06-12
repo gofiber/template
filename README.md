@@ -43,7 +43,8 @@ func main() {
   
 	engine := html.New("./views", ".html")
 	engine.Reload(true)       // reload templates on each render
-	engine.Debug(true)        // show parsed templates
+  engine.Debug(true)        // show parsed templates
+  engine.Layout("embed")    // variable name to embed templates, default embed
 	engine.Delims("{{", "}}") // custom delimiters
 	engine.AddFunc("greet", func(name string) string {
 		return "Hello, " + name + "!"
@@ -56,7 +57,7 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) {
 		c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
-		}, "layouts/main") // Optional layout support using 'yield` variable
+		}, "layouts/main") // Optional layout support using 'embed` variable
 	})
 
 	app.Listen(3000)
