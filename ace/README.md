@@ -37,11 +37,11 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/gofiber/template/ace"
+	"github.com/gofiber/template/html"
 )
 
 func main() {
-  // Create a new engine
+	// Create a new engine
 	engine := html.New("./views", ".ace")
 
 	// Pass the engine to the Views
@@ -50,14 +50,14 @@ func main() {
 	})
 
 	app.Get("/", func(c *fiber.Ctx) {
-    // Render index.ace
+		// Render index
 		c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
 	app.Get("/layout", func(c *fiber.Ctx) {
-    // Render index.ace within layouts/main.ace
+		// Render index within layouts/main.ace
 		c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		}, "layouts/main")
