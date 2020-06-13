@@ -159,14 +159,14 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl := e.Templates.Lookup(template)
-	if tmpl == nil {
+	tmpl, err := e.lookupTemplate(template)
+	if err != nil {
 		return fmt.Errorf("render: template %s does not exist", template)
 	}
 	if len(layout) > 0 {
-		lay := e.Templates.Lookup(layout[0])
-		if lay == nil {
-			return fmt.Errorf("render: layout %s does not exist", layout[0])
+		lay, err := e.lookupTemplate(layout[0])
+		if err != nil {
+			return err
 		}
 		lay.Funcs(map[string]interface{}{
 			e.layout: func() error {
@@ -176,4 +176,19 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		return lay.Execute(out, binding)
 	}
 	return tmpl.Execute(out, binding)
+}
+
+func (e *Engine) lookupTemplate(name string) (*template.Template, error) {
+	tmpl := e.Templates.Lookup(name)
+	if tmpl == nil {
+		return nil, fmt.Errorf("render: template %s does not exist", name)
+	}
+	if e.reload {
+		clone, err := tmpl.Clone()
+		if err != nil {
+			return nil, fmt.Errorf("render: failed to clone template %s: %w", name, err)
+		}
+		return clone, nil
+	}
+	return tmpl, nil
 }

@@ -97,3 +97,33 @@ func Test_HTML_Layout(t *testing.T) {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
 }
+
+func Test_HTML_Reload(t *testing.T) {
+	engine := New("./views", ".html")
+	engine.Reload(true)
+
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf, buf2 bytes.Buffer
+	engine.Render(&buf, "index", map[string]interface{}{
+		"Title": "Hello, World!",
+	}, "layouts/main")
+
+	err := engine.Render(&buf2, "index", map[string]interface{}{
+		"Title": "Hello, World!",
+	}, "layouts/main")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
+	result := trim(buf2.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+}
