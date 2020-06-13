@@ -183,8 +183,10 @@ func (e *Engine) Load() error {
 		if e.fileSystem != nil {
 			opt.Asset = func(p string) ([]byte, error) {
 				fmt.Println("before: \t", p)
+
 				// \errors\404.ace -> /errors/404.ace
 				p = filepath.ToSlash(p)
+
 				fmt.Println("after:  \t", p)
 
 				return utils.ReadFile(p, e.fileSystem)
