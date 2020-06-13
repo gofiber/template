@@ -3,19 +3,22 @@ package handlebars
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/aymerick/raymond"
+	"github.com/gofiber/template/utils"
 )
 
 // Engine struct
 type Engine struct {
 	// views folder
 	directory string
+	// http.FileSystem supports embedded files
+	fileSystem http.FileSystem
 	// views extension
 	extension string
 	// layout variable name that incapsulates the template
@@ -40,6 +43,18 @@ func New(directory, extension string) *Engine {
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
 		Templates: make(map[string]*raymond.Template),
+	}
+	return engine
+}
+
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		directory:  "/",
+		fileSystem: fs,
+		extension:  extension,
+		layout:     "embed",
+		funcmap:    make(map[string]interface{}),
+		Templates:  make(map[string]*raymond.Template),
 	}
 	return engine
 }
@@ -88,14 +103,14 @@ func (e *Engine) Parse() error {
 }
 
 // Parse parses the templates to the engine.
-func (e *Engine) Load() error {
+func (e *Engine) Load() (err error) {
 	// race safe
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 	// Set template settings
 	raymond.RegisterHelpers(e.funcmap)
 	// Loop trough each directory and register template files
-	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
+	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
@@ -124,7 +139,7 @@ func (e *Engine) Load() error {
 
 		// Read the file
 		// #gosec G304
-		buf, err := ioutil.ReadFile(path)
+		buf, err := utils.ReadFile(path, e.fileSystem)
 		if err != nil {
 			return err
 		}
@@ -143,14 +158,19 @@ func (e *Engine) Load() error {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
 		return err
-	})
-	// Register all templates with each other
+	}
+	if e.fileSystem != nil {
+		err = utils.Walk(e.fileSystem, e.directory, walkFn)
+	} else {
+		err = filepath.Walk(e.directory, walkFn)
+	}
+	// Link templates with eachother
 	for i := range e.Templates {
 		for n, t := range e.Templates {
 			e.Templates[i].RegisterPartialTemplate(n, t)
 		}
 	}
-	return err
+	return
 }
 
 // Execute will render the template by name
@@ -160,13 +180,13 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl, ok := e.Templates[template]
-	if !ok {
+	tmpl := e.Templates[template]
+	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", template)
 	}
 	parsed, err := tmpl.Exec(binding)
 	if err != nil {
-		return err
+		return fmt.Errorf("render: %v", err)
 	}
 	if len(layout) > 0 {
 		lay := e.Templates[layout[0]]
@@ -182,14 +202,15 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		bind[e.layout] = raymond.SafeString(parsed)
 		parsed, err := lay.Exec(bind)
 		if err != nil {
-			return err
+			return fmt.Errorf("render: %v", err)
 		}
-		_, err = out.Write([]byte(parsed))
-		if err != nil {
-			return err
+		if _, err = out.Write([]byte(parsed)); err != nil {
+			return fmt.Errorf("render: %v", err)
 		}
 		return nil
 	}
-	_, err = out.Write([]byte(parsed))
+	if _, err = out.Write([]byte(parsed)); err != nil {
+		return fmt.Errorf("render: %v", err)
+	}
 	return err
 }

@@ -117,7 +117,7 @@ func (e *Engine) Parse() error {
 }
 
 // Parse parses the templates to the engine.
-func (e *Engine) Load() (err error) {
+func (e *Engine) Load() error {
 	// race safe
 	e.mutex.Lock()
 	defer e.mutex.Unlock()

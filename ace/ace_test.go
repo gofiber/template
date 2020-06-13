@@ -2,6 +2,7 @@ package ace
 
 import (
 	"bytes"
+	"net/http"
 	"regexp"
 	"strings"
 	"testing"
@@ -14,7 +15,7 @@ func trim(str string) string {
 	return trimmed
 }
 
-func Test_Ace_Render(t *testing.T) {
+func Test_Render(t *testing.T) {
 	engine := New("./views", ".ace")
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
@@ -41,8 +42,29 @@ func Test_Ace_Render(t *testing.T) {
 	}
 }
 
-func Test_Ace_Layout(t *testing.T) {
+func Test_Layout(t *testing.T) {
 	engine := New("./views", ".ace")
+	engine.Debug(true)
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "index", map[string]interface{}{
+		"Title": "Hello, World!",
+	}, "layouts/main")
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
+	result := trim(buf.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+}
+
+func Test_FileSystem(t *testing.T) {
+	engine := NewFileSystem(http.Dir("./views"), ".ace")
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)

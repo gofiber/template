@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/gofiber/template/utils"
 	"github.com/yosssi/ace"
 )
 
@@ -19,6 +21,8 @@ type Engine struct {
 	right string
 	// views folder
 	directory string
+	// http.FileSystem supports embedded files
+	fileSystem http.FileSystem
 	// views extension
 	extension string
 	// layout variable name that incapsulates the template
@@ -45,6 +49,23 @@ func New(directory, extension string) *Engine {
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
 		Templates: make(map[string]*template.Template),
+	}
+	engine.AddFunc(engine.layout, func() error {
+		return fmt.Errorf("content called unexpectedly.")
+	})
+	return engine
+}
+
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		left:       "{{",
+		right:      "}}",
+		directory:  "/",
+		fileSystem: fs,
+		extension:  extension,
+		layout:     "embed",
+		funcmap:    make(map[string]interface{}),
+		Templates:  make(map[string]*template.Template),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("content called unexpectedly.")
@@ -102,7 +123,7 @@ func (e *Engine) Load() error {
 	defer e.mutex.Unlock()
 
 	// Loop trough each directory and register template files
-	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
+	walkFn := func(path string, info os.FileInfo, err error) error {
 		path = strings.TrimRight(path, ".")
 		// Return error if exist
 		if err != nil {
@@ -129,7 +150,16 @@ func (e *Engine) Load() error {
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
 		name = strings.Replace(name, e.extension, "", -1)
+		// Read the file
+		// #gosec G304
+		// buf, err := utils.ReadFile(path, e.fileSystem)
+		// if err != nil {
+		// 	return err
+		// }
 		// Currently ACE has no partial include support
+		// file := ace.NewFile(name, buf)
+		// source := ace.NewSource(file, nil, nil)
+		// ace.
 		tmpl, err := ace.Load(strings.Replace(path, e.extension, "", -1), "", &ace.Options{
 			Extension:  e.extension[1:],
 			FuncMap:    e.funcmap,
@@ -145,14 +175,18 @@ func (e *Engine) Load() error {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
 		return err
-	})
-	return err
+	}
+	if e.fileSystem != nil {
+		return utils.Walk(e.fileSystem, e.directory, walkFn)
+	}
+	return filepath.Walk(e.directory, walkFn)
 }
 
 // Execute will render the template by name
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	// reload the views
 	if e.reload {
+		ace.FlushCache()
 		if err := e.Load(); err != nil {
 			return err
 		}
