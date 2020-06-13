@@ -36,7 +36,7 @@ type Engine struct {
 	// template funcmap
 	funcmap map[string]interface{}
 	// templates
-	Templates map[string]*template.Template
+	Templates *template.Template
 }
 
 // New returns a Ace render engine for Fiber
@@ -48,7 +48,7 @@ func New(directory, extension string) *Engine {
 		extension: extension,
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
-		Templates: make(map[string]*template.Template),
+		Templates: template.New(directory),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("content called unexpectedly.")
@@ -65,7 +65,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 		extension:  extension,
 		layout:     "embed",
 		funcmap:    make(map[string]interface{}),
-		Templates:  make(map[string]*template.Template),
+		Templates:  template.New("/"),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("content called unexpectedly.")
@@ -122,6 +122,9 @@ func (e *Engine) Load() error {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
+	e.Templates.Delims(e.left, e.right)
+	e.Templates.Funcs(e.funcmap)
+
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		path = strings.TrimRight(path, ".")
@@ -150,47 +153,34 @@ func (e *Engine) Load() error {
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
 		name = strings.Replace(name, e.extension, "", -1)
-		// // Read the file
-		// // #gosec G304
-		// buf, err := utils.ReadFile(path, e.fileSystem)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// file := ace.NewFile(name, buf)
-		// opt := &ace.Options{
-		// 	Extension:  e.extension[1:],
-		// 	FuncMap:    e.funcmap,
-		// 	DelimLeft:  e.left,
-		// 	DelimRight: e.right,
-		// }
-		// source := ace.NewSource(file, nil, nil)
-		// result, err := ace.ParseSource(source, opt)
-		// if err != nil {
-		// 	return err
-		// }
-		// tmpl, err := ace.CompileResult(name, result, opt)
-		// if err != nil {
-		// 	return err
-		// }
-		opt := &ace.Options{
-			// .ace -> ace
+		// Read the file
+		// #gosec G304
+		buf, err := utils.ReadFile(path, e.fileSystem)
+		if err != nil {
+			return err
+		}
+		baseFile := name + ".ace"
+		base := ace.NewFile(baseFile, buf)
+		inner := ace.NewFile("", []byte{})
+		src := ace.NewSource(base, inner, []*ace.File{})
+		rslt, err := ace.ParseSource(src, nil)
+		if err != nil {
+			return err
+		}
+		atmpl, err := ace.CompileResult(name, rslt, &ace.Options{
 			Extension:  e.extension[1:],
 			FuncMap:    e.funcmap,
 			DelimLeft:  e.left,
 			DelimRight: e.right,
-		}
-		if e.fileSystem != nil {
-			opt.Asset = func(p string) ([]byte, error) {
-				return utils.ReadFile(path, e.fileSystem)
-			}
-		}
-		tmpl, err := ace.Load(strings.Replace(path, e.extension, "", -1), "", opt)
+		})
 		if err != nil {
 			return err
 		}
-		e.Templates[name] = tmpl
-
+		_, err = e.Templates.New(name).Parse(atmpl.Lookup(name).Tree.Root.String())
+		if err != nil {
+			return err
+		}
+		// Debugging
 		if e.debug {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
@@ -211,13 +201,12 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl := e.Templates[template]
+	tmpl := e.Templates.Lookup(template)
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", template)
 	}
-	// TODO: layout does not work
 	if len(layout) > 0 {
-		lay := e.Templates[layout[0]]
+		lay := e.Templates.Lookup(layout[0])
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
