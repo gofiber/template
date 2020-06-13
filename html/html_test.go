@@ -2,6 +2,9 @@ package html
 
 import (
 	"bytes"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -109,12 +112,8 @@ func Test_HTML_Reload(t *testing.T) {
 		t.Fatalf("load: %v\n", err)
 	}
 
-	var buf, buf2 bytes.Buffer
-	engine.Render(&buf, "index", map[string]interface{}{
-		"Title": "Hello, World!",
-	}, "layouts/main")
-
-	err := engine.Render(&buf2, "index", map[string]interface{}{
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
 	}, "layouts/main")
 	if err != nil {
@@ -122,8 +121,35 @@ func Test_HTML_Reload(t *testing.T) {
 	}
 
 	expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
-	result := trim(buf2.String())
+	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+
+	index, err := ioutil.ReadFile(filepath.Join("views", "index.html"))
+	if err != nil {
+		t.Fatalf("failed to read views/index.html: %s\n", err)
+	}
+
+	reloadTmpl := filepath.Join("views", "reload_test.html")
+	addition := []byte(`<h2>Hello World</h2>`)
+
+	err = ioutil.WriteFile(reloadTmpl, append(index, addition...), 0600)
+	if err != nil {
+		t.Fatalf("failed to write %s: %s\n", reloadTmpl, err)
+	}
+	defer os.RemoveAll(reloadTmpl)
+
+	buf.Reset()
+
+	err = engine.Render(&buf, "reload_test", map[string]interface{}{
+		"Title": "Hello, World!",
+	}, "layouts/main")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Contains(buf.Bytes(), addition) {
+		t.Fatal("reloading template failed")
 	}
 }

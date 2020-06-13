@@ -43,7 +43,6 @@ func New(directory, extension string) *Engine {
 		extension: extension,
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
-		Templates: template.New(directory),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("layout called unexpectedly.")
@@ -100,9 +99,7 @@ func (e *Engine) Load() error {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
-	// Set template settings
-	e.Templates.Delims(e.left, e.right)
-	e.Templates.Funcs(e.funcmap)
+	e.Templates = nil
 
 	// Loop trough each directory and register template files
 	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
@@ -137,10 +134,17 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
+		// Allocate template and set template settings
+		if e.Templates == nil {
+			e.Templates = template.New(name).Delims(e.left, e.right).Funcs(e.funcmap)
+		}
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		_, err = e.Templates.New(name).Parse(string(buf))
-		if err != nil {
+		tmpl := e.Templates
+		if name != e.Templates.Name() {
+			tmpl = tmpl.New(name)
+		}
+		if _, err := tmpl.Parse(string(buf)); err != nil {
 			return err
 		}
 		// Debugging
@@ -159,36 +163,13 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl, err := e.lookupTemplate(template)
-	if err != nil {
-		return fmt.Errorf("render: template %s does not exist", template)
-	}
 	if len(layout) > 0 {
-		lay, err := e.lookupTemplate(layout[0])
-		if err != nil {
-			return err
-		}
-		lay.Funcs(map[string]interface{}{
+		e.Templates.Funcs(map[string]interface{}{
 			e.layout: func() error {
-				return tmpl.Execute(out, binding)
+				return e.Templates.ExecuteTemplate(out, template, binding)
 			},
 		})
-		return lay.Execute(out, binding)
+		return e.Templates.ExecuteTemplate(out, layout[0], binding)
 	}
-	return tmpl.Execute(out, binding)
-}
-
-func (e *Engine) lookupTemplate(name string) (*template.Template, error) {
-	tmpl := e.Templates.Lookup(name)
-	if tmpl == nil {
-		return nil, fmt.Errorf("render: template %s does not exist", name)
-	}
-	if e.reload {
-		clone, err := tmpl.Clone()
-		if err != nil {
-			return nil, fmt.Errorf("render: failed to clone template %s: %w", name, err)
-		}
-		return clone, nil
-	}
-	return tmpl, nil
+	return e.Templates.ExecuteTemplate(out, template, binding)
 }
