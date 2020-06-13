@@ -1,4 +1,4 @@
-package template
+package utils
 
 import (
 	"io/ioutil"
@@ -19,6 +19,18 @@ func Walk(fs http.FileSystem, root string, walkFn filepath.WalkFunc) error {
 		return walkFn(root, nil, err)
 	}
 	return walk(fs, root, info, walkFn)
+}
+
+func ReadFile(path string, fs http.FileSystem) ([]byte, error) {
+	if fs != nil {
+		file, err := fs.Open(path)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		return ioutil.ReadAll(file)
+	}
+	return ioutil.ReadFile(path)
 }
 
 // readDirNames reads the directory named by dirname and returns
@@ -74,21 +86,6 @@ func walk(fs http.FileSystem, path string, info os.FileInfo, walkFn filepath.Wal
 	return nil
 }
 
-// openStat performs Open and Stat and returns results, or first error encountered.
-// The caller is responsible for closing the returned file when done.
-func openStat(fs http.FileSystem, name string) (http.File, os.FileInfo, error) {
-	f, err := fs.Open(name)
-	if err != nil {
-		return nil, nil, err
-	}
-	fi, err := f.Stat()
-	if err != nil {
-		f.Close()
-		return nil, nil, err
-	}
-	return f, fi, nil
-}
-
 // readDir reads the contents of the directory associated with file and
 // returns a slice of FileInfo values in directory order.
 func readDir(fs http.FileSystem, name string) ([]os.FileInfo, error) {
@@ -108,16 +105,4 @@ func stat(fs http.FileSystem, name string) (os.FileInfo, error) {
 	}
 	defer f.Close()
 	return f.Stat()
-}
-
-func readFile(path string, fs http.FileSystem) ([]byte, error) {
-	if fs != nil {
-		file, err := fs.Open(path)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-		return ioutil.ReadAll(file)
-	}
-	return ioutil.ReadFile(path)
 }

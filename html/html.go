@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/gofiber/template/utils"
 )
 
 // Engine struct
@@ -18,6 +20,8 @@ type Engine struct {
 	right string
 	// views folder
 	directory string
+	// http.FileSystem supports embedded files
+	fileSystem http.FileSystem
 	// views extension
 	extension string
 	// layout variable name that incapsulates the template
@@ -44,6 +48,23 @@ func New(directory, extension string) *Engine {
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
 		Templates: template.New(directory),
+	}
+	engine.AddFunc(engine.layout, func() error {
+		return fmt.Errorf("layout called unexpectedly.")
+	})
+	return engine
+}
+
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		left:       "{{",
+		right:      "}}",
+		directory:  "/",
+		fileSystem: fs,
+		extension:  extension,
+		layout:     "embed",
+		funcmap:    make(map[string]interface{}),
+		Templates:  template.New("/"),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("layout called unexpectedly.")
@@ -95,7 +116,7 @@ func (e *Engine) Parse() error {
 }
 
 // Load parses the templates to the engine.
-func (e *Engine) Load() error {
+func (e *Engine) Load() (err error) {
 	// race safe
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
@@ -104,8 +125,7 @@ func (e *Engine) Load() error {
 	e.Templates.Delims(e.left, e.right)
 	e.Templates.Funcs(e.funcmap)
 
-	// Loop trough each directory and register template files
-	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
+	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
@@ -133,7 +153,7 @@ func (e *Engine) Load() error {
 		name = strings.Replace(name, e.extension, "", -1)
 		// Read the file
 		// #gosec G304
-		buf, err := ioutil.ReadFile(path)
+		buf, err := utils.ReadFile(path, e.fileSystem)
 		if err != nil {
 			return err
 		}
@@ -148,8 +168,12 @@ func (e *Engine) Load() error {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
 		return err
-	})
-	return err
+	}
+
+	if e.fileSystem != nil {
+		return utils.Walk(e.fileSystem, e.directory, walkFn)
+	}
+	return filepath.Walk(e.directory, walkFn)
 }
 
 // Render will execute the template name along with the given values.
@@ -159,6 +183,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
+
 	tmpl := e.Templates.Lookup(template)
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", template)
