@@ -150,27 +150,51 @@ func (e *Engine) Load() error {
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
 		name = strings.Replace(name, e.extension, "", -1)
-		// Read the file
-		// #gosec G304
+		// // Read the file
+		// // #gosec G304
 		// buf, err := utils.ReadFile(path, e.fileSystem)
 		// if err != nil {
 		// 	return err
 		// }
-		// Currently ACE has no partial include support
+
 		// file := ace.NewFile(name, buf)
+		// opt := &ace.Options{
+		// 	Extension:  e.extension[1:],
+		// 	FuncMap:    e.funcmap,
+		// 	DelimLeft:  e.left,
+		// 	DelimRight: e.right,
+		// }
 		// source := ace.NewSource(file, nil, nil)
-		// ace.
-		tmpl, err := ace.Load(strings.Replace(path, e.extension, "", -1), "", &ace.Options{
+		// result, err := ace.ParseSource(source, opt)
+		// if err != nil {
+		// 	return err
+		// }
+		// tmpl, err := ace.CompileResult(name, result, opt)
+		// if err != nil {
+		// 	return err
+		// }
+		opt := &ace.Options{
 			Extension:  e.extension[1:],
 			FuncMap:    e.funcmap,
 			DelimLeft:  e.left,
 			DelimRight: e.right,
-		})
+		}
+		if e.fileSystem != nil {
+			opt.Asset = func(p string) ([]byte, error) {
+				fmt.Println("before: \t", p)
+				// \errors\404.ace -> /errors/404.ace
+				p = filepath.ToSlash(p)
+				fmt.Println("after:  \t", p)
+
+				return utils.ReadFile(p, e.fileSystem)
+			}
+		}
+		tmpl, err := ace.Load(strings.Replace(path, e.extension, "", -1), "", opt)
 		if err != nil {
 			return err
 		}
 		e.Templates[name] = tmpl
-		// Debugging
+
 		if e.debug {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
