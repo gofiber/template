@@ -40,7 +40,7 @@ import (
 
 func main() {
 	// Create a new engine
-	engine := html.New("./views", ".pug")
+	engine := pug.New("./views", ".pug")
 
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{
