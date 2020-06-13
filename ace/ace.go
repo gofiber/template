@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -160,6 +161,11 @@ func (e *Engine) Load() error {
 		// file := ace.NewFile(name, buf)
 		// source := ace.NewSource(file, nil, nil)
 		// ace.
+
+		match, _ := regexp.MatchString("^views", path)
+		if !match {
+			path = "views" + path
+		}
 		tmpl, err := ace.Load(strings.Replace(path, e.extension, "", -1), "", &ace.Options{
 			Extension:  e.extension[1:],
 			FuncMap:    e.funcmap,
