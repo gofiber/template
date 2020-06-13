@@ -174,6 +174,7 @@ func (e *Engine) Load() error {
 		// 	return err
 		// }
 		opt := &ace.Options{
+			// .ace -> ace
 			Extension:  e.extension[1:],
 			FuncMap:    e.funcmap,
 			DelimLeft:  e.left,
