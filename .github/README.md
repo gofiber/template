@@ -120,7 +120,7 @@ To view more specific examples, you could visit each engine folder to learn more
 We support the `http.FileSystem` interface, so you can use different libraries to load the templates from embedded binaries.
 
 #### pkger
-https://github.com/markbates/pkger
+Read documentation: https://github.com/markbates/pkger
 
 ```go
 package main
@@ -139,12 +139,11 @@ func main() {
 		Views: engine,
 	})
 
-	// ...
+	// run pkger && go build
 }
-
 ```
 #### packr
-https://github.com/gobuffalo/packr
+Read documentation: https://github.com/gobuffalo/packr
 
 ```go
 package main
@@ -163,11 +162,11 @@ func main() {
 		Views: engine,
 	})
 
-	// ...
+	// run packr && go build
 }
 ```
 #### go.rice
-https://github.com/GeertJohan/go.rice
+Read documentation: https://github.com/GeertJohan/go.rice
 
 ```go
 package main
@@ -186,12 +185,12 @@ func main() {
 		Views: engine,
 	})
 
-	// ...
+	// run rice embed-go && go build
 }
 
 ```
 #### fileb0x
-https://github.com/UnnoTed/fileb0x
+Read documentation: https://github.com/UnnoTed/fileb0x
 
 ```go
 package main
@@ -210,6 +209,6 @@ func main() {
 		Views: engine,
 	})
 
-	// ...
+	// Read the documentation on how to use fileb0x
 }
 ```
