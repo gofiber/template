@@ -3,13 +3,14 @@ package mustache
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/cbroglie/mustache"
+	"github.com/gofiber/template/utils"
 	"github.com/valyala/bytebufferpool"
 )
 
@@ -17,6 +18,8 @@ import (
 type Engine struct {
 	// views folder
 	directory string
+	// http.FileSystem supports embedded files
+	fileSystem http.FileSystem
 	// views extension
 	extension string
 	// layout variable name that incapsulates the template
@@ -38,6 +41,17 @@ func New(directory, extension string) *Engine {
 		extension: extension,
 		layout:    "embed",
 		Templates: make(map[string]*mustache.Template),
+	}
+	return engine
+}
+
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		directory:  "/",
+		fileSystem: fs,
+		extension:  extension,
+		layout:     "embed",
+		Templates:  make(map[string]*mustache.Template),
 	}
 	return engine
 }
@@ -82,7 +96,7 @@ func (e *Engine) Load() error {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 	// Loop trough each directory and register template files
-	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
+	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
@@ -110,7 +124,7 @@ func (e *Engine) Load() error {
 		name = strings.Replace(name, e.extension, "", -1)
 		// Read the file
 		// #gosec G304
-		buf, err := ioutil.ReadFile(path)
+		buf, err := utils.ReadFile(path, e.fileSystem)
 		if err != nil {
 			return err
 		}
@@ -127,8 +141,11 @@ func (e *Engine) Load() error {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
 		return err
-	})
-	return err
+	}
+	if e.fileSystem != nil {
+		return utils.Walk(e.fileSystem, e.directory, walkFn)
+	}
+	return filepath.Walk(e.directory, walkFn)
 }
 
 // Execute will render the template by name

@@ -48,6 +48,10 @@ func main() {
 	// Create a new engine
 	engine := django.New("./views", ".django")
 
+  // Or from an embedded system
+  // See github.com/gofiber/embed for examples
+  // engine := html.NewFileSystem(http.Dir("./views", ".django"))
+
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{
 		Views: engine,

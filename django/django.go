@@ -3,13 +3,14 @@ package django
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/flosch/pongo2"
+	"github.com/gofiber/template/utils"
 )
 
 // Engine struct
@@ -19,6 +20,8 @@ type Engine struct {
 	right string
 	// views folder
 	directory string
+	// http.FileSystem supports embedded files
+	fileSystem http.FileSystem
 	// views extension
 	extension string
 	// layout variable name that incapsulates the template
@@ -44,7 +47,19 @@ func New(directory, extension string) *Engine {
 		extension: extension,
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
-		Templates: make(map[string]*pongo2.Template),
+	}
+	return engine
+}
+
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		left:       "{{",
+		right:      "}}",
+		directory:  "/",
+		fileSystem: fs,
+		extension:  extension,
+		layout:     "embed",
+		funcmap:    make(map[string]interface{}),
 	}
 	return engine
 }
@@ -98,16 +113,14 @@ func (e *Engine) Load() error {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
+	e.Templates = make(map[string]*pongo2.Template)
 	// Set template settings
-	loader, err := pongo2.NewLocalFileSystemLoader(filepath.Clean(e.directory))
-	if err != nil {
-		return err
-	}
-	set := pongo2.NewSet("", loader)
+	set := pongo2.NewSet("", pongo2.DefaultLoader)
 	set.Globals = e.funcmap
 	pongo2.SetAutoescape(false)
+
 	// Loop trough each directory and register template files
-	err = filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
+	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
@@ -135,7 +148,7 @@ func (e *Engine) Load() error {
 		name = strings.Replace(name, e.extension, "", -1)
 		// Read the file
 		// #gosec G304
-		buf, err := ioutil.ReadFile(path)
+		buf, err := utils.ReadFile(path, e.fileSystem)
 		if err != nil {
 			return err
 		}
@@ -150,8 +163,11 @@ func (e *Engine) Load() error {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
 		return err
-	})
-	return err
+	}
+	if e.fileSystem != nil {
+		return utils.Walk(e.fileSystem, e.directory, walkFn)
+	}
+	return filepath.Walk(e.directory, walkFn)
 }
 
 func getPongoBinding(binding interface{}) pongo2.Context {
@@ -193,8 +209,9 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return fmt.Errorf("layout %s does not exist", layout[0])
 		}
 		return lay.ExecuteWriter(bind, out)
-
 	}
-	_, err = out.Write([]byte(parsed))
-	return err
+	if _, err = out.Write([]byte(parsed)); err != nil {
+		return err
+	}
+	return nil
 }

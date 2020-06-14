@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/CloudyKit/jet/v3"
+	"github.com/gofiber/template/utils"
 )
 
 // Engine struct
@@ -16,12 +21,16 @@ type Engine struct {
 	right string
 	// views folder
 	directory string
+	// http.FileSystem supports embedded files
+	fileSystem http.FileSystem
 	// views extension
 	extension string
 	// layout variable name that incapsulates the template
 	layout string
 	// reload on each render
 	reload bool
+	// debug prints the parsed templates
+	debug bool
 	// lock for funcmap and templates
 	mutex sync.RWMutex
 	// template funcmap
@@ -33,19 +42,7 @@ type Engine struct {
 // New returns a Jet render engine for Fiber
 func New(directory, extension string) *Engine {
 	// jet library does not export or give us any option to modify the file extension
-	extJet := []string{
-		".html.jet",
-		".jet.html",
-		".jet",
-	}
-	extOK := false
-	for _, ext := range extJet {
-		if ext == extension {
-			extOK = true
-			break
-		}
-	}
-	if !extOK {
+	if extension != ".html.jet" && extension != ".jet.html" && extension != ".jet" {
 		log.Fatalf("%s extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension)
 	}
 
@@ -54,6 +51,23 @@ func New(directory, extension string) *Engine {
 		extension: extension,
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
+	}
+
+	return engine
+}
+
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	// jet library does not export or give us any option to modify the file extension
+	if extension != ".html.jet" && extension != ".jet.html" && extension != ".jet" {
+		log.Fatalf("%s extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension)
+	}
+
+	engine := &Engine{
+		directory:  "/",
+		fileSystem: fs,
+		extension:  extension,
+		layout:     "embed",
+		funcmap:    make(map[string]interface{}),
 	}
 
 	return engine
@@ -109,19 +123,62 @@ func (e *Engine) Load() error {
 	defer e.mutex.Unlock()
 
 	// parse templates
-	e.Templates = jet.NewHTMLSet(e.directory)
-
+	//e.Templates = jet.NewHTMLSet(e.directory)
+	e.Templates = jet.NewHTMLSet()
 	// Set template settings
 	e.Templates.Delims(e.left, e.right)
 	e.Templates.SetDevelopmentMode(false)
-
-	qq, ok := e.Templates.LookupGlobal("yield")
-	fmt.Println(qq, ok)
 	for name, fn := range e.funcmap {
-
 		e.Templates.AddGlobal(name, fn)
 	}
-	return nil
+
+	walkFn := func(path string, info os.FileInfo, err error) error {
+		// Return error if exist
+		if err != nil {
+			return err
+		}
+		// Skip file if it's a directory or has no file info
+		if info == nil || info.IsDir() {
+			return nil
+		}
+		// Get file extension of file
+		ext := filepath.Ext(path)
+		// Skip file if it does not equal the given template extension
+		if ext != e.extension {
+			return nil
+		}
+		// Get the relative file path
+		// ./views/html/index.tmpl -> index.tmpl
+		rel, err := filepath.Rel(e.directory, path)
+		if err != nil {
+			return err
+		}
+		// Reverse slashes '\' -> '/' and
+		// partials\footer.tmpl -> partials/footer.tmpl
+		name := filepath.ToSlash(rel)
+		// Remove ext from name 'index.tmpl' -> 'index'
+		name = strings.Replace(name, e.extension, "", -1)
+		// Read the file
+		// #gosec G304
+		buf, err := utils.ReadFile(path, e.fileSystem)
+		if err != nil {
+			return err
+		}
+		// Create new template associated with the current one
+		// This enable use to invoke other templates {{ template .. }}
+		if _, err = e.Templates.LoadTemplate(name, string(buf)); err != nil {
+			return err
+		}
+		// Debugging
+		if e.debug {
+			fmt.Printf("views: parsed template: %s\n", name)
+		}
+		return err
+	}
+	if e.fileSystem != nil {
+		return utils.Walk(e.fileSystem, e.directory, walkFn)
+	}
+	return filepath.Walk(e.directory, walkFn)
 }
 
 // Execute will render the template by name

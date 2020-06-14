@@ -42,6 +42,10 @@ func main() {
 	// Create a new engine
 	engine := ace.New("./views", ".ace")
 
+  // Or from an embedded system
+  // See github.com/gofiber/embed for examples
+  // engine := html.NewFileSystem(http.Dir("./views", ".ace"))
+
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{
 		Views: engine,

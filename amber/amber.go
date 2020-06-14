@@ -4,19 +4,22 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/eknkc/amber"
+	"github.com/gofiber/template/utils"
 )
 
 // Engine struct
 type Engine struct {
 	// views folder
 	directory string
+	// http.FileSystem supports embedded files
+	fileSystem http.FileSystem
 	// views extension
 	extension string
 	// layout variable name that incapsulates the template
@@ -41,6 +44,21 @@ func New(directory, extension string) *Engine {
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
 		Templates: make(map[string]*template.Template),
+	}
+	engine.AddFunc(engine.layout, func() error {
+		return fmt.Errorf("layout called unexpectedly.")
+	})
+	return engine
+}
+
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		directory:  "/",
+		fileSystem: fs,
+		extension:  extension,
+		layout:     "embed",
+		funcmap:    make(map[string]interface{}),
+		Templates:  make(map[string]*template.Template),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("layout called unexpectedly.")
@@ -112,7 +130,7 @@ func (e *Engine) Load() error {
 	amber.FuncMap = funcs
 
 	// Loop trough each directory and register template files
-	err := filepath.Walk(e.directory, func(path string, info os.FileInfo, err error) error {
+	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
@@ -140,7 +158,7 @@ func (e *Engine) Load() error {
 		name = strings.Replace(name, e.extension, "", -1)
 		// Read the file
 		// #gosec G304
-		buf, err := ioutil.ReadFile(path)
+		buf, err := utils.ReadFile(path, e.fileSystem)
 		if err != nil {
 			return err
 		}
@@ -156,8 +174,12 @@ func (e *Engine) Load() error {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
 		return err
-	})
-	return err
+	}
+
+	if e.fileSystem != nil {
+		return utils.Walk(e.fileSystem, e.directory, walkFn)
+	}
+	return filepath.Walk(e.directory, walkFn)
 }
 
 // Render will execute the template name along with the given values.

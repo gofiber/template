@@ -20,7 +20,7 @@
   </a>
 </p>
 
-This package provides universal methods to use multiple template engines with the [Fiber web framework](https://github.com/gofiber/fiber) using the new [Views](https://godoc.org/github.com/gofiber/fiber#Views) interface that is available from `> v1.11.1`. Special thanks to @bdtomlin for helping!
+This package provides universal methods to use multiple template engines with the [Fiber web framework](https://github.com/gofiber/fiber) using the new [Views](https://godoc.org/github.com/gofiber/fiber#Views) interface that is available from `> v1.11.1`. Special thanks to @bdtomlin & @arsmn for helping!
 
 8 template engines are supported:
 - [html](https://github.com/gofiber/template/tree/master/html)
@@ -113,3 +113,103 @@ To view more specific examples, you could visit each engine folder to learn more
 - [jet](https://github.com/gofiber/template/tree/master/jet)
 - [mustache](https://github.com/gofiber/template/tree/master/mustache)
 - [pug](https://github.com/gofiber/template/tree/master/pug)
+
+
+### embedded Systems
+
+We support the `http.FileSystem` interface, so you can use different libraries to load the templates from embedded binaries.
+
+#### pkger
+https://github.com/markbates/pkger
+
+```go
+package main
+
+import (
+	"github.com/gofiber/fiber"
+	"github.com/gofiber/template/html"
+
+	"github.com/markbates/pkger"
+)
+
+func main() {
+	engine := html.NewFileSystem(pkger.Dir("/views"), ".html")
+
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
+
+	// ...
+}
+
+```
+#### packr
+https://github.com/gobuffalo/packr
+
+```go
+package main
+
+import (
+	"github.com/gofiber/fiber"
+	"github.com/gofiber/template/html"
+
+	"github.com/gobuffalo/packr/v2"
+)
+
+func main() {
+	engine := html.NewFileSystem(packr.New("Templates", "/views"), ".html")
+
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
+
+	// ...
+}
+```
+#### go.rice
+https://github.com/GeertJohan/go.rice
+
+```go
+package main
+
+import (
+	"github.com/gofiber/fiber"
+	"github.com/gofiber/template/html"
+
+	"github.com/GeertJohan/go.rice"
+)
+
+func main() {
+	engine := html.NewFileSystem(rice.MustFindBox("views").HTTPBox(), ".html")
+
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
+
+	// ...
+}
+
+```
+#### fileb0x
+https://github.com/UnnoTed/fileb0x
+
+```go
+package main
+
+import (
+	"github.com/gofiber/fiber"
+	"github.com/gofiber/template/html"
+	// your generated package
+	"github.com/<user>/<repo>/static"
+)
+
+func main() {
+	engine := html.NewFileSystem(static.HTTP, ".html")
+
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
+
+	// ...
+}
+```
