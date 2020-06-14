@@ -127,16 +127,21 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-  "github.com/gofiber/template/html"
+	"github.com/gofiber/template/html"
 
-  "github.com/markbates/pkger"
+	"github.com/markbates/pkger"
 )
 
 func main() {
 	engine := html.NewFileSystem(pkger.Dir("/views"), ".html")
 
-  // ...
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
+
+	// ...
 }
+
 ```
 #### packr
 https://github.com/gobuffalo/packr
@@ -146,15 +151,19 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-  "github.com/gofiber/template/html"
+	"github.com/gofiber/template/html"
 
-  "github.com/gobuffalo/packr/v2"
+	"github.com/gobuffalo/packr/v2"
 )
 
 func main() {
 	engine := html.NewFileSystem(packr.New("Templates", "/views"), ".html")
 
-  // ...
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
+
+	// ...
 }
 ```
 #### go.rice
@@ -165,16 +174,21 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-  "github.com/gofiber/template/html"
+	"github.com/gofiber/template/html"
 
-  "github.com/GeertJohan/go.rice"
+	"github.com/GeertJohan/go.rice"
 )
 
 func main() {
 	engine := html.NewFileSystem(rice.MustFindBox("views").HTTPBox(), ".html")
 
-  // ...
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
+
+	// ...
 }
+
 ```
 #### fileb0x
 https://github.com/UnnoTed/fileb0x
@@ -184,15 +198,19 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-  "github.com/gofiber/template/html"
-
-  // your generated package
+	"github.com/gofiber/template/html"
+	// your generated package
 	"github.com/<user>/<repo>/static"
 )
 
 func main() {
 	engine := html.NewFileSystem(static.HTTP, ".html")
 
-  // ...
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
+
+	// ...
 }
+
 ```
