@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -89,21 +88,22 @@ func Test_FileSystem(t *testing.T) {
 }
 
 func Test_Reload(t *testing.T) {
-	reloadFile := "./views/reload.django"
-	fileCont := "reloaded"
-	expect := "reloaded"
+	engine := NewFileSystem(http.Dir("./views"), ".django")
+	engine.Reload(true) // Optional. Default: false
 
-	engine := New("./views", ".django")
-	engine.Reload(true)
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
 
-	content := []byte(fileCont)
-	err := ioutil.WriteFile(reloadFile, content, 0644)
-	if err != nil {
-		panic(err)
+	if err := ioutil.WriteFile("./views/reload.django", []byte("after reload\n"), 0644); err != nil {
+		t.Fatalf("write file: %v\n", err)
 	}
 	defer func() {
-		if err := os.Remove(reloadFile); err != nil {
-			panic(err)
+		if err := ioutil.WriteFile("./views/reload.django", []byte("before reload\n"), 0644); err != nil {
+			t.Fatalf("write file: %v\n", err)
 		}
 	}()
 
@@ -111,6 +111,7 @@ func Test_Reload(t *testing.T) {
 
 	var buf bytes.Buffer
 	engine.Render(&buf, "reload", nil)
+	expect := "after reload"
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
