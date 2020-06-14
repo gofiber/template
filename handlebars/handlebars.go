@@ -42,7 +42,6 @@ func New(directory, extension string) *Engine {
 		extension: extension,
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
-		Templates: make(map[string]*raymond.Template),
 	}
 	return engine
 }
@@ -54,7 +53,6 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 		extension:  extension,
 		layout:     "embed",
 		funcmap:    make(map[string]interface{}),
-		Templates:  make(map[string]*raymond.Template),
 	}
 	return engine
 }
@@ -108,6 +106,7 @@ func (e *Engine) Load() (err error) {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 	// Set template settings
+	e.Templates = make(map[string]*raymond.Template)
 	raymond.RegisterHelpers(e.funcmap)
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
