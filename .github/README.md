@@ -113,3 +113,86 @@ To view more specific examples, you could visit each engine folder to learn more
 - [jet](https://github.com/gofiber/template/tree/master/jet)
 - [mustache](https://github.com/gofiber/template/tree/master/mustache)
 - [pug](https://github.com/gofiber/template/tree/master/pug)
+
+
+### embedded Systems
+
+We support the `http.FileSystem` interface, so you can use different libraries to load the templates from embedded binaries.
+
+#### pkger
+https://github.com/markbates/pkger
+
+```go
+package main
+
+import (
+	"github.com/gofiber/fiber"
+  "github.com/gofiber/template/html"
+
+  "github.com/markbates/pkger"
+)
+
+func main() {
+	engine := html.NewFileSystem(pkger.Dir("/views"), ".html")
+
+  // ...
+}
+```
+#### packr
+https://github.com/gobuffalo/packr
+
+```go
+package main
+
+import (
+	"github.com/gofiber/fiber"
+  "github.com/gofiber/template/html"
+
+  "github.com/gobuffalo/packr/v2"
+)
+
+func main() {
+	engine := html.NewFileSystem(packr.New("Templates", "/views"), ".html")
+
+  // ...
+}
+```
+#### go.rice
+https://github.com/GeertJohan/go.rice
+
+```go
+package main
+
+import (
+	"github.com/gofiber/fiber"
+  "github.com/gofiber/template/html"
+
+  "github.com/GeertJohan/go.rice"
+)
+
+func main() {
+	engine := html.NewFileSystem(rice.MustFindBox("views").HTTPBox(), ".html")
+
+  // ...
+}
+```
+#### fileb0x
+https://github.com/UnnoTed/fileb0x
+
+```go
+package main
+
+import (
+	"github.com/gofiber/fiber"
+  "github.com/gofiber/template/html"
+
+  // your generated package
+	"github.com/<user>/<repo>/static"
+)
+
+func main() {
+	engine := html.NewFileSystem(static.HTTP, ".html")
+
+  // ...
+}
+```
