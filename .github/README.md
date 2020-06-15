@@ -60,6 +60,10 @@ func main() {
 	// and template extension using <engine>.New(dir, ext string)
 	engine := html.New("./views", ".html")
 
+  // We also support the http.FileSystem interface
+	// See examples below to load templates from embedded files
+	engine := html.NewFileSystem(http.Dir("./views"), ".html")
+
 	// Reload the templates on each render, good for development
 	engine.Reload(true) // Optional. Default: false
 
