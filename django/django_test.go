@@ -87,6 +87,31 @@ func Test_FileSystem(t *testing.T) {
 	}
 }
 
+func Test_AddFunc(t *testing.T) {
+	engine := NewFileSystem(http.Dir("./views"), ".django")
+	engine.Debug(true)
+
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "admin", map[string]interface{}{
+		"user": "admin"},
+	)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	expect := `<h1>Hello, Admin!</h1>`
+	result := trim(buf.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+}
+
 func Test_Reload(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".django")
 	engine.Reload(true) // Optional. Default: false
