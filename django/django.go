@@ -115,9 +115,8 @@ func (e *Engine) Load() error {
 
 	e.Templates = make(map[string]*pongo2.Template)
 	// Set template settings
-	set := pongo2.NewSet("", pongo2.DefaultLoader)
-	set.Globals = e.funcmap
 	pongo2.SetAutoescape(false)
+	pongo2.DefaultSet.Globals.Update(e.funcmap)
 
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -184,7 +183,7 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	return nil
 }
 
-// Execute will render the template by name
+// Render will render the template by name
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	if e.reload {
 		if err := e.Load(); err != nil {
@@ -195,6 +194,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	if !ok {
 		return fmt.Errorf("template %s does not exist", template)
 	}
+
 	bind := getPongoBinding(binding)
 	parsed, err := tmpl.Execute(bind)
 	if err != nil {
