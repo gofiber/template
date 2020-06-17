@@ -49,7 +49,6 @@ func New(directory, extension string) *Engine {
 		extension: extension,
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
-		Templates: template.New(directory),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("layout called unexpectedly.")
@@ -123,6 +122,8 @@ func (e *Engine) Load() error {
 	// race safe
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
+
+	e.Templates = template.New(e.directory)
 
 	// Set template settings
 	e.Templates.Delims(e.left, e.right)
