@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofiber/template/utils"
 	"github.com/mattn/go-slim"
+	"github.com/valyala/bytebufferpool"
 )
 
 // Engine struct
@@ -175,29 +176,30 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl, ok := e.Templates[template]
-	if !ok {
-		return fmt.Errorf("template %s does not exist", template)
+	tmpl := e.Templates[template]
+	if tmpl == nil {
+		return fmt.Errorf("render: template %s does not exist", template)
+	}
+	if len(layout) > 0 {
+		buf := bytebufferpool.Get()
+		defer bytebufferpool.Put(buf)
+		if err := tmpl.Execute(buf, binding); err != nil {
+			return err
+		}
+		var bind map[string]interface{}
+		if bind == nil {
+			bind = make(map[string]interface{}, 1)
+		} else if context, ok := binding.(map[string]interface{}); ok {
+			bind = context
+		} else {
+			bind = make(map[string]interface{}, 1)
+		}
+		bind[e.layout] = buf.String()
+		lay := e.Templates[layout[0]]
+		if lay == nil {
+			return fmt.Errorf("render: layout %s does not exist", layout[0])
+		}
+		return lay.Execute(out, bind)
 	}
 	return tmpl.Execute(out, binding)
-	// bind := getPongoBinding(binding)
-	// parsed, err := tmpl.Execute(bind)
-	// if err != nil {
-	// 	return err
-	// }
-	// if len(layout) > 0 {
-	// 	if bind == nil {
-	// 		bind = make(map[string]interface{}, 1)
-	// 	}
-	// 	bind[e.layout] = parsed
-	// 	lay := e.Templates[layout[0]]
-	// 	if lay == nil {
-	// 		return fmt.Errorf("layout %s does not exist", layout[0])
-	// 	}
-	// 	return lay.ExecuteWriter(bind, out)
-	// }
-	// if _, err = out.Write([]byte(parsed)); err != nil {
-	// 	return err
-	// }
-	// return nil
 }
