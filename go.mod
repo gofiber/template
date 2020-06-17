@@ -10,6 +10,7 @@ require (
 	github.com/cbroglie/mustache v1.1.0
 	github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
+	github.com/mattn/go-slim v0.0.0-20190926010428-236f1c35e4e6
 	github.com/valyala/bytebufferpool v1.0.0
 	github.com/yosssi/ace v0.0.5
 	gopkg.in/yaml.v2 v2.3.0 // indirect
