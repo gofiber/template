@@ -66,7 +66,6 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 		extension:  extension,
 		layout:     "embed",
 		funcmap:    make(map[string]interface{}),
-		Templates:  template.New("/"),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("layout called unexpectedly.")

@@ -40,7 +40,6 @@ func New(directory, extension string) *Engine {
 		directory: directory,
 		extension: extension,
 		layout:    "embed",
-		Templates: make(map[string]*mustache.Template),
 	}
 	return engine
 }
@@ -51,7 +50,6 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 		fileSystem: fs,
 		extension:  extension,
 		layout:     "embed",
-		Templates:  make(map[string]*mustache.Template),
 	}
 	return engine
 }
@@ -95,6 +93,9 @@ func (e *Engine) Load() error {
 	// race safe
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
+
+	e.Templates = make(map[string]*mustache.Template)
+
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist

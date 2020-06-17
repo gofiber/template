@@ -43,7 +43,6 @@ func New(directory, extension string) *Engine {
 		extension: extension,
 		layout:    "embed",
 		funcmap:   make(map[string]interface{}),
-		Templates: make(map[string]*template.Template),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("layout called unexpectedly.")
@@ -58,7 +57,6 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 		extension:  extension,
 		layout:     "embed",
 		funcmap:    make(map[string]interface{}),
-		Templates:  make(map[string]*template.Template),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("layout called unexpectedly.")
@@ -114,6 +112,8 @@ func (e *Engine) Load() error {
 	// race safe
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
+
+	e.Templates = make(map[string]*template.Template)
 
 	// Set template settings
 	// prepare the global amber funcs
