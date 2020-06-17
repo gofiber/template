@@ -134,7 +134,8 @@ func (e *Engine) Load() (err error) {
 		// partials\footer.tmpl -> partials/footer.tmpl
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.Replace(name, e.extension, "", -1)
+		name = strings.TrimSuffix(name, e.extension)
+		// name = strings.Replace(name, e.extension, "", -1)
 
 		// Read the file
 		// #gosec G304
