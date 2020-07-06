@@ -36,15 +36,17 @@ package main
 import (
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/template/pug"
+
+	// "net/http" // embedded system
 )
 
 func main() {
 	// Create a new engine
 	engine := pug.New("./views", ".pug")
 
-  // Or from an embedded system
-  // See github.com/gofiber/embed for examples
-  // engine := html.NewFileSystem(http.Dir("./views", ".pug"))
+	// Or from an embedded system
+	// See github.com/gofiber/embed for examples
+	// engine := pug.NewFileSystem(http.Dir("./views", ".pug"))
 
 	// Pass the engine to the Views
 	app := fiber.New(&fiber.Settings{
