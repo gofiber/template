@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/CloudyKit/jet/v3"
+	"github.com/gofiber/fiber"
 	"github.com/gofiber/template/utils"
 )
 
@@ -214,6 +215,11 @@ func jetVarMap(binding interface{}) jet.VarMap {
 		return bind
 	}
 	if binds, ok := binding.(map[string]interface{}); ok {
+		bind = make(jet.VarMap)
+		for key, value := range binds {
+			bind.Set(key, value)
+		}
+	} else if binds, ok := binding.(fiber.Map); ok {
 		bind = make(jet.VarMap)
 		for key, value := range binds {
 			bind.Set(key, value)
