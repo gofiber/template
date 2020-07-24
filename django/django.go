@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/flosch/pongo2"
+	"github.com/gofiber/fiber"
 	"github.com/gofiber/template/utils"
 )
 
@@ -180,6 +181,14 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	if binds, ok := binding.(map[string]interface{}); ok {
 		return binds
 	}
+	if binds, ok := binding.(fiber.Map); ok {
+		bind := make(pongo2.Context)
+		for key, value := range binds {
+			bind[key] = value
+		}
+		return bind
+	}
+
 	return nil
 }
 
