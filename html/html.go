@@ -194,12 +194,16 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
-		lay.Funcs(map[string]interface{}{
+		layCopy, err := lay.Clone()
+		if err != nil {
+			return err
+		}
+		layCopy.Funcs(map[string]interface{}{
 			e.layout: func() error {
 				return tmpl.Execute(out, binding)
 			},
 		})
-		return lay.Execute(out, binding)
+		return layCopy.Execute(out, binding)
 	}
 	return tmpl.Execute(out, binding)
 }
