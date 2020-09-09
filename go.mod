@@ -3,7 +3,7 @@ module github.com/gofiber/template
 go 1.14
 
 require (
-	github.com/CloudyKit/jet/v3 v3.0.0
+	github.com/CloudyKit/jet/v3 v3.0.1
 	github.com/Joker/hpp v1.0.0
 	github.com/Joker/jade v1.0.0
 	github.com/aymerick/raymond v2.0.2+incompatible
