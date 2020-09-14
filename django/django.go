@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/flosch/pongo2"
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/utils"
 )
 

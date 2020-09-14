@@ -36,7 +36,7 @@ This package provides universal methods to use multiple template engines with th
 > Go version `1.13` or higher is required.
 
 ```
-go get -u github.com/gofiber/fiber
+go get -u github.com/gofiber/fiber/v2
 go get -u github.com/gofiber/template
 ```
 
@@ -45,7 +45,10 @@ go get -u github.com/gofiber/template
 package main
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
+
 	// To use a specific template engine, import as shown below:
 	// "github.com/gofiber/template/pug"
 	// "github.com/gofiber/template/mustache"
@@ -130,6 +133,8 @@ Read documentation: https://github.com/markbates/pkger
 package main
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 
@@ -153,6 +158,8 @@ Read documentation: https://github.com/gobuffalo/packr
 package main
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 
@@ -176,6 +183,8 @@ Read documentation: https://github.com/GeertJohan/go.rice
 package main
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 
@@ -200,6 +209,8 @@ Read documentation: https://github.com/UnnoTed/fileb0x
 package main
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 	// your generated package

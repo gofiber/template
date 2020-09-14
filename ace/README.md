@@ -34,7 +34,9 @@ html
 package main
 
 import (
-	"github.com/gofiber/fiber"
+	"log"
+	
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/ace"
 )
 
@@ -47,25 +49,25 @@ func main() {
   // engine := html.NewFileSystem(http.Dir("./views", ".ace"))
 
 	// Pass the engine to the Views
-	app := fiber.New(&fiber.Settings{
+	app := fiber.New(fiber.Config{
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) {
+	app.Get("/", func(c *fiber.Ctx) error {
 		// Render index
-		c.Render("index", fiber.Map{
+		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
-	app.Get("/layout", func(c *fiber.Ctx) {
+	app.Get("/layout", func(c *fiber.Ctx) error {
 		// Render index within layouts/main
-		c.Render("index", fiber.Map{
+		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		}, "layouts/main")
 	})
 
-	app.Listen(3000)
+	log.Fatal(app.Listen(":3000"))
 }
 
 ```

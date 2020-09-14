@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/CloudyKit/jet/v3"
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/utils"
 )
 
