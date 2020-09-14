@@ -36,7 +36,7 @@ This package provides universal methods to use multiple template engines with th
 > Go version `1.13` or higher is required.
 
 ```
-go get -u github.com/gofiber/fiber
+go get -u github.com/gofiber/fiber/2
 go get -u github.com/gofiber/template
 ```
 
