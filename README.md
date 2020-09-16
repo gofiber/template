@@ -9,7 +9,7 @@
   <a href="https://pkg.go.dev/github.com/gofiber/template/html?tab=doc">
     <img src="https://img.shields.io/badge/%F0%9F%93%9A%20godoc-pkg-00ACD7.svg?color=00ACD7&style=flat">
   </a>
-  <a href="https://github.com/gofiber/fiber/actions?query=workflow%3AGosec">
+  <a href="https://github.com/gofiber/fiber/actions?query=workflow%3ASecurity">
     <img src="https://img.shields.io/github/workflow/status/gofiber/template/Security?label=%F0%9F%94%91%20gosec&style=flat&color=75C46B">
   </a>
   <a href="https://github.com/gofiber/fiber/actions?query=workflow%3ATest">
