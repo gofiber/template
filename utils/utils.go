@@ -21,6 +21,7 @@ func Walk(fs http.FileSystem, root string, walkFn filepath.WalkFunc) error {
 	return walk(fs, root, info, walkFn)
 }
 
+// gosec #G304
 func ReadFile(path string, fs http.FileSystem) ([]byte, error) {
 	if fs != nil {
 		file, err := fs.Open(path)
