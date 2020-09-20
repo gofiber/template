@@ -24,6 +24,8 @@ type Engine struct {
 	extension string
 	// layout variable name that incapsulates the template
 	layout string
+	// determines if the engine parsed all templates
+	loaded bool
 	// reload on each render
 	reload bool
 	// debug prints the parsed templates
@@ -176,7 +178,8 @@ func (e *Engine) Load() error {
 		}
 		return err
 	}
-
+	// notify engine that we parsed all templates
+	e.loaded = true
 	if e.fileSystem != nil {
 		return utils.Walk(e.fileSystem, e.directory, walkFn)
 	}
@@ -185,7 +188,7 @@ func (e *Engine) Load() error {
 
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
-	if e.reload {
+	if !e.loaded || e.reload {
 		if err := e.Load(); err != nil {
 			return err
 		}
