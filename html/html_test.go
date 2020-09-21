@@ -113,13 +113,13 @@ func Test_Layout_Multi(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		var buf bytes.Buffer
-		engine.Render(&buf, "index", map[string]interface{}{
+		err := engine.Render(&buf, "index", map[string]interface{}{
 			"Title": "Hello, World!",
 		}, "layouts/main")
 		expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
 		result := trim(buf.String())
 		if expect != result {
-			t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+			t.Fatalf("\nExpected:\n%s\nResult:\n%s\n\nError: %s", expect, result, err)
 		}
 	}
 
