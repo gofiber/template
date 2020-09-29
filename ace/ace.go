@@ -201,6 +201,9 @@ func (e *Engine) Load() error {
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	// reload the views
 	if !e.loaded || e.reload {
+		if e.reload {
+			e.loaded = false
+		}
 		ace.FlushCache()
 		if err := e.Load(); err != nil {
 			return err

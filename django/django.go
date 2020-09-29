@@ -199,6 +199,9 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	if !e.loaded || e.reload {
+		if e.reload {
+			e.loaded = false
+		}
 		if err := e.Load(); err != nil {
 			return err
 		}

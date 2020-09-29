@@ -118,10 +118,12 @@ func (e *Engine) Parse() error {
 
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
+	if e.loaded {
+		return nil
+	}
 	// race safe
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
-
 	e.Templates = template.New(e.directory)
 
 	// Set template settings
@@ -184,6 +186,9 @@ func (e *Engine) Load() error {
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	if !e.loaded || e.reload {
+		if e.reload {
+			e.loaded = false
+		}
 		if err := e.Load(); err != nil {
 			return err
 		}
@@ -198,16 +203,12 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
-		layCopy, err := lay.Clone()
-		if err != nil {
-			return err
-		}
-		layCopy.Funcs(map[string]interface{}{
+		lay.Funcs(map[string]interface{}{
 			e.layout: func() error {
 				return tmpl.Execute(out, binding)
 			},
 		})
-		return layCopy.Execute(out, binding)
+		return lay.Execute(out, binding)
 	}
 	return tmpl.Execute(out, binding)
 }
