@@ -1,6 +1,6 @@
 # Pug
 
-Pug is a template engine create by [joker](github.com/Joker/jade), to see the original syntax documentation please [click here](https://pugjs.org/language/tags.html)
+Pug is a template engine create by [joker](https://github.com/Joker/jade), to see the original syntax documentation please [click here](https://pugjs.org/language/tags.html)
 
 ### Basic Example
 
