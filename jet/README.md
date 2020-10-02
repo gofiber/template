@@ -1,6 +1,6 @@
 # Jet
 
-Jet is a template engine create by [cloudykit](github.com/CloudyKit/jet), to see the original syntax documentation please [click here](https://github.com/CloudyKit/jet/wiki/3.-Jet-template-syntax)
+Jet is a template engine create by [cloudykit](https://github.com/CloudyKit/jet), to see the original syntax documentation please [click here](https://github.com/CloudyKit/jet/wiki/3.-Jet-template-syntax)
 
 ### Basic Example
 
