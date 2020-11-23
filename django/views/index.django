@@ -1,3 +1,3 @@
-{% include "views/partials/header.django" %}
+{% include "partials/header.django" %}
 <h1>{{ Title }}</h1>
-{% include "views/partials/footer.django" %}
+{% include "partials/footer.django" %}

@@ -6,11 +6,11 @@ Django is a template engine create by [flosch](https://github.com/flosch/pongo2)
 
 _**./views/index.django**_
 ```html
-{% include "views/partials/header.django" %}
+{% include "partials/header.django" %}
 
 <h1>{{ Title }}</h1>
 
-{% include "views/partials/footer.django" %}
+{% include "partials/footer.django" %}
 ```
 _**./views/partials/header.django**_
 ```html
@@ -41,7 +41,7 @@ package main
 
 import (
 	"log"
-	
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/django"
 )

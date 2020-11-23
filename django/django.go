@@ -117,9 +117,19 @@ func (e *Engine) Load() error {
 	defer e.mutex.Unlock()
 
 	e.Templates = make(map[string]*pongo2.Template)
+
+	// New pongo2 defaultset
+	baseDir := e.directory
+	// TODO: work around until pongo2 support native http.FileSystem in stable release
+	if e.fileSystem != nil {
+		baseDir = fmt.Sprint(e.fileSystem)
+	}
+	pongoloader := pongo2.MustNewLocalFileSystemLoader(baseDir)
+	pongoset := pongo2.NewSet("default", pongoloader)
+
 	// Set template settings
+	pongoset.Globals.Update(e.funcmap)
 	pongo2.SetAutoescape(false)
-	pongo2.DefaultSet.Globals.Update(e.funcmap)
 
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -156,7 +166,7 @@ func (e *Engine) Load() error {
 			return err
 		}
 		// Create new template associated with the current one
-		tmpl, err := pongo2.FromBytes(buf)
+		tmpl, err := pongoset.FromBytes(buf)
 		if err != nil {
 			return err
 		}
