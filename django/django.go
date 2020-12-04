@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/flosch/pongo2"
+	"github.com/flosch/pongo2/v4"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/utils"
 )
@@ -118,15 +118,18 @@ func (e *Engine) Load() error {
 
 	e.Templates = make(map[string]*pongo2.Template)
 
-	// New pongo2 defaultset
 	baseDir := e.directory
-	// TODO: work around until pongo2 support native http.FileSystem in stable release
-	if e.fileSystem != nil {
-		baseDir = fmt.Sprint(e.fileSystem)
-	}
-	pongoloader := pongo2.MustNewLocalFileSystemLoader(baseDir)
-	pongoset := pongo2.NewSet("default", pongoloader)
 
+	var pongoloader pongo2.TemplateLoader
+	if e.fileSystem != nil {
+		// ensures creation of httpFileSystemLoader only when filesystem is defined
+		pongoloader = pongo2.MustNewHttpFileSystemLoader(e.fileSystem, baseDir)
+	} else {
+		pongoloader = pongo2.MustNewLocalFileSystemLoader(baseDir)
+	}
+
+	// New pongo2 defaultset
+	pongoset := pongo2.NewSet("default", pongoloader)
 	// Set template settings
 	pongoset.Globals.Update(e.funcmap)
 	pongo2.SetAutoescape(false)
