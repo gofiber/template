@@ -77,6 +77,8 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	return engine
 }
 
+
+
 // Layout defines the variable name that will incapsulate the template
 func (e *Engine) Layout(key string) *Engine {
 	e.layout = key
@@ -113,6 +115,13 @@ func (e *Engine) Debug(enabled bool) *Engine {
 	e.debug = enabled
 	return e
 }
+
+// Parse is deprecated, please use Load() instead
+func (e *Engine) Parse() error {
+	fmt.Println("Parse() is deprecated, please use Load() instead.")
+	return e.Load()
+}
+
 
 // Parse parses the templates to the engine.
 func (e *Engine) Load() (err error) {
