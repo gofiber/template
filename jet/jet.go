@@ -10,7 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/CloudyKit/jet/v3"
+	"github.com/CloudyKit/jet/v6"
+	"github.com/CloudyKit/jet/v6/loaders/httpfs"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/utils"
 )
@@ -109,33 +110,49 @@ func (e *Engine) Reload(enabled bool) *Engine {
 
 // Debug will print the parsed templates when Load is triggered.
 func (e *Engine) Debug(enabled bool) *Engine {
-	fmt.Println("debug: this method is not supported for jet")
+	e.debug = enabled
 	return e
 }
 
-// Parse is deprecated, please use Load() instead
-func (e *Engine) Parse() error {
-	fmt.Println("Parse() is deprecated, please use Load() instead.")
-	return e.Load()
-}
-
 // Parse parses the templates to the engine.
-func (e *Engine) Load() error {
+func (e *Engine) Load() (err error) {
 	// race safe
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
 	// parse templates
-	//e.Templates = jet.NewHTMLSet(e.directory)
-	e.Templates = jet.NewHTMLSet()
-	// Set template settings
-	e.Templates.Delims(e.left, e.right)
-	e.Templates.SetDevelopmentMode(false)
+	// e.Templates = jet.NewHTMLSet(e.directory)
+
+	var loader jet.Loader
+
+	if e.fileSystem != nil {
+		loader, err = httpfs.NewLoader(e.fileSystem)
+
+		if err != nil {
+			return
+		}
+	} else {
+		loader = jet.NewInMemLoader()
+	}
+	if e.debug {
+		e.Templates = jet.NewSet(
+			loader,
+			jet.WithDelims(e.left, e.right),
+			jet.InDevelopmentMode(),
+		)
+	} else {
+		e.Templates = jet.NewSet(
+			loader,
+			jet.WithDelims(e.left, e.right),
+		)
+	}
+
 	for name, fn := range e.funcmap {
 		e.Templates.AddGlobal(name, fn)
 	}
 
 	walkFn := func(path string, info os.FileInfo, err error) error {
+		l := loader.(*jet.InMemLoader)
 		// Return error if exist
 		if err != nil {
 			return err
@@ -150,41 +167,32 @@ func (e *Engine) Load() error {
 		if ext != e.extension {
 			return nil
 		}
-		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
 		rel, err := filepath.Rel(e.directory, path)
 		if err != nil {
 			return err
 		}
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.extension)
-		// name = strings.Replace(name, e.extension, "", -1)
+		name := strings.TrimSuffix(rel, e.extension)
 		// Read the file
 		// #gosec G304
 		buf, err := utils.ReadFile(path, e.fileSystem)
 		if err != nil {
 			return err
 		}
+
+		l.Set(name, string(buf))
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		if _, err = e.Templates.LoadTemplate(name, string(buf)); err != nil {
-			return err
-		}
-		// Debugging
-		if e.debug {
-			fmt.Printf("views: parsed template: %s\n", name)
-		}
 		return err
 	}
-	// notify engine that we parsed all templates
+
 	e.loaded = true
-	if e.fileSystem != nil {
-		return utils.Walk(e.fileSystem, e.directory, walkFn)
+
+	if _, ok := loader.(*jet.InMemLoader); ok {
+		return filepath.Walk(e.directory, walkFn)
 	}
-	return filepath.Walk(e.directory, walkFn)
+
+	return
 }
 
 // Execute will render the template by name
@@ -202,7 +210,6 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		return fmt.Errorf("render: template %s does not exist", template)
 	}
 	bind := jetVarMap(binding)
-	// TODO: layout does not work
 	if len(layout) > 0 {
 		lay, err := e.Templates.GetTemplate(layout[0])
 		if err != nil {
