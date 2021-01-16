@@ -1,4 +1,4 @@
-module github.com/gofiber/template
+module github.com/malusev998/template
 
 go 1.15
 
