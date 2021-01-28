@@ -175,7 +175,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 		var bind map[string]interface{}
-		if bind == nil {
+		if binding == nil {
 			bind = make(map[string]interface{}, 1)
 		} else if context, ok := binding.(map[string]interface{}); ok {
 			bind = context
