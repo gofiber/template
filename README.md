@@ -126,6 +126,43 @@ To view more specific examples, you could visit each engine folder to learn more
 
 We support the `http.FileSystem` interface, so you can use different libraries to load the templates from embedded binaries.
 
+#### go 1.16 embed package
+> Requires atleast Go 1.16
+
+Read documentation: https://golang.org/pkg/embed
+```go
+package main
+
+import (
+  "embed"
+  "io/fs"
+
+  "github.com/gofiber/fiber/v2"
+  "github.com/gofiber/template/html"
+)
+
+//go:embed views
+var content embed.FS
+
+func main() {
+  fsys := fs.FS(content)
+  webContent, err := fs.Sub(fsys, "views")
+  if err != nil {
+    // handle err
+    return
+  }
+
+	engine := html.NewFileSystem(http.FS(webContent), ".html")
+
+	app := fiber.New(fiber.Config{
+		Views: engine,
+	})
+
+  // rest of the code...
+}
+```
+
+
 #### pkger
 Read documentation: https://github.com/markbates/pkger
 
