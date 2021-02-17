@@ -152,11 +152,11 @@ func main() {
     return
   }
 
-	engine := html.NewFileSystem(http.FS(webContent), ".html")
+engine := html.NewFileSystem(http.FS(webContent), ".html")
 
-	app := fiber.New(fiber.Config{
-		Views: engine,
-	})
+app := fiber.New(fiber.Config{
+  Views: engine,
+})
 
   // rest of the code...
 }
