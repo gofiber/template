@@ -123,7 +123,7 @@ func (e *Engine) Load() error {
 	var pongoloader pongo2.TemplateLoader
 	if e.fileSystem != nil {
 		// ensures creation of httpFileSystemLoader only when filesystem is defined
-		pongoloader = pongo2.MustNewHttpFileSystemLoader(e.fileSystem, baseDir)
+		pongoloader = pongo2.MustNewHttpFileSystemLoader(e.fileSystem, "")
 	} else {
 		pongoloader = pongo2.MustNewLocalFileSystemLoader(baseDir)
 	}
