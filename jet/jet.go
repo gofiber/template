@@ -190,8 +190,11 @@ func (e *Engine) Load() (err error) {
 		}
 
 		l.Set(name, string(buf))
-		// Create new template associated with the current one
-		// This enable use to invoke other templates {{ template .. }}
+		// Debugging
+		if e.debug {
+			fmt.Printf("views: parsed template: %s\n", name)
+		}
+		
 		return err
 	}
 
