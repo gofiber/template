@@ -77,3 +77,50 @@ func main() {
 }
 
 ```
+
+### Register and use custom functions
+```go
+// My custom function
+func Nl2brHtml(value interface{}) string {
+	if str, ok := value.(string); ok {
+		return strings.Replace(str, "\n", "<br />", -1)
+	}
+	return ""
+}
+
+// Create a new engine
+engine := django.New("./views", ".django")
+
+// register functions
+engine.AddFunc("nl2br", Nl2brHtml)
+
+// Pass the engine to the Views
+app := fiber.New(fiber.Config{Views: engine})
+```
+_**in the handler**_
+```go
+c.Render("index", fiber.Map{
+    "Fiber": "Hello, World!\n\nGreetings from Fiber Team",
+})
+```
+
+_**./views/index.django**_
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"></head>
+<body>
+{{ nl2br(Fiber) }}
+</body>
+</html>
+```
+**Output:**
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"></head>
+<body>
+Hello, World!<br /><br />Greetings from Fiber Team
+</body>
+</html>
+```
