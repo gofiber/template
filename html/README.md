@@ -125,3 +125,56 @@ _**./views/index.html**_
 
 {{template "views/partials/footer" .}}
 ```
+
+### Example with innerHTML
+
+```go
+package main
+
+import (
+    "embed"
+    "html/template"
+    "log"
+    "net/http"
+
+    "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/template/html"
+)
+
+//go:embed views/*
+var viewsfs embed.FS
+
+func main() {
+    engine := html.NewFileSystem(http.FS(viewsfs), ".html")
+    engine.AddFunc(
+        // add unescape function
+        "unescape", func(s string) template.HTML {
+            return template.HTML(s)
+        },
+    )
+
+    // Pass the engine to the Views
+    app := fiber.New(fiber.Config{Views: engine})
+
+    app.Get("/", func(c *fiber.Ctx) error {
+        // Render index
+        return c.Render("views/index", fiber.Map{
+            "Title": "Hello, <b>World</b>!",
+        })
+    })
+
+    log.Fatal(app.Listen(":3000"))
+}
+```
+
+and change the starting point to the views directory
+
+_**./views/index.html**_
+```html
+<p>{{ unescape .Title}}</p>
+```
+**html output**
+```html
+<p>Hello, <b>World</b>!</p>
+```
+
