@@ -77,3 +77,51 @@ func main() {
 }
 
 ```
+
+### Example with embed.FS
+
+```go
+package main
+
+import (
+    "log"
+    "net/http"
+    "embed"
+
+    "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/template/html"
+)
+
+//go:embed views/*
+var viewsfs embed.FS
+
+func main() {
+    engine := html.NewFileSystem(http.FS(viewsfs), ".html")
+
+    // Pass the engine to the Views
+    app := fiber.New(fiber.Config{
+        Views: engine,
+    })
+
+
+    app.Get("/", func(c *fiber.Ctx) error {
+        // Render index - start with views directory
+        return c.Render("views/index", fiber.Map{
+            "Title": "Hello, World!",
+        })
+    })
+
+    log.Fatal(app.Listen(":3000"))
+}
+```
+
+and change the starting point to the views directory
+
+_**./views/index.html**_
+```html
+{{template "views/partials/header" .}}
+
+<h1>{{.Title}}</h1>
+
+{{template "views/partials/footer" .}}
+```
