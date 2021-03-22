@@ -51,6 +51,8 @@ func main() {
 	engine := mustache.New("./views", ".mustache")
 
   // Or from an embedded system
+  //   Note that with an embedded system the partials included from template files must be
+  //   specified relative to the filesystem's root, not the current working directory
   // engine := mustache.NewFileSystem(http.Dir("./views", ".mustache"), ".mustache")
 
 	// Pass the engine to the Views
