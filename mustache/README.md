@@ -1,6 +1,6 @@
 # Mustache
 
-Mustache is a template engine create by [hoisie/cbroglie](https://github.com/cbroglie/mustache), to see the original syntax documentation please [click here](https://mustache.github.io/mustache.5.html)
+Mustache is a template engine created by [hoisie/cbroglie](https://github.com/cbroglie/mustache), to see the original syntax documentation please [click here](https://mustache.github.io/mustache.5.html)
 
 ### Basic Example
 
@@ -51,8 +51,9 @@ func main() {
 	engine := mustache.New("./views", ".mustache")
 
   // Or from an embedded system
-  // See github.com/gofiber/embed for examples
-  // engine := html.NewFileSystem(http.Dir("./views", ".mustache"))
+  //   Note that with an embedded system the partials included from template files must be
+  //   specified relative to the filesystem's root, not the current working directory
+  // engine := mustache.NewFileSystem(http.Dir("./views", ".mustache"), ".mustache")
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{

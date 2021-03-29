@@ -64,7 +64,7 @@ func Test_Layout(t *testing.T) {
 }
 
 func Test_FileSystem(t *testing.T) {
-	engine := NewFileSystem(http.Dir("./views"), ".mustache")
+	engine := NewFileSystemPartials(http.Dir("./views"), ".mustache", http.Dir("."))
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
 	}
