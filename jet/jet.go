@@ -219,7 +219,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	}
 	tmpl, err := e.Templates.GetTemplate(template)
 	if err != nil || tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", template)
+		fmt.Errorf("render: template %s could not be loaded: %v", template, err)
 	}
 	bind := jetVarMap(binding)
 	if len(layout) > 0 {
