@@ -203,6 +203,8 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
+		e.mutex.Lock()
+		defer e.mutex.Unlock()
 		lay.Funcs(map[string]interface{}{
 			e.layout: func() error {
 				return tmpl.Execute(out, binding)
