@@ -77,8 +77,6 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	return engine
 }
 
-
-
 // Layout defines the variable name that will incapsulate the template
 func (e *Engine) Layout(key string) *Engine {
 	e.layout = key
@@ -121,7 +119,6 @@ func (e *Engine) Parse() error {
 	fmt.Println("Parse() is deprecated, please use Load() instead.")
 	return e.Load()
 }
-
 
 // Parse parses the templates to the engine.
 func (e *Engine) Load() (err error) {
@@ -170,10 +167,8 @@ func (e *Engine) Load() (err error) {
 		if info == nil || info.IsDir() {
 			return nil
 		}
-		// Get file extension of file
-		ext := filepath.Ext(path)
 		// Skip file if it does not equal the given template extension
-		if ext != e.extension {
+		if len(e.extension) >= len(path) || path[len(path)-len(e.extension):] != e.extension {
 			return nil
 		}
 		// ./views/html/index.tmpl -> index.tmpl
@@ -194,7 +189,7 @@ func (e *Engine) Load() (err error) {
 		if e.debug {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
-		
+
 		return err
 	}
 
