@@ -40,11 +40,11 @@ type Engine struct {
 
 type fileSystemPartialProvider struct {
 	fileSystem http.FileSystem
-	extension string
+	extension  string
 }
 
-func (p fileSystemPartialProvider) Get(path string)(string,error) {
-	buf, _ := utils.ReadFile(path + p.extension, p.fileSystem)
+func (p fileSystemPartialProvider) Get(path string) (string, error) {
+	buf, _ := utils.ReadFile(path+p.extension, p.fileSystem)
 	return string(buf), nil
 }
 
@@ -70,10 +70,10 @@ func NewFileSystemPartials(fs http.FileSystem, extension string, partialsFS http
 		fileSystem: fs,
 		partialsProvider: &fileSystemPartialProvider{
 			fileSystem: partialsFS,
-			extension: extension,
+			extension:  extension,
 		},
-		extension:  extension,
-		layout:     "embed",
+		extension: extension,
+		layout:    "embed",
 	}
 	return engine
 }
@@ -130,10 +130,8 @@ func (e *Engine) Load() error {
 		if info == nil || info.IsDir() {
 			return nil
 		}
-		// Get file extension of file
-		ext := filepath.Ext(path)
 		// Skip file if it does not equal the given template extension
-		if ext != e.extension {
+		if len(e.extension) >= len(path) || path[len(path)-len(e.extension):] != e.extension {
 			return nil
 		}
 		// Get the relative file path
@@ -159,7 +157,7 @@ func (e *Engine) Load() error {
 		var tmpl *mustache.Template
 		if e.partialsProvider != nil {
 			tmpl, err = mustache.ParseStringPartials(string(buf), e.partialsProvider)
-		} else{
+		} else {
 			tmpl, err = mustache.ParseString(string(buf))
 		}
 		if err != nil {

@@ -139,10 +139,8 @@ func (e *Engine) Load() error {
 		if info == nil || info.IsDir() {
 			return nil
 		}
-		// Get file extension of file
-		ext := filepath.Ext(path)
 		// Skip file if it does not equal the given template extension
-		if ext != e.extension {
+		if len(e.extension) >= len(path) || path[len(path)-len(e.extension):] != e.extension {
 			return nil
 		}
 		// Get the relative file path
