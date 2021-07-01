@@ -1,6 +1,6 @@
 # HTML
 
-HTML is the official Go template engine [html/template](https://golang.org/pkg/html/template/), to see the original syntax documentation please [click here](https://curtisvermeeren.github.io/2017/09/14/Golang-Templates-Cheatsheet#actions)
+HTML is the official Go template engine [html/template](https://golang.org/pkg/html/template/), to see the original syntax documentation please [click here](TEMPLATES_CHEATCHEET.md)
 
 ### Basic Example
 
