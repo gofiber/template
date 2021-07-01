@@ -13,7 +13,7 @@ The Go standard library provides a set of packages to generate output. The [text
 *   [Template Actions](#template-actions)
 *   [Template Functions](#template-functions)
 *   [Template Comparison Functions](#template-comparison-functions)
-*   [Nested Templates and Layouts](#nested-templates and-layouts)
+*   [Nested Templates and Layouts](#nested-templates-and-layouts)
 *   [Templates Calling Functions](#templates-calling-functions)
 
 * * *
