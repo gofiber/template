@@ -62,6 +62,24 @@ func Test_Layout(t *testing.T) {
 	}
 }
 
+func Test_Empty_Layout(t *testing.T) {
+	t.Parallel()
+	engine := New("./views", ".hbs")
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf bytes.Buffer
+	engine.Render(&buf, "index", map[string]interface{}{
+		"Title": "Hello, World!",
+	}, "")
+	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
+	result := trim(buf.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+}
+
 func Test_FileSystem(t *testing.T) {
 	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".hbs")

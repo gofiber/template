@@ -100,6 +100,27 @@ func Test_Layout(t *testing.T) {
 	}
 }
 
+func Test_Empty_Layout(t *testing.T) {
+	engine := New("./views", ".html")
+
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf bytes.Buffer
+	engine.Render(&buf, "index", map[string]interface{}{
+		"Title": "Hello, World!",
+	}, "")
+	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
+	result := trim(buf.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+}
+
 //Test_Layout_Multi checks if the layout can be rendered multiple times
 func Test_Layout_Multi(t *testing.T) {
 	engine := New("./views", ".html")
@@ -124,7 +145,6 @@ func Test_Layout_Multi(t *testing.T) {
 	}
 
 }
-
 
 func Test_FileSystem(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".html")
