@@ -192,7 +192,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", template)
 	}
-	if len(layout) > 0 {
+	if len(layout) > 0 && layout[0] != "" {
 		buf := bytebufferpool.Get()
 		defer bytebufferpool.Put(buf)
 		if err := tmpl.FRender(buf, binding); err != nil {

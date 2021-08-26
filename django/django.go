@@ -227,7 +227,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	if err != nil {
 		return err
 	}
-	if len(layout) > 0 {
+	if len(layout) > 0 && layout[0] != "" {
 		if bind == nil {
 			bind = make(map[string]interface{}, 1)
 		}
