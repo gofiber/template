@@ -55,7 +55,7 @@ func main() {
   // engine := html.NewFileSystem(http.Dir("./views", ".html"))
 
 	// Pass the engine to the Views
-	app := fiber.New(fiber.Config{
+	app := fiber.New(fiber.Settings{
 		Views: engine,
 	})
 
@@ -99,7 +99,7 @@ func main() {
     engine := html.NewFileSystem(http.FS(viewsfs), ".html")
 
     // Pass the engine to the Views
-    app := fiber.New(fiber.Config{
+    app := fiber.New(fiber.Settings{
         Views: engine,
     })
 
@@ -154,7 +154,7 @@ func main() {
     )
 
     // Pass the engine to the Views
-    app := fiber.New(fiber.Config{Views: engine})
+    app := fiber.New(fiber.Settings{Views: engine})
 
     app.Get("/", func(c *fiber.Ctx) error {
         // Render index
