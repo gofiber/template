@@ -6,11 +6,11 @@ Pug is a template engine create by [joker](https://github.com/Joker/jade), to se
 
 _**./views/index.pug**_
 ```html
-include views/partials/header.pug
+include partials/header.pug
 
 h1 #{.Title}
 
-include views/partials/footer.pug
+include partials/footer.pug
 ```
 _**./views/partials/header.pug**_
 ```html
@@ -26,6 +26,7 @@ doctype html
 html
   head
     title Main
+    include ../partials/meta.pug
   body
     | {{embed}}
 ```
