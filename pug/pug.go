@@ -145,19 +145,17 @@ func (e *Engine) Load() error {
 		if ext != e.extension {
 			return nil
 		}
-
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		path = filepath.ToSlash(path)
-
 		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
 		rel, err := filepath.Rel(e.directory, path)
 		if err != nil {
 			return err
 		}
+		// Reverse slashes '\' -> '/' and
+		// partials\footer.tmpl -> partials/footer.tmpl
+		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
-		name := strings.TrimSuffix(rel, e.extension)
+		name = strings.TrimSuffix(name, e.extension)
 		// name = strings.Replace(name, e.extension, "", -1)
 		// Read the file
 		// #gosec G304
