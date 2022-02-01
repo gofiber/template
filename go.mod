@@ -16,3 +16,5 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0
 	github.com/yosssi/ace v0.0.5
 )
+
+replace github.com/Joker/jade v1.1.1 => github.com/Nez21/jade v1.1.2
