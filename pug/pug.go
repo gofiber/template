@@ -165,7 +165,12 @@ func (e *Engine) Load() error {
 		}
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		pug, err := jade.Parse(name, buf)
+		var pug string
+		if e.fileSystem != nil {
+			pug, err = jade.ParseWithFileSystem(path, buf, e.fileSystem)
+		} else {
+			pug, err = jade.Parse(path, buf)
+		}
 		if err != nil {
 			return err
 		}
