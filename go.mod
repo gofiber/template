@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/CloudyKit/jet/v6 v6.1.0
 	github.com/Joker/hpp v1.0.0
-	github.com/Joker/jade v1.1.2
+	github.com/Joker/jade v1.1.3
 	github.com/aymerick/raymond v2.0.2+incompatible
 	github.com/cbroglie/mustache v1.3.0
 	github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385
@@ -16,4 +16,3 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0
 	github.com/yosssi/ace v0.0.5
 )
-
