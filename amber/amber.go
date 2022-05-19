@@ -165,7 +165,11 @@ func (e *Engine) Load() error {
 		}
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		tmpl, err := amber.CompileData(buf, name, amber.DefaultOptions)
+		option := amber.DefaultOptions
+		if e.fileSystem != nil{
+			option.VirtualFilesystem = e.fileSystem
+		}
+		tmpl, err := amber.CompileData(buf, name, option)
 		if err != nil {
 			return err
 		}
