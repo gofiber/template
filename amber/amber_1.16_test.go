@@ -7,17 +7,8 @@ import (
 	"bytes"
 	"embed"
 	"net/http"
-	"regexp"
-	"strings"
 	"testing"
 )
-
-func Trim(str string) string {
-	trimmed := strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllString(str, " "))
-	trimmed = strings.Replace(trimmed, " <", "<", -1)
-	trimmed = strings.Replace(trimmed, "> ", ">", -1)
-	return trimmed
-}
 
 //go:embed embed_views/*
 var embededViews embed.FS
@@ -37,7 +28,7 @@ func Test_EmbedFileSystem(t *testing.T) {
 		t.Fatalf("render: %v", err)
 	}
 	expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
-	result := Trim(buf.String())
+	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
