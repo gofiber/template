@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -79,6 +80,43 @@ func Test_AddFunc(t *testing.T) {
 	}
 }
 
+func Test_AddFuncMap(t *testing.T) {
+	// Create a temporary directory
+	dir, _ := os.MkdirTemp(".", "")
+	defer os.RemoveAll(dir)
+
+	// Create a temporary template file.
+	_ = os.WriteFile(dir+"/func_map.html", []byte(`<h2>{{lower .Var1}}</h2><p>{{upper .Var2}}</p>`), 0700)
+
+	engine := New(dir, ".html")
+
+	fm := map[string]interface{}{
+		"lower": func(s string) string {
+			return strings.ToLower(s)
+		},
+		"upper": func(s string) string {
+			return strings.ToUpper(s)
+		},
+	}
+
+	engine.AddFuncMap(fm)
+
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf bytes.Buffer
+	engine.Render(&buf, "func_map", map[string]interface{}{
+		"Var1": "LOwEr",
+		"Var2": "upPEr",
+	})
+	expect := `<h2>lower</h2><p>UPPER</p>`
+	result := trim(buf.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+}
+
 func Test_Layout(t *testing.T) {
 	engine := New("./views", ".html")
 
@@ -121,7 +159,7 @@ func Test_Empty_Layout(t *testing.T) {
 	}
 }
 
-//Test_Layout_Multi checks if the layout can be rendered multiple times
+// Test_Layout_Multi checks if the layout can be rendered multiple times
 func Test_Layout_Multi(t *testing.T) {
 	engine := New("./views", ".html")
 
