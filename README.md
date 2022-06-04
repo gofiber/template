@@ -33,7 +33,7 @@ This package provides universal methods to use multiple template engines with th
 - [pug](https://github.com/gofiber/template/tree/master/pug)
 
 ### Installation
-> Go version `1.16` or higher is required.
+> Go version `1.13` or higher is required.
 
 ```
 go get -u github.com/gofiber/fiber/v2

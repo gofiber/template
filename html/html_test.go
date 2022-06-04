@@ -82,11 +82,11 @@ func Test_AddFunc(t *testing.T) {
 
 func Test_AddFuncMap(t *testing.T) {
 	// Create a temporary directory
-	dir, _ := os.MkdirTemp(".", "")
+	dir, _ := ioutil.TempDir(".", "")
 	defer os.RemoveAll(dir)
 
 	// Create a temporary template file.
-	_ = os.WriteFile(dir+"/func_map.html", []byte(`<h2>{{lower .Var1}}</h2><p>{{upper .Var2}}</p>`), 0700)
+	_ = ioutil.WriteFile(dir+"/func_map.html", []byte(`<h2>{{lower .Var1}}</h2><p>{{upper .Var2}}</p>`), 0700)
 
 	engine := New(dir, ".html")
 
