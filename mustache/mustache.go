@@ -48,7 +48,7 @@ func (p fileSystemPartialProvider) Get(path string) (string, error) {
 	return string(buf), nil
 }
 
-// New returns a Handlebar render engine for Fiber
+// New returns a Mustache render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
 		directory: directory,
@@ -58,7 +58,7 @@ func New(directory, extension string) *Engine {
 	return engine
 }
 
-// NewFileSystem returns a Handlebar render engine for Fiber that supports embedded files
+// NewFileSystem returns a Mustache render engine for Fiber that supports embedded files
 func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	return NewFileSystemPartials(fs, extension, fs)
 }
