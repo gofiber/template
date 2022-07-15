@@ -1,0 +1,3 @@
+{% extends "ancestor.django" %}
+
+{% block content %}{{ greeting }}{% endblock %}
