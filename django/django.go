@@ -41,7 +41,7 @@ type Engine struct {
 	Templates map[string]*pongo2.Template
 }
 
-// New returns a Handlebar render engine for Fiber
+// New returns a Django render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
 		left:      "{{",

@@ -96,6 +96,17 @@ func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
 	return e
 }
 
+// AddFuncMap adds the functions from a map to the template's function map.
+// It is legal to overwrite elements of the default actions
+func (e *Engine) AddFuncMap(m map[string]interface{}) *Engine {
+	e.mutex.Lock()
+	for name, fn := range m {
+		e.funcmap[name] = fn
+	}
+	e.mutex.Unlock()
+	return e
+}
+
 // Reload if set to true the templates are reloading on each render,
 // use it when you're in development and you don't want to restart
 // the application when you edit a template file.

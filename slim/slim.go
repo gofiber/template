@@ -42,7 +42,7 @@ type Engine struct {
 	Templates map[string]*slim.Template
 }
 
-// New returns a Handlebar render engine for Fiber
+// New returns a Slim render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
 		left:      "{{",
