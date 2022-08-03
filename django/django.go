@@ -69,7 +69,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	return engine
 }
 
-// NewPathForwardingFileSystem Passes "directory" to the template engine where alternative functions.
+// NewPathForwardingFileSystem Passes "directory" to the template engine where alternative functions don't.
 // 							   This fixes errors during resolution of templates when "{% extends 'parent.html' %}" is used.
 func NewPathForwardingFileSystem(fs http.FileSystem, directory string, extension string) *Engine {
 	engine := NewFileSystem(fs, extension)
