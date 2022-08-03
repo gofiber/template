@@ -77,6 +77,54 @@ func main() {
 }
 
 ```
+### Using embedded file system (1.16+ only)
+
+When using the `// go:embed` directive, resolution of inherited templates using django's `{% extend '' %}` keyword fails when instantiating the template engine with `django.NewFileSystem()`. In that case, use the `django.NewPathForwardingFileSystem()` function to instantiate the template engine. 
+
+This function provides the proper configuration for resolving inherited templates.
+
+Assume you have the following files:
+
+- [views/ancenstor.django](views/ancestor.django)
+- [views/descendant.djando](views/descendant.django)
+
+then
+
+```go
+package main
+
+import (
+	"log"
+	"embed"
+	"net/http"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/django"
+)
+
+//go:embed views
+var viewsAsssets embed.FS
+
+func main() {
+	// Create a new engine
+	engine := NewPathForwardingFileSystem(http.FS(viewsAsssets), "/views", ".django")
+
+	// Pass the engine to the Views
+	app := fiber.New(fiber.Config{
+		Views: engine,
+	})
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		// Render descendant
+		return c.Render("descendant", fiber.Map{
+			"greeting": "World",
+		})
+	})
+
+	log.Fatal(app.Listen(":3000"))
+}
+
+```
 
 ### Register and use custom functions
 ```go

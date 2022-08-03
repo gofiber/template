@@ -33,6 +33,8 @@ type Engine struct {
 	reload bool
 	// debug prints the parsed templates
 	debug bool
+	// forward the base path to the template engine
+	forwardPath bool
 	// lock for funcmap and templates
 	mutex sync.RWMutex
 	// template funcmap
@@ -64,6 +66,15 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 		layout:     "embed",
 		funcmap:    make(map[string]interface{}),
 	}
+	return engine
+}
+
+// NewPathForwardingFileSystem Passes "directory" to the template engine where alternative functions don't.
+// 							   This fixes errors during resolution of templates when "{% extends 'parent.html' %}" is used.
+func NewPathForwardingFileSystem(fs http.FileSystem, directory string, extension string) *Engine {
+	engine := NewFileSystem(fs, extension)
+	engine.forwardPath = true
+	engine.directory = directory
 	return engine
 }
 
@@ -123,7 +134,11 @@ func (e *Engine) Load() error {
 	var pongoloader pongo2.TemplateLoader
 	if e.fileSystem != nil {
 		// ensures creation of httpFileSystemLoader only when filesystem is defined
-		pongoloader = pongo2.MustNewHttpFileSystemLoader(e.fileSystem, "")
+		if e.forwardPath {
+			pongoloader = pongo2.MustNewHttpFileSystemLoader(e.fileSystem, baseDir)
+		} else {
+			pongoloader = pongo2.MustNewHttpFileSystemLoader(e.fileSystem, "")
+		}
 	} else {
 		pongoloader = pongo2.MustNewLocalFileSystemLoader(baseDir)
 	}

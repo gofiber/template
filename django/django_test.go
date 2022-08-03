@@ -108,6 +108,7 @@ func Test_FileSystem(t *testing.T) {
 	}
 }
 
+
 func Test_AddFunc(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".django")
 	engine.Debug(true)
