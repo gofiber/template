@@ -4,7 +4,7 @@ on:
             - master
             - main
     pull_request:
-name: Test
+name: Tests
 jobs:
   Build:
     strategy:
