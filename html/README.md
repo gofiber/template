@@ -2,6 +2,12 @@
 
 HTML is the official Go template engine [html/template](https://golang.org/pkg/html/template/), to see the original syntax documentation please [click here](TEMPLATES_CHEATCHEET.md)
 
+**Info:**
+
+All templates within the specified view directory are analyzed and compiled at the beginning to increase the performance when using them.
+Thus it should be noted that no `definition` with the same name should exist, otherwise they will overwrite each other.
+For templating the `{{embed}}` tag should be used
+
 ### Basic Example
 
 _**./views/index.html**_
@@ -50,9 +56,9 @@ func main() {
 	// Create a new engine
 	engine := html.New("./views", ".html")
 
-  // Or from an embedded system
-  // See github.com/gofiber/embed for examples
-  // engine := html.NewFileSystem(http.Dir("./views", ".html"))
+	// Or from an embedded system
+	// See github.com/gofiber/embed for examples
+	// engine := html.NewFileSystem(http.Dir("./views", ".html"))
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
