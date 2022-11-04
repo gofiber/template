@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -198,13 +199,15 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		if err := tmpl.FRender(buf, binding); err != nil {
 			return err
 		}
-		var bind map[string]interface{}
-		if binding == nil {
-			bind = make(map[string]interface{}, 1)
-		} else if context, ok := binding.(map[string]interface{}); ok {
-			bind = context
-		} else {
-			bind = make(map[string]interface{}, 1)
+		bind := make(map[string]interface{})
+		if binding != nil {
+			val := reflect.ValueOf(binding)
+			if val.Kind() == reflect.Map {
+				for _, e := range val.MapKeys() {
+					v := val.MapIndex(e)
+					bind[e.String()] = v.Interface()
+				}
+			}
 		}
 		bind[e.layout] = buf.String()
 		lay := e.Templates[layout[0]]

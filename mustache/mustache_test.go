@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func trim(str string) string {
@@ -23,7 +25,7 @@ func Test_Render(t *testing.T) {
 	}
 	// Partials
 	var buf bytes.Buffer
-	engine.Render(&buf, "index", map[string]interface{}{
+	engine.Render(&buf, "index", fiber.Map{
 		"Title": "Hello, World!",
 	})
 	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
@@ -33,7 +35,7 @@ func Test_Render(t *testing.T) {
 	}
 	// Single
 	buf.Reset()
-	engine.Render(&buf, "errors/404", map[string]interface{}{
+	engine.Render(&buf, "errors/404", fiber.Map{
 		"Title": "Hello, World!",
 	})
 	expect = `<h1>Hello, World!</h1>`
@@ -50,13 +52,13 @@ func Test_Layout(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := engine.Render(&buf, "index", map[string]interface{}{
+	err := engine.Render(&buf, "index", fiber.Map{
 		"Title": "Hello, World!",
 	}, "layouts/main")
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
-	expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
+	expect := `<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
@@ -70,7 +72,7 @@ func Test_Empty_Layout(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := engine.Render(&buf, "index", map[string]interface{}{
+	err := engine.Render(&buf, "index", fiber.Map{
 		"Title": "Hello, World!",
 	}, "")
 	if err != nil {
@@ -90,13 +92,13 @@ func Test_FileSystem(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := engine.Render(&buf, "index", map[string]interface{}{
+	err := engine.Render(&buf, "index", fiber.Map{
 		"Title": "Hello, World!",
 	}, "layouts/main")
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}
-	expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
+	expect := `<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)

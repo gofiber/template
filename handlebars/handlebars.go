@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -198,11 +199,15 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
-		var bind map[string]interface{}
-		if m, ok := binding.(map[string]interface{}); ok {
-			bind = m
-		} else {
-			bind = make(map[string]interface{}, 1)
+		bind := make(map[string]interface{})
+		if binding != nil {
+			val := reflect.ValueOf(binding)
+			if val.Kind() == reflect.Map {
+				for _, e := range val.MapKeys() {
+					v := val.MapIndex(e)
+					bind[e.String()] = v.Interface()
+				}
+			}
 		}
 		bind[e.layout] = raymond.SafeString(parsed)
 		parsed, err := lay.Exec(bind)
