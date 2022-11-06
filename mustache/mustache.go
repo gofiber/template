@@ -199,7 +199,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		if err := tmpl.FRender(buf, binding); err != nil {
 			return err
 		}
-		bind := make(map[string]interface{})
+		var bind map[string]interface{}
 		if m, ok := binding.(fiber.Map); ok {
 			bind = m
 		} else if m, ok := binding.(map[string]interface{}); ok {
