@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"sync"
 
 	"github.com/aymerick/raymond"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/utils"
 )
 
@@ -200,14 +200,12 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
 		bind := make(map[string]interface{})
-		if binding != nil {
-			val := reflect.ValueOf(binding)
-			if val.Kind() == reflect.Map {
-				for _, e := range val.MapKeys() {
-					v := val.MapIndex(e)
-					bind[e.String()] = v.Interface()
-				}
-			}
+		if m, ok := binding.(fiber.Map); ok {
+			bind = m
+		} else if m, ok := binding.(map[string]interface{}); ok {
+			bind = m
+		} else {
+			bind = make(map[string]interface{}, 1)
 		}
 		bind[e.layout] = raymond.SafeString(parsed)
 		parsed, err := lay.Exec(bind)
