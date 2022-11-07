@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/cbroglie/mustache"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/utils"
 	"github.com/valyala/bytebufferpool"
 )
@@ -199,10 +200,10 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 		var bind map[string]interface{}
-		if binding == nil {
-			bind = make(map[string]interface{}, 1)
-		} else if context, ok := binding.(map[string]interface{}); ok {
-			bind = context
+		if m, ok := binding.(fiber.Map); ok {
+			bind = m
+		} else if m, ok := binding.(map[string]interface{}); ok {
+			bind = m
 		} else {
 			bind = make(map[string]interface{}, 1)
 		}

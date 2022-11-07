@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/aymerick/raymond"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/utils"
 )
 
@@ -199,7 +200,9 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
 		var bind map[string]interface{}
-		if m, ok := binding.(map[string]interface{}); ok {
+		if m, ok := binding.(fiber.Map); ok {
+			bind = m
+		} else if m, ok := binding.(map[string]interface{}); ok {
 			bind = m
 		} else {
 			bind = make(map[string]interface{}, 1)
