@@ -105,6 +105,11 @@ func Test_Reload(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".hbs")
 	engine.Reload(true) // Optional. Default: false
 
+	// Test Load() does not re-bind custom helpers
+	engine.AddFunc("testHelper", func() string {
+		return "Hello World"
+	})
+
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
 	}

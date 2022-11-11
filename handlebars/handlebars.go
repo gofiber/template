@@ -32,6 +32,8 @@ type Engine struct {
 	debug bool
 	// lock for funcmap and templates
 	mutex sync.RWMutex
+	// object to bind custom helpers once
+	registerHelpersOnce sync.Once
 	// template funcmap
 	funcmap map[string]interface{}
 	// templates
@@ -110,7 +112,9 @@ func (e *Engine) Load() (err error) {
 	defer e.mutex.Unlock()
 	// Set template settings
 	e.Templates = make(map[string]*raymond.Template)
-	raymond.RegisterHelpers(e.funcmap)
+	e.registerHelpersOnce.Do(func() {
+		raymond.RegisterHelpers(e.funcmap)
+	})
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
