@@ -2,8 +2,8 @@ package ace
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -106,6 +106,7 @@ func Test_FileSystem(t *testing.T) {
 	}
 }
 
+//goland:noinspection GoDeprecation
 func Test_Reload(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".ace")
 	engine.Reload(true) // Optional. Default: false
@@ -117,11 +118,11 @@ func Test_Reload(t *testing.T) {
 		t.Fatalf("load: %v\n", err)
 	}
 
-	if err := ioutil.WriteFile("./views/reload.ace", []byte("after reload\n"), 0644); err != nil {
+	if err := os.WriteFile("./views/reload.ace", []byte("after reload\n"), 0644); err != nil {
 		t.Fatalf("write file: %v\n", err)
 	}
 	defer func() {
-		if err := ioutil.WriteFile("./views/reload.ace", []byte("before reload\n"), 0644); err != nil {
+		if err := os.WriteFile("./views/reload.ace", []byte("before reload\n"), 0644); err != nil {
 			t.Fatalf("write file: %v\n", err)
 		}
 	}()

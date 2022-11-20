@@ -2,7 +2,6 @@ package html
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
@@ -82,11 +81,11 @@ func Test_AddFunc(t *testing.T) {
 
 func Test_AddFuncMap(t *testing.T) {
 	// Create a temporary directory
-	dir, _ := ioutil.TempDir(".", "")
+	dir, _ := os.MkdirTemp(".", "")
 	defer os.RemoveAll(dir)
 
 	// Create a temporary template file.
-	_ = ioutil.WriteFile(dir+"/func_map.html", []byte(`<h2>{{lower .Var1}}</h2><p>{{upper .Var2}}</p>`), 0700)
+	_ = os.WriteFile(dir+"/func_map.html", []byte(`<h2>{{lower .Var1}}</h2><p>{{upper .Var2}}</p>`), 0700)
 
 	engine := New(dir, ".html")
 
@@ -216,11 +215,11 @@ func Test_Reload(t *testing.T) {
 		t.Fatalf("load: %v\n", err)
 	}
 
-	if err := ioutil.WriteFile("./views/reload.html", []byte("after reload\n"), 0644); err != nil {
+	if err := os.WriteFile("./views/reload.html", []byte("after reload\n"), 0644); err != nil {
 		t.Fatalf("write file: %v\n", err)
 	}
 	defer func() {
-		if err := ioutil.WriteFile("./views/reload.html", []byte("before reload\n"), 0644); err != nil {
+		if err := os.WriteFile("./views/reload.html", []byte("before reload\n"), 0644); err != nil {
 			t.Fatalf("write file: %v\n", err)
 		}
 	}()
