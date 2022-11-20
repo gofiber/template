@@ -2,8 +2,9 @@ package django
 
 import (
 	"bytes"
-	"io/ioutil"
+	"embed"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -108,7 +109,6 @@ func Test_FileSystem(t *testing.T) {
 	}
 }
 
-
 func Test_AddFunc(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".django")
 	engine.Debug(true)
@@ -145,11 +145,11 @@ func Test_Reload(t *testing.T) {
 		t.Fatalf("load: %v\n", err)
 	}
 
-	if err := ioutil.WriteFile("./views/reload.django", []byte("after reload\n"), 0644); err != nil {
+	if err := os.WriteFile("./views/reload.django", []byte("after reload\n"), 0644); err != nil {
 		t.Fatalf("write file: %v\n", err)
 	}
 	defer func() {
-		if err := ioutil.WriteFile("./views/reload.django", []byte("before reload\n"), 0644); err != nil {
+		if err := os.WriteFile("./views/reload.django", []byte("before reload\n"), 0644); err != nil {
 			t.Fatalf("write file: %v\n", err)
 		}
 	}()
@@ -159,6 +159,30 @@ func Test_Reload(t *testing.T) {
 	var buf bytes.Buffer
 	engine.Render(&buf, "reload", nil)
 	expect := "after reload"
+	result := trim(buf.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+}
+
+//go:embed views
+var viewsAsssets embed.FS
+
+func Test_PathForwardingFileSystem(t *testing.T) {
+	engine := NewPathForwardingFileSystem(http.FS(viewsAsssets), "/views", ".django")
+	engine.Debug(true)
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "descendant", map[string]interface{}{
+		"greeting": "World",
+	})
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	expect := `<h1>Hello World! from ancestor</h1>`
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
