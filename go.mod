@@ -3,7 +3,7 @@ module github.com/gofiber/template
 go 1.16
 
 require (
-	github.com/CloudyKit/jet/v6 v6.1.0
+	github.com/CloudyKit/jet/v6 v6.2.0
 	github.com/Joker/hpp v1.0.0
 	github.com/Joker/jade v1.1.3
 	github.com/aymerick/raymond v2.0.2+incompatible
