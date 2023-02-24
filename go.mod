@@ -12,7 +12,7 @@ require (
 	github.com/flosch/pongo2/v4 v4.0.2
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/kr/text v0.2.0 // indirect
-	github.com/mattn/go-slim v0.0.0-20200618151855-bde33eecb5ee
+	github.com/mattn/go-slim v0.0.4
 	github.com/valyala/bytebufferpool v1.0.0
 	github.com/yosssi/ace v0.0.5
 )
