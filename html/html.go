@@ -56,7 +56,7 @@ func New(directory, extension string) *Engine {
 	return engine
 }
 
-//NewFileSystem ...
+// NewFileSystem ...
 func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	engine := &Engine{
 		left:       "{{",
@@ -222,4 +222,9 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		return lay.Execute(out, binding)
 	}
 	return tmpl.Execute(out, binding)
+}
+
+// FuncMap returns the template's function map.
+func (e *Engine) FuncMap() map[string]interface{} {
+	return e.funcmap
 }

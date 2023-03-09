@@ -77,6 +77,12 @@ func Test_AddFunc(t *testing.T) {
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
+
+	// FuncMap
+	fm := engine.FuncMap()
+	if _, ok := fm["isAdmin"]; !ok {
+		t.Fatalf("Function isAdmin does not exist in FuncMap().\n")
+	}
 }
 
 func Test_AddFuncMap(t *testing.T) {
@@ -113,6 +119,15 @@ func Test_AddFuncMap(t *testing.T) {
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+
+	// FuncMap
+	fm2 := engine.FuncMap()
+	if _, ok := fm2["lower"]; !ok {
+		t.Fatalf("Function lower does not exist in FuncMap().\n")
+	}
+	if _, ok := fm2["upper"]; !ok {
+		t.Fatalf("Function upper does not exist in FuncMap().\n")
 	}
 }
 
