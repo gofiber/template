@@ -249,3 +249,30 @@ func Test_Reload(t *testing.T) {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
 }
+
+func Benchmark_Html(b *testing.B) {
+	engine := New("./views", ".html")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
+	var buf bytes.Buffer
+
+	for i := 0; i < b.N; i++ {
+		engine.Render(&buf, "index", map[string]interface{}{
+			"Title": "Hello, World!",
+		})
+	}
+
+	// Capture the response to prevent output to the console
+	res, err := os.Open(os.DevNull)
+	if err != nil {
+		b.Fatalf("Failed to open null device: %v", err)
+	}
+	defer res.Close()
+	// // Replace the standard output with our null device
+	old := os.Stdout
+	os.Stdout = res
+	defer func() {
+		os.Stdout = old
+	}()
+}
