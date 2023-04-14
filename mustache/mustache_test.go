@@ -132,3 +132,31 @@ func Test_Reload(t *testing.T) {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
 }
+
+func Benchmark_Mustache(b *testing.B) {
+	expectSimple := `<h1>Hello, World!</h1>`
+	engine := New("./views", ".mustache")
+
+	var buf bytes.Buffer
+	var err error
+
+	b.Run("simple", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		for i := 0; i < bb.N; i++ {
+			buf.Reset()
+			err = engine.Render(&buf, "simple", map[string]interface{}{
+				"Title": "Hello, World!",
+			})
+		}
+
+		if err != nil {
+			bb.Fatalf("Failed to render: %v", err)
+		}
+		result := trim(buf.String())
+		if expectSimple != result {
+			bb.Fatalf("Expected:\n%s\nResult:\n%s\n", expectSimple, result)
+		}
+	})
+
+}
