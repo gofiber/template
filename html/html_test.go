@@ -249,3 +249,59 @@ func Test_Reload(t *testing.T) {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
 }
+
+func Benchmark_Html(b *testing.B) {
+	// output between the benchmarks for the adapters is always the same
+	expectSimple := `<h1>Hello, World!</h1>`
+	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
+	// use 2 new files "simple.*" and "extended.*" -> with the same kind of functionality between all the adapters
+	engine := New("./views", ".html")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
+	var buf bytes.Buffer
+	var err error
+
+	b.Run("simple", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			buf.Reset()
+			// benchmark for one template with one variable
+			err = engine.Render(&buf, "simple", map[string]interface{}{
+				// input between the benchmarks for the adapters is always the same
+				"Title": "Hello, World!",
+			})
+		}
+
+		if err != nil {
+			bb.Fatalf("Failed to render: %v", err)
+		}
+		result := trim(buf.String())
+		if expectSimple != result {
+			bb.Fatalf("Expected:\n%s\nResult:\n%s\n", expectSimple, result)
+		}
+	})
+
+	b.Run("extended", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		for i := 0; i < bb.N; i++ {
+			buf.Reset()
+			// benchmark with layout, partials, input parameters and functions
+			err = engine.Render(&buf, "extended", map[string]interface{}{
+				// input between the benchmarks for the adapters is always the same
+				"User": "admin",
+			}, "layouts/main")
+		}
+
+		if err != nil {
+			bb.Fatalf("Failed to render: %v", err)
+		}
+		result := trim(buf.String())
+		if expectExtended != result {
+			bb.Fatalf("Expected:\n%s\nResult:\n%s\n", expectExtended, result)
+		}
+	})
+
+}
