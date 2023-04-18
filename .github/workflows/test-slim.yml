@@ -3,8 +3,12 @@ on:
         branches:
             - master
             - main
+        paths:
+            - 'slim/**'
     pull_request:
-name: Tests
+        paths:
+            - 'slim/**'
+name: Tests Slim
 jobs:
   Tests:
     strategy:
@@ -40,4 +44,4 @@ jobs:
     - name: Fetch Repository
       uses: actions/checkout@v3.5.2
     - name: Run Test
-      run: go test ./... -race -v
+      run: cd ./slim && go test ./... -race -v
