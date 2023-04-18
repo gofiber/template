@@ -43,7 +43,7 @@ import (
 	"log"
 	
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/handlebars"
+	"github.com/gofiber/template/handlebars/v2"
 )
 
 func main() {

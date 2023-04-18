@@ -37,7 +37,7 @@ import (
 	"log"
 	
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/amber"
+	"github.com/gofiber/template/amber/v2"
 )
 
 func main() {

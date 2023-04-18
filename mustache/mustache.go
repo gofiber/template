@@ -11,7 +11,7 @@ import (
 
 	"github.com/cbroglie/mustache"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/utils"
+	"github.com/gofiber/utils"
 	"github.com/valyala/bytebufferpool"
 )
 
