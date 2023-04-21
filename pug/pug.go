@@ -12,7 +12,7 @@ import (
 
 	"github.com/Joker/hpp"
 	"github.com/Joker/jade"
-	"github.com/gofiber/template/utils"
+	"github.com/gofiber/utils"
 )
 
 // Engine struct

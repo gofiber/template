@@ -33,11 +33,11 @@ This package provides universal methods to use multiple template engines with th
 - [pug](https://github.com/gofiber/template/tree/master/pug)
 
 ### Installation
-> Go version `1.16` or higher is required.
+> Go version `1.17` or higher is required.
 
 ```
 go get -u github.com/gofiber/fiber/v2
-go get -u github.com/gofiber/template
+go get -u github.com/gofiber/template/any_template_engine/vX
 ```
 
 ### Example
@@ -55,7 +55,7 @@ import (
 	// etc..
 
 	// In this example we use the html template engine
-	"github.com/gofiber/template/html"
+	"github.com/gofiber/template/html/v2"
 )
 
 func main() {
@@ -120,6 +120,7 @@ To view more specific examples, you could visit each engine folder to learn more
 - [jet](https://github.com/gofiber/template/tree/master/jet)
 - [mustache](https://github.com/gofiber/template/tree/master/mustache)
 - [pug](https://github.com/gofiber/template/tree/master/pug)
+- [slim](https://github.com/gofiber/template/tree/master/slim)
 
 
 ### embedded Systems

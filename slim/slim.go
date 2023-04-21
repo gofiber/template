@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gofiber/template/utils"
+	"github.com/gofiber/utils"
 	"github.com/mattn/go-slim"
 	"github.com/valyala/bytebufferpool"
 )

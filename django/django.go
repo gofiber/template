@@ -11,7 +11,7 @@ import (
 
 	"github.com/flosch/pongo2/v4"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/utils"
+	"github.com/gofiber/utils"
 )
 
 // Engine struct
@@ -70,7 +70,8 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 }
 
 // NewPathForwardingFileSystem Passes "directory" to the template engine where alternative functions don't.
-// 							   This fixes errors during resolution of templates when "{% extends 'parent.html' %}" is used.
+//
+//	This fixes errors during resolution of templates when "{% extends 'parent.html' %}" is used.
 func NewPathForwardingFileSystem(fs http.FileSystem, directory string, extension string) *Engine {
 	engine := NewFileSystem(fs, extension)
 	engine.forwardPath = true
