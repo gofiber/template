@@ -18,6 +18,9 @@ func trim(str string) string {
 
 func Test_Render(t *testing.T) {
 	engine := New("./views", ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
 	}
@@ -45,6 +48,9 @@ func Test_Render(t *testing.T) {
 
 func Test_Layout(t *testing.T) {
 	engine := New("./views", ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
@@ -66,6 +72,9 @@ func Test_Layout(t *testing.T) {
 
 func Test_Empty_Layout(t *testing.T) {
 	engine := New("./views", ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
@@ -87,6 +96,9 @@ func Test_Empty_Layout(t *testing.T) {
 
 func Test_FileSystem(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
@@ -109,6 +121,9 @@ func Test_FileSystem(t *testing.T) {
 //goland:noinspection GoDeprecation
 func Test_Reload(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	engine.Reload(true) // Optional. Default: false
 
 	engine.AddFunc("isAdmin", func(user string) bool {
