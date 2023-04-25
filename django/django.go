@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/flosch/pongo2/v4"
+	"github.com/flosch/pongo2/v6"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/utils"
 )

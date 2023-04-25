@@ -3,7 +3,7 @@ module github.com/gofiber/template/django/v2
 go 1.20
 
 require (
-	github.com/flosch/pongo2/v4 v4.0.2
+	github.com/flosch/pongo2/v6 v6.0.0
 	github.com/gofiber/fiber/v2 v2.44.0
 	github.com/gofiber/utils v1.1.0
 )
