@@ -1,6 +1,9 @@
 <p align="center">
   <a href="https://gofiber.io">
-    <img alt="Fiber" height="125" src=".github/fiber_template_v2_logo.svg">
+      <picture>
+        <source height="125" media="(prefers-color-scheme: dark)" srcset=".github/logo-dark.svg">
+        <img height="125" alt="Fiber" src=".github/logo.svg">
+      </picture>
   </a>
   <br>
 
