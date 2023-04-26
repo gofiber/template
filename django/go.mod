@@ -1,4 +1,4 @@
-module github.com/gofiber/template/django/v2
+module github.com/gofiber/template/django/v3
 
 go 1.20
 
