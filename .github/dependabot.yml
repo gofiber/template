@@ -3,7 +3,55 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directory: "/" # Location of package manifests
+    directory: "/ace/" # Location of package manifests
+    labels:
+      - "🤖 Dependencies"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/amber/" # Location of package manifests
+    labels:
+      - "🤖 Dependencies"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/django/" # Location of package manifests
+    labels:
+      - "🤖 Dependencies"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/handlebars/" # Location of package manifests
+    labels:
+      - "🤖 Dependencies"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/html/" # Location of package manifests
+    labels:
+      - "🤖 Dependencies"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/jet/" # Location of package manifests
+    labels:
+      - "🤖 Dependencies"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/mustache/" # Location of package manifests
+    labels:
+      - "🤖 Dependencies"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/pug/" # Location of package manifests
+    labels:
+      - "🤖 Dependencies"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "gomod"
+    directory: "/slim/" # Location of package manifests
     labels:
       - "🤖 Dependencies"
     schedule:

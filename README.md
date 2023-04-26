@@ -1,19 +1,14 @@
 <p align="center">
   <a href="https://gofiber.io">
-    <img alt="Fiber" height="125" src="https://raw.githubusercontent.com/gofiber/docs/master/static/fiber_template_v2_logo.svg">
+    <img alt="Fiber" height="125" src=".github/fiber_template_v2_logo.svg">
   </a>
   <br>
-  <a href="https://github.com/gofiber/fiber/releases">
-    <img src="https://img.shields.io/github/v/release/gofiber/template?color=00ACD7&label=%F0%9F%9A%80%20">
-  </a>
+
   <a href="https://pkg.go.dev/github.com/gofiber/template/html?tab=doc">
     <img src="https://img.shields.io/badge/%F0%9F%93%9A%20godoc-pkg-00ACD7.svg?color=00ACD7&style=flat">
   </a>
-  <a href="https://github.com/gofiber/fiber/actions?query=workflow%3ASecurity">
-    <img src="https://img.shields.io/github/workflow/status/gofiber/template/Security?label=%F0%9F%94%91%20gosec&style=flat&color=75C46B">
-  </a>
-  <a href="https://github.com/gofiber/fiber/actions?query=workflow%3ATest">
-    <img src="https://img.shields.io/github/workflow/status/gofiber/template/Test?label=%F0%9F%A7%AA%20tests&style=flat&color=75C46B">
+  <a href="https://goreportcard.com/report/github.com/gofiber/template">
+    <img src="https://img.shields.io/badge/%F0%9F%93%9D%20goreport-A%2B-75C46B">
   </a>
   <a href="https://gofiber.io/discord">
     <img src="https://img.shields.io/discord/704680098577514527?style=flat&label=%F0%9F%92%AC%20discord&color=00ACD7">
@@ -23,14 +18,23 @@
 This package provides universal methods to use multiple template engines with the [Fiber web framework](https://github.com/gofiber/fiber) using the new [Views](https://godoc.org/github.com/gofiber/fiber#Views) interface that is available from `> v1.11.1`. Special thanks to @bdtomlin & @arsmn for helping!
 
 8 template engines are supported:
-- [html](https://github.com/gofiber/template/tree/master/html)
-- [ace](https://github.com/gofiber/template/tree/master/ace)
-- [amber](https://github.com/gofiber/template/tree/master/amber)
-- [django](https://github.com/gofiber/template/tree/master/django)
-- [handlebars](https://github.com/gofiber/template/tree/master/handlebars)
-- [jet](https://github.com/gofiber/template/tree/master/jet)
-- [mustache](https://github.com/gofiber/template/tree/master/mustache)
-- [pug](https://github.com/gofiber/template/tree/master/pug)
+- [html](https://github.com/gofiber/template/tree/master/html) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Html%22">
+  <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-html.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B">
+  </a>
+- [ace](https://github.com/gofiber/template/tree/master/ace) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Ace%22">
+  <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-ace.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
+- [amber](https://github.com/gofiber/template/tree/master/amber) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Amber%22">
+  <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-amber.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
+- [django](https://github.com/gofiber/template/tree/master/django) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Django%22">
+  <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-django.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
+- [handlebars](https://github.com/gofiber/template/tree/master/handlebars) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Handlebars%22">
+  <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-handlebars.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
+- [jet](https://github.com/gofiber/template/tree/master/jet) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Jet%22">
+  <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-jet.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
+- [mustache](https://github.com/gofiber/template/tree/master/mustache) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Mustache%22">
+  <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-mustache.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
+- [pug](https://github.com/gofiber/template/tree/master/pug) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Pug%22">
+  <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-pug.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
 
 ### Installation
 > Go version `1.17` or higher is required.
