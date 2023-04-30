@@ -261,3 +261,8 @@ func jetVarMap(binding interface{}) jet.VarMap {
 	}
 	return bind
 }
+
+// FuncMap returns the template's function map.
+func (e *Engine) FuncMap() map[string]interface{} {
+	return e.funcmap
+}

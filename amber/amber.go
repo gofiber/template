@@ -227,3 +227,8 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	}
 	return tmpl.Execute(out, binding)
 }
+
+// FuncMap returns the template's function map.
+func (e *Engine) FuncMap() map[string]interface{} {
+	return e.funcmap
+}
