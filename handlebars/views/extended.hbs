@@ -1,0 +1,7 @@
+{{> 'partials/header' }}
+{{#if (isAdmin User) }}
+    <h1>Hello, Admin!</h1>
+{{else}}
+   <h1>Access denied!</h1>
+{{/if}}
+{{> 'partials/footer' }}

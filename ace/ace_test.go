@@ -18,6 +18,9 @@ func trim(str string) string {
 
 func Test_Render(t *testing.T) {
 	engine := New("./views", ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
 	}
@@ -45,6 +48,9 @@ func Test_Render(t *testing.T) {
 
 func Test_Layout(t *testing.T) {
 	engine := New("./views", ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
@@ -66,6 +72,9 @@ func Test_Layout(t *testing.T) {
 
 func Test_Empty_Layout(t *testing.T) {
 	engine := New("./views", ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
@@ -87,6 +96,9 @@ func Test_Empty_Layout(t *testing.T) {
 
 func Test_FileSystem(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
@@ -109,6 +121,9 @@ func Test_FileSystem(t *testing.T) {
 //goland:noinspection GoDeprecation
 func Test_Reload(t *testing.T) {
 	engine := NewFileSystem(http.Dir("./views"), ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
 	engine.Reload(true) // Optional. Default: false
 
 	engine.AddFunc("isAdmin", func(user string) bool {
@@ -136,4 +151,53 @@ func Test_Reload(t *testing.T) {
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
 	}
+}
+func Benchmark_Ace(b *testing.B) {
+	expectSimple := `<h1>Hello, World!</h1>`
+	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
+	engine := New("./views", ".ace")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
+	var buf bytes.Buffer
+	var err error
+
+	b.Run("simple", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		for i := 0; i < bb.N; i++ {
+			buf.Reset()
+			err = engine.Render(&buf, "simple", map[string]interface{}{
+				"Title": "Hello, World!",
+			})
+		}
+
+		if err != nil {
+			bb.Fatalf("Failed to render: %v", err)
+		}
+		result := trim(buf.String())
+		if expectSimple != result {
+			bb.Fatalf("Expected:\n%s\nResult:\n%s\n", expectSimple, result)
+		}
+	})
+
+	b.Run("extended", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		for i := 0; i < bb.N; i++ {
+			buf.Reset()
+			err = engine.Render(&buf, "extended", map[string]interface{}{
+				"User": "admin",
+			}, "layouts/main")
+		}
+
+		if err != nil {
+			bb.Fatalf("Failed to render: %v", err)
+		}
+		result := trim(buf.String())
+		if expectExtended != result {
+			bb.Fatalf("Expected:\n%s\nResult:\n%s\n", expectExtended, result)
+		}
+	})
+
 }
