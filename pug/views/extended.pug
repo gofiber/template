@@ -1,0 +1,8 @@
+include partials/header.pug
+
+if isAdmin .User
+  h1 Hello, Admin!
+else
+  h1 Access denied!
+
+include partials/footer.pug

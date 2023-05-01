@@ -235,3 +235,14 @@ func main() {
 	// Read the documentation on how to use fileb0x
 }
 ```
+
+
+### Benchmarks
+
+#### Simple
+![](./utils/Simple-TimeperOperation.png)
+
+#### Extended
+![](./utils/Extended-TimeperOperation.png)
+
+Benchmarks were ran on Apple Macbook M1. Each engine was benchmarked 20 times and the results averaged into a single xlsx file. Mustache was excluded from the extended benchmark

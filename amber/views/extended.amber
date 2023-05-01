@@ -1,0 +1,8 @@
+import ./views/partials/header
+
+if isAdmin(User)
+    h1 Hello, Admin!
+else
+    h1 Access Denied
+
+import ./views/partials/footer
