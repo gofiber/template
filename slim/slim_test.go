@@ -106,11 +106,11 @@ func Test_Reload(t *testing.T) {
 		t.Fatalf("load: %v\n", err)
 	}
 
-	if err := os.WriteFile("./views/reload.slim", []byte("after reload\n"), 0644); err != nil {
+	if err := os.WriteFile("./views/reload.slim", []byte("p after reload\n"), 0644); err != nil {
 		t.Fatalf("write file: %v\n", err)
 	}
 	defer func() {
-		if err := os.WriteFile("./views/reload.slim", []byte("before reload\n"), 0644); err != nil {
+		if err := os.WriteFile("./views/reload.slim", []byte("p before reload\n"), 0644); err != nil {
 			t.Fatalf("write file: %v\n", err)
 		}
 	}()
@@ -119,7 +119,7 @@ func Test_Reload(t *testing.T) {
 
 	var buf bytes.Buffer
 	engine.Render(&buf, "reload", nil)
-	expect := "after reload"
+	expect := "<p>after reload</p>"
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
