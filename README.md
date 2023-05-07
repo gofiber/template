@@ -1,8 +1,8 @@
 <p align="center">
   <a href="https://gofiber.io">
       <picture>
-        <source height="125" media="(prefers-color-scheme: dark)" srcset=".github/logo-dark.svg">
-        <img height="125" alt="Fiber" src=".github/logo.svg">
+        <source height="125" media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gofiber/template/master/.github/logo-dark.svg">
+        <img height="125" alt="Fiber" src="https://raw.githubusercontent.com/gofiber/template/master/.github/logo.svg">
       </picture>
   </a>
   <br>
@@ -38,6 +38,8 @@ This package provides universal methods to use multiple template engines with th
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-mustache.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
 - [pug](https://github.com/gofiber/template/tree/master/pug) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Pug%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-pug.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
+- [slim](https://github.com/gofiber/template/tree/master/slim) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Slim%22">
+  <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-slim.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"></a>
 
 ### Installation
 > Go version `1.17` or higher is required.
@@ -240,9 +242,9 @@ func main() {
 ### Benchmarks
 
 #### Simple
-![](./utils/Simple-TimeperOperation.png)
+![](.github/data/Simple-TimeperOperation.png)
 
 #### Extended
-![](./utils/Extended-TimeperOperation.png)
+![](.github/data/Extended-TimeperOperation.png)
 
 Benchmarks were ran on Apple Macbook M1. Each engine was benchmarked 20 times and the results averaged into a single xlsx file. Mustache was excluded from the extended benchmark
