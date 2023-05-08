@@ -122,7 +122,8 @@ func Test_AddFunc(t *testing.T) {
 
 	var buf bytes.Buffer
 	err := engine.Render(&buf, "admin", map[string]interface{}{
-		"user": "admin"},
+		"user": "admin",
+	},
 	)
 	if err != nil {
 		t.Fatalf("render: %v", err)
@@ -189,6 +190,52 @@ func Test_PathForwardingFileSystem(t *testing.T) {
 	}
 }
 
+func Test_AddFuncMap(t *testing.T) {
+	// Create a temporary directory
+	dir, _ := os.MkdirTemp(".", "")
+	defer os.RemoveAll(dir)
+
+	// Create a temporary template file.
+	_ = os.WriteFile(dir+"/func_map.django", []byte(`<h2>{{Var1|lower}}</h2><p>{{Var2|upper}}</p>`), 0700)
+
+	engine := New(dir, ".django")
+
+	fm := map[string]interface{}{
+		"lower": func(s string) string {
+			return strings.ToLower(s)
+		},
+		"upper": func(s string) string {
+			return strings.ToUpper(s)
+		},
+	}
+
+	engine.AddFuncMap(fm)
+
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf bytes.Buffer
+	engine.Render(&buf, "func_map", map[string]interface{}{
+		"Var1": "LOwEr",
+		"Var2": "upPEr",
+	})
+	expect := `<h2>lower</h2><p>UPPER</p>`
+	result := trim(buf.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+
+	// FuncMap
+	fm2 := engine.FuncMap()
+	if _, ok := fm2["lower"]; !ok {
+		t.Fatalf("Function lower does not exist in FuncMap().\n")
+	}
+	if _, ok := fm2["upper"]; !ok {
+		t.Fatalf("Function upper does not exist in FuncMap().\n")
+	}
+}
+
 func Benchmark_Django(b *testing.B) {
 	expectSimple := `<h1>Hello, World!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
@@ -237,5 +284,4 @@ func Benchmark_Django(b *testing.B) {
 			bb.Fatalf("Expected:\n%s\nResult:\n%s\n", expectExtended, result)
 		}
 	})
-
 }

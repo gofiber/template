@@ -140,6 +140,54 @@ func Test_Reload(t *testing.T) {
 	}
 }
 
+func Test_AddFuncMap(t *testing.T) {
+	// Create a temporary directory
+	dir, _ := os.MkdirTemp(".", "")
+	defer os.RemoveAll(dir)
+
+	// Create a temporary template file.
+	_ = os.WriteFile(dir+"/func_map.pug", []byte(`
+	h2 #{lower .Var1}
+	p #{upper .Var2}`), 0700)
+
+	engine := New(dir, ".pug")
+
+	fm := map[string]interface{}{
+		"lower": func(s string) string {
+			return strings.ToLower(s)
+		},
+		"upper": func(s string) string {
+			return strings.ToUpper(s)
+		},
+	}
+
+	engine.AddFuncMap(fm)
+
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf bytes.Buffer
+	engine.Render(&buf, "func_map", map[string]interface{}{
+		"Var1": "LOwEr",
+		"Var2": "upPEr",
+	})
+	expect := `<h2>lower</h2><p>UPPER</p>`
+	result := trim(buf.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+
+	// FuncMap
+	fm2 := engine.FuncMap()
+	if _, ok := fm2["lower"]; !ok {
+		t.Fatalf("Function lower does not exist in FuncMap().\n")
+	}
+	if _, ok := fm2["upper"]; !ok {
+		t.Fatalf("Function upper does not exist in FuncMap().\n")
+	}
+}
+
 func Benchmark_Pug(b *testing.B) {
 	expectSimple := `<h1>Hello, World!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
@@ -187,5 +235,4 @@ func Benchmark_Pug(b *testing.B) {
 			bb.Fatalf("Expected:\n%s\nResult:\n%s\n", expectExtended, result)
 		}
 	})
-
 }
