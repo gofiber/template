@@ -117,11 +117,11 @@ func Test_Reload(t *testing.T) {
 		t.Fatalf("load: %v\n", err)
 	}
 
-	if err := os.WriteFile("./views/reload.amber", []byte("after reload\n"), 0644); err != nil {
+	if err := os.WriteFile("./views/ShouldReload.amber", []byte("after ShouldReload\n"), 0644); err != nil {
 		t.Fatalf("write file: %v\n", err)
 	}
 	defer func() {
-		if err := os.WriteFile("./views/reload.amber", []byte("before reload\n"), 0644); err != nil {
+		if err := os.WriteFile("./views/ShouldReload.amber", []byte("before ShouldReload\n"), 0644); err != nil {
 			t.Fatalf("write file: %v\n", err)
 		}
 	}()
@@ -129,8 +129,8 @@ func Test_Reload(t *testing.T) {
 	engine.Load()
 
 	var buf bytes.Buffer
-	engine.Render(&buf, "reload", nil)
-	expect := "<after>reload</after>"
+	engine.Render(&buf, "ShouldReload", nil)
+	expect := "<after>ShouldReload</after>"
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
@@ -138,7 +138,7 @@ func Test_Reload(t *testing.T) {
 }
 
 func Test_AddFuncMap(t *testing.T) {
-	// Create a temporary directory
+	// Create a temporary Directory
 	dir, _ := os.MkdirTemp(".", "")
 	defer os.RemoveAll(dir)
 

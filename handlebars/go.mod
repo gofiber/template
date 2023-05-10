@@ -3,10 +3,14 @@ module github.com/gofiber/template/handlebars/v2
 go 1.20
 
 require (
+	github.com/aymerick/raymond v2.0.2+incompatible
+	github.com/gofiber/fiber/v2 v2.44.0
+	github.com/gofiber/template v0.0.0-00010101000000-000000000000
+	github.com/gofiber/utils v1.1.0
+)
+
+require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/aymerick/raymond v2.0.2+incompatible // indirect
-	github.com/gofiber/fiber/v2 v2.44.0 // indirect
-	github.com/gofiber/utils v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -21,4 +25,7 @@ require (
 	github.com/valyala/fasthttp v1.45.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+replace github.com/gofiber/template => ../.

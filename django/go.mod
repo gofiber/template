@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/flosch/pongo2/v6 v6.0.0
 	github.com/gofiber/fiber/v2 v2.46.0
+	github.com/gofiber/template v0.0.0-00010101000000-000000000000
 	github.com/gofiber/utils v1.1.0
 )
 
@@ -25,3 +26,5 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 )
+
+replace github.com/gofiber/template => ../.
