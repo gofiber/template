@@ -336,9 +336,13 @@ A template named “footer” is defined which can be used in other templates li
 The `template` action used to include nested templates also allows a second parameter to pass data to the nested template.
 
 ```html
-// Define a nested template called header {{define "header"}}
+// Define a nested template called header 
+{{define "header"}}
 <h1>{{.}}</h1>
-{{end}} // Call template and pass a name parameter {{range .Items}}
+{{end}}
+
+// Call template and pass a name parameter 
+{{range .Items}}
 <div class="item">
   {{template "header" .Name}}
   <span class="price">${{.Price}}</span>
