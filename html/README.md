@@ -1,6 +1,6 @@
 # HTML
 
-HTML is the official Go template engine [html/template](https://golang.org/pkg/html/template/), to see the original syntax documentation please [click here](TEMPLATES_CHEATCHEET.md)
+HTML is the official Go template engine [html/template](https://golang.org/pkg/html/template/), to see the original syntax documentation please [click here](TEMPLATES_CHEATSHEET.md)
 
 **Info:**
 
@@ -11,6 +11,7 @@ For templating the `{{embed}}` tag should be used
 ### Basic Example
 
 _**./views/index.html**_
+
 ```html
 {{template "partials/header" .}}
 
@@ -18,27 +19,31 @@ _**./views/index.html**_
 
 {{template "partials/footer" .}}
 ```
+
 _**./views/partials/header.html**_
+
 ```html
 <h2>Header</h2>
 ```
+
 _**./views/partials/footer.html**_
+
 ```html
 <h2>Footer</h2>
 ```
+
 _**./views/layouts/main.html**_
+
 ```html
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Main</title>
+  </head>
 
-<head>
-  <title>Main</title>
-</head>
-
-<body>
-  {{embed}}
-</body>
-
+  <body>
+    {{embed}}
+  </body>
 </html>
 ```
 
@@ -47,7 +52,7 @@ package main
 
 import (
 	"log"
-	
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
 )
@@ -124,6 +129,7 @@ func main() {
 and change the starting point to the views directory
 
 _**./views/index.html**_
+
 ```html
 {{template "views/partials/header" .}}
 
@@ -176,11 +182,13 @@ func main() {
 and change the starting point to the views directory
 
 _**./views/index.html**_
+
 ```html
 <p>{{ unescape .Title}}</p>
 ```
+
 **html output**
+
 ```html
 <p>Hello, <b>World</b>!</p>
 ```
-
