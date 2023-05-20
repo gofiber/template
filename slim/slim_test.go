@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/mattn/go-slim"
 )
 
 func trim(str string) string {
@@ -123,6 +125,53 @@ func Test_Reload(t *testing.T) {
 	result := trim(buf.String())
 	if expect != result {
 		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+}
+
+func Test_AddFuncMap(t *testing.T) {
+	// Create a temporary directory
+	dir, _ := os.MkdirTemp(".", "")
+	defer os.RemoveAll(dir)
+
+	// Create a temporary template file.
+	_ = os.WriteFile(dir+"/func_map.slim", []byte(`
+h2 = lower(Var1)
+p = upper(Var2)`), 0700)
+
+	engine := New(dir, ".slim")
+
+	fm := map[string]interface{}{
+		"lower": func(s ...slim.Value) (slim.Value, error) {
+			return strings.ToLower(s[0].(string)), nil
+		},
+		"upper": func(s ...slim.Value) (slim.Value, error) {
+			return strings.ToUpper(s[0].(string)), nil
+		},
+	}
+	engine.AddFuncMap(fm)
+
+	if err := engine.Load(); err != nil {
+		t.Fatalf("load: %v\n", err)
+	}
+
+	var buf bytes.Buffer
+	engine.Render(&buf, "func_map", map[string]interface{}{
+		"Var1": "LOwEr",
+		"Var2": "upPEr",
+	})
+	expect := `<h2>lower</h2><p>UPPER</p>`
+	result := trim(buf.String())
+	if expect != result {
+		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
+	}
+
+	// FuncMap
+	fm2 := engine.FuncMap()
+	if _, ok := fm2["lower"]; !ok {
+		t.Fatalf("Function lower does not exist in FuncMap().\n")
+	}
+	if _, ok := fm2["upper"]; !ok {
+		t.Fatalf("Function upper does not exist in FuncMap().\n")
 	}
 }
 
