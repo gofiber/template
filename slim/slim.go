@@ -34,10 +34,10 @@ type Engine struct {
 	reload bool
 	// debug prints the parsed templates
 	debug bool
-	// lock for funcmap and templates
+	// lock for funcMap and templates
 	mutex sync.RWMutex
-	// template funcmap
-	funcmap map[string]interface{}
+	// template funcMap
+	funcMap map[string]interface{}
 	// templates
 	Templates map[string]*slim.Template
 }
@@ -50,7 +50,7 @@ func New(directory, extension string) *Engine {
 		directory: directory,
 		extension: extension,
 		layout:    "embed",
-		funcmap:   make(map[string]interface{}),
+		funcMap:   make(map[string]interface{}),
 	}
 	return engine
 }
@@ -63,7 +63,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 		fileSystem: fs,
 		extension:  extension,
 		layout:     "embed",
-		funcmap:    make(map[string]interface{}),
+		funcMap:    make(map[string]interface{}),
 	}
 	return engine
 }
@@ -86,7 +86,7 @@ func (e *Engine) Delims(left, right string) *Engine {
 // It is legal to overwrite elements of the default actions
 func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
 	e.mutex.Lock()
-	e.funcmap[name] = fn
+	e.funcMap[name] = fn
 	e.mutex.Unlock()
 	return e
 }
@@ -96,7 +96,7 @@ func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
 func (e *Engine) AddFuncMap(m map[string]interface{}) *Engine {
 	e.mutex.Lock()
 	for name, fn := range m {
-		e.funcmap[name] = fn
+		e.funcMap[name] = fn
 	}
 	e.mutex.Unlock()
 	return e
@@ -166,7 +166,7 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
-		// tmpl.FuncMap(e.funcmap)
+		// tmpl.FuncMap(e.funcMap)
 		e.Templates[name] = tmpl
 		// Debugging
 		if e.debug {

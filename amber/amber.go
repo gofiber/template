@@ -30,10 +30,10 @@ type Engine struct {
 	reload bool
 	// debug prints the parsed templates
 	debug bool
-	// lock for funcmap and templates
+	// lock for funcMap and templates
 	mutex sync.RWMutex
-	// template funcmap
-	funcmap map[string]interface{}
+	// template funcMap
+	funcMap map[string]interface{}
 	// templates
 	Templates map[string]*template.Template
 }
@@ -44,7 +44,7 @@ func New(directory, extension string) *Engine {
 		directory: directory,
 		extension: extension,
 		layout:    "embed",
-		funcmap:   make(map[string]interface{}),
+		funcMap:   make(map[string]interface{}),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("layout called unexpectedly.")
@@ -58,7 +58,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 		fileSystem: fs,
 		extension:  extension,
 		layout:     "embed",
-		funcmap:    make(map[string]interface{}),
+		funcMap:    make(map[string]interface{}),
 	}
 	engine.AddFunc(engine.layout, func() error {
 		return fmt.Errorf("layout called unexpectedly.")
@@ -84,7 +84,7 @@ func (e *Engine) Delims(left, right string) *Engine {
 // It is legal to overwrite elements of the default actions
 func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
 	e.mutex.Lock()
-	e.funcmap[name] = fn
+	e.funcMap[name] = fn
 	e.mutex.Unlock()
 	return e
 }
@@ -94,7 +94,7 @@ func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
 func (e *Engine) AddFuncMap(m map[string]interface{}) *Engine {
 	e.mutex.Lock()
 	for name, fn := range m {
-		e.funcmap[name] = fn
+		e.funcMap[name] = fn
 	}
 	e.mutex.Unlock()
 	return e
@@ -114,12 +114,6 @@ func (e *Engine) Debug(enabled bool) *Engine {
 	return e
 }
 
-// Parse is deprecated, please use Load() instead
-func (e *Engine) Parse() error {
-	fmt.Println("Parse() is deprecated, please use Load() instead.")
-	return e.Load()
-}
-
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
@@ -136,7 +130,7 @@ func (e *Engine) Load() error {
 		funcs[k] = v
 	}
 
-	for k, v := range e.funcmap {
+	for k, v := range e.funcMap {
 		funcs[k] = v
 	}
 
@@ -230,5 +224,5 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 
 // FuncMap returns the template's function map.
 func (e *Engine) FuncMap() map[string]interface{} {
-	return e.funcmap
+	return e.funcMap
 }
