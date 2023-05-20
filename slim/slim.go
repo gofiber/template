@@ -42,6 +42,8 @@ type Engine struct {
 	Templates map[string]*slim.Template
 }
 
+type slimFunc = func(...slim.Value) (slim.Value, error)
+
 // New returns a Slim render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
@@ -116,12 +118,6 @@ func (e *Engine) Debug(enabled bool) *Engine {
 	return e
 }
 
-// Parse is deprecated, please use Load() instead
-func (e *Engine) Parse() error {
-	fmt.Println("Parse() is deprecated, please use Load() instead.")
-	return e.Load()
-}
-
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
@@ -166,7 +162,18 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
-		// tmpl.FuncMap(e.funcMap)
+
+		// Init func map
+		newFuncMap := make(slim.Funcs, len(e.funcMap))
+		for key, val := range e.funcMap {
+			slimFunc, ok := val.(slimFunc)
+			if !ok {
+				panic("slim: function must be compatible with slim.Func type. Slim does not support other types")
+			}
+			newFuncMap[key] = slimFunc
+		}
+		tmpl.FuncMap(newFuncMap)
+
 		e.Templates[name] = tmpl
 		// Debugging
 		if e.debug {
@@ -218,4 +225,9 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		return lay.Execute(out, bind)
 	}
 	return tmpl.Execute(out, binding)
+}
+
+// FuncMap returns the template's function map.
+func (e *Engine) FuncMap() map[string]interface{} {
+	return e.funcMap
 }
