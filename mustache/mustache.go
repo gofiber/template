@@ -33,7 +33,7 @@ type Engine struct {
 	reload bool
 	// debug prints the parsed templates
 	debug bool
-	// lock for funcmap and templates
+	// lock for funcMap and templates
 	mutex sync.RWMutex
 	// templates
 	Templates map[string]*mustache.Template
@@ -105,12 +105,6 @@ func (e *Engine) Reload(enabled bool) *Engine {
 func (e *Engine) Debug(enabled bool) *Engine {
 	e.debug = enabled
 	return e
-}
-
-// Parse is deprecated, please use Load() instead
-func (e *Engine) Parse() error {
-	fmt.Println("Parse() is deprecated, please use Load() instead.")
-	return e.Load()
 }
 
 // Load parses the templates to the engine.

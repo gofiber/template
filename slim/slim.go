@@ -34,9 +34,9 @@ type Engine struct {
 	reload bool
 	// debug prints the parsed templates
 	debug bool
-	// lock for funcmap and templates
+	// lock for funcMap and templates
 	mutex sync.RWMutex
-	// template funcmap
+	// template funcMap
 	funcMap map[string]interface{}
 	// templates
 	Templates map[string]*slim.Template
