@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/flosch/pongo2/v6 v6.0.0
-	github.com/gofiber/fiber/v2 v2.45.0
+	github.com/gofiber/fiber/v2 v2.46.0
 	github.com/gofiber/utils v1.1.0
 )
 
