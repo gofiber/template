@@ -10,15 +10,14 @@ import (
 
 	"github.com/cbroglie/mustache"
 	"github.com/gofiber/fiber/v2"
-	t "github.com/gofiber/template"
-	i "github.com/gofiber/template/internal"
+	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 	"github.com/valyala/bytebufferpool"
 )
 
-// engine struct
-type engine struct {
-	i.Engine
+// Engine struct
+type Engine struct {
+	core.Engine
 	// partialsProvider supports partials for embedded files
 	partialsProvider *fileSystemPartialProvider
 	//  templates
@@ -36,9 +35,9 @@ func (p fileSystemPartialProvider) Get(path string) (string, error) {
 }
 
 // New returns a Mustache render engine for Fiber
-func New(directory, extension string) t.Engine {
-	engine := &engine{
-		Engine: i.Engine{
+func New(directory, extension string) *Engine {
+	engine := &Engine{
+		Engine: core.Engine{
 			Directory:  directory,
 			Extension:  extension,
 			LayoutName: "embed",
@@ -48,18 +47,18 @@ func New(directory, extension string) t.Engine {
 }
 
 // NewFileSystem returns a Mustache render engine for Fiber that supports embedded files
-func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	return NewFileSystemPartials(fs, extension, fs)
 }
 
 // NewFileSystemPartials returns a Handlebar render engine for Fiber that supports embedded files
-func NewFileSystemPartials(fs http.FileSystem, extension string, partialsFS http.FileSystem) t.Engine {
-	engine := &engine{
+func NewFileSystemPartials(fs http.FileSystem, extension string, partialsFS http.FileSystem) *Engine {
+	engine := &Engine{
 		partialsProvider: &fileSystemPartialProvider{
 			fileSystem: partialsFS,
 			extension:  extension,
 		},
-		Engine: i.Engine{
+		Engine: core.Engine{
 			Directory:  "/",
 			FileSystem: fs,
 
@@ -71,7 +70,7 @@ func NewFileSystemPartials(fs http.FileSystem, extension string, partialsFS http
 }
 
 // Load parses the templates to the engine.
-func (e *engine) Load() error {
+func (e *Engine) Load() error {
 	// race safe
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
@@ -137,7 +136,7 @@ func (e *engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false

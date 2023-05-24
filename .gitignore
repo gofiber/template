@@ -28,3 +28,6 @@
 vendor/
 vendor
 /Godeps/
+
+# test files
+*/views/ShouldReload.*

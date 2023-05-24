@@ -12,27 +12,26 @@ import (
 	"github.com/CloudyKit/jet/v6"
 	"github.com/CloudyKit/jet/v6/loaders/httpfs"
 	"github.com/gofiber/fiber/v2"
-	t "github.com/gofiber/template"
-	i "github.com/gofiber/template/internal"
+	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
 
-// engine struct
-type engine struct {
-	i.Engine
+// Engine struct
+type Engine struct {
+	core.Engine
 	// templates
 	Templates *jet.Set
 }
 
 // New returns a Jet render engine for Fiber
-func New(directory, extension string) t.Engine {
+func New(directory, extension string) *Engine {
 	// jet library does not export or give us any option to modify the file Extension
 	if extension != ".html.jet" && extension != ".jet.html" && extension != ".jet" {
 		log.Fatalf("%s Extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension)
 	}
 
-	engine := &engine{
-		Engine: i.Engine{
+	engine := &Engine{
+		Engine: core.Engine{
 			Directory:  directory,
 			Extension:  extension,
 			LayoutName: "embed",
@@ -44,14 +43,14 @@ func New(directory, extension string) t.Engine {
 }
 
 // NewFileSystem returns a Jet render engine for Fiber with file system
-func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	// jet library does not export or give us any option to modify the file Extension
 	if extension != ".html.jet" && extension != ".jet.html" && extension != ".jet" {
 		log.Fatalf("%s Extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension)
 	}
 
-	engine := &engine{
-		Engine: i.Engine{
+	engine := &Engine{
+		Engine: core.Engine{
 			Directory:  "/",
 			FileSystem: fs,
 			Extension:  extension,
@@ -64,7 +63,7 @@ func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
 }
 
 // Load parses the templates to the engine.
-func (e *engine) Load() (err error) {
+func (e *Engine) Load() (err error) {
 	// race safe
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
@@ -146,7 +145,7 @@ func (e *engine) Load() (err error) {
 }
 
 // Render will render the template by name
-func (e *engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false

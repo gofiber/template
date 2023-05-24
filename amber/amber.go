@@ -10,27 +10,21 @@ import (
 	"strings"
 
 	"github.com/eknkc/amber"
-	t "github.com/gofiber/template"
-	i "github.com/gofiber/template/internal"
+	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
 
-// Engine interface
-type Engine interface {
-	t.Engine
-}
-
-// engine struct
-type engine struct {
-	i.Engine
+// Engine struct
+type Engine struct {
+	core.Engine
 	// templates
 	Templates map[string]*template.Template
 }
 
 // New returns an Amber render engine for Fiber
-func New(directory, extension string) t.Engine {
-	engine := &engine{
-		Engine: i.Engine{
+func New(directory, extension string) *Engine {
+	engine := &Engine{
+		Engine: core.Engine{
 			Directory:  directory,
 			Extension:  extension,
 			LayoutName: "embed",
@@ -44,9 +38,9 @@ func New(directory, extension string) t.Engine {
 }
 
 // NewFileSystem returns an Amber render engine for Fiber with file system
-func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
-	engine := &engine{
-		Engine: i.Engine{
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		Engine: core.Engine{
 			Directory:  "/",
 			FileSystem: fs,
 			Extension:  extension,
@@ -61,7 +55,7 @@ func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
 }
 
 // Load parses the templates to the engine.
-func (e *engine) Load() error {
+func (e *Engine) Load() error {
 	// race safe
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
@@ -131,7 +125,7 @@ func (e *engine) Load() error {
 		}
 		return err
 	}
-	// notify engine that we parsed all templates
+	// notify Engine that we parsed all templates
 	e.Loaded = true
 	if e.FileSystem != nil {
 		return utils.Walk(e.FileSystem, e.Directory, walkFn)
@@ -140,7 +134,7 @@ func (e *engine) Load() error {
 }
 
 // Render will execute the template name along with the given values.
-func (e *engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false

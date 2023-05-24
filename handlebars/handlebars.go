@@ -9,17 +9,15 @@ import (
 	"strings"
 	"sync"
 
-	i "github.com/gofiber/template/internal"
-
 	"github.com/aymerick/raymond"
 	"github.com/gofiber/fiber/v2"
-	t "github.com/gofiber/template"
+	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
 
-// engine struct
-type engine struct {
-	i.Engine
+// Engine struct
+type Engine struct {
+	core.Engine
 	// object to bind custom helpers once
 	registerHelpersOnce sync.Once
 	// templates
@@ -27,9 +25,9 @@ type engine struct {
 }
 
 // New returns a Handlebar render engine for Fiber
-func New(directory, extension string) t.Engine {
-	engine := &engine{
-		Engine: i.Engine{
+func New(directory, extension string) *Engine {
+	engine := &Engine{
+		Engine: core.Engine{
 			Directory:  directory,
 			Extension:  extension,
 			LayoutName: "embed",
@@ -40,9 +38,9 @@ func New(directory, extension string) t.Engine {
 }
 
 // NewFileSystem returns a Handlebars render engine for Fiber with file system
-func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
-	engine := &engine{
-		Engine: i.Engine{
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		Engine: core.Engine{
 			Directory:  "/",
 			FileSystem: fs,
 			Extension:  extension,
@@ -54,7 +52,7 @@ func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
 }
 
 // Load parses the templates to the engine.
-func (e *engine) Load() (err error) {
+func (e *Engine) Load() (err error) {
 	// race safe
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
@@ -123,13 +121,13 @@ func (e *engine) Load() (err error) {
 			e.Templates[j].RegisterPartialTemplate(n, template)
 		}
 	}
-	// notify engine that we parsed all templates
+	// notify Engine that we parsed all templates
 	e.Loaded = true
 	return
 }
 
 // Render will render the template by name
-func (e *engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false

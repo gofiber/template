@@ -9,23 +9,22 @@ import (
 	"path/filepath"
 	"strings"
 
-	t "github.com/gofiber/template"
-	i "github.com/gofiber/template/internal"
+	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 	"github.com/yosssi/ace"
 )
 
-// engine struct
-type engine struct {
-	i.Engine
+// Engine struct
+type Engine struct {
+	core.Engine
 	// templates
 	Templates *template.Template
 }
 
 // New returns an Ace render engine for Fiber
-func New(directory, extension string) t.Engine {
-	engine := &engine{
-		Engine: i.Engine{
+func New(directory, extension string) *Engine {
+	engine := &Engine{
+		Engine: core.Engine{
 			Left:       "{{",
 			Right:      "}}",
 			Directory:  directory,
@@ -41,9 +40,9 @@ func New(directory, extension string) t.Engine {
 }
 
 // NewFileSystem returns an Ace render engine for Fiber with file system
-func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
-	engine := &engine{
-		Engine: i.Engine{
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		Engine: core.Engine{
 			Left:       "{{",
 			Right:      "}}",
 			Directory:  "/",
@@ -60,7 +59,7 @@ func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
 }
 
 // Load parses the templates to the engine.
-func (e *engine) Load() error {
+func (e *Engine) Load() error {
 	// race safe
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
@@ -139,7 +138,7 @@ func (e *engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	// ShouldReload the views
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {

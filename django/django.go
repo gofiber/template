@@ -10,24 +10,23 @@ import (
 
 	"github.com/flosch/pongo2/v6"
 	"github.com/gofiber/fiber/v2"
-	t "github.com/gofiber/template"
-	i "github.com/gofiber/template/internal"
+	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
 
-// engine struct
-type engine struct {
-	i.Engine
-	// forward the base path to the template engine
+// Engine struct
+type Engine struct {
+	core.Engine
+	// forward the base path to the template Engine
 	forwardPath bool
 	// templates
 	Templates map[string]*pongo2.Template
 }
 
 // New returns a Django render engine for Fiber
-func New(directory, extension string) t.Engine {
-	engine := &engine{
-		Engine: i.Engine{
+func New(directory, extension string) *Engine {
+	engine := &Engine{
+		Engine: core.Engine{
 			Left:       "{{",
 			Right:      "}}",
 			Directory:  directory,
@@ -40,9 +39,9 @@ func New(directory, extension string) t.Engine {
 }
 
 // NewFileSystem returns a Django render engine for Fiber with file system
-func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
-	engine := &engine{
-		Engine: i.Engine{
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	engine := &Engine{
+		Engine: core.Engine{
 			Left:       "{{",
 			Right:      "}}",
 			Directory:  "/",
@@ -58,10 +57,10 @@ func NewFileSystem(fs http.FileSystem, extension string) t.Engine {
 // NewPathForwardingFileSystem Passes "Directory" to the template engine where alternative functions don't.
 //
 //	This fixes errors during resolution of templates when "{% extends 'parent.html' %}" is used.
-func NewPathForwardingFileSystem(fs http.FileSystem, directory string, extension string) t.Engine {
+func NewPathForwardingFileSystem(fs http.FileSystem, directory string, extension string) *Engine {
 
-	engine := &engine{
-		Engine: i.Engine{
+	engine := &Engine{
+		Engine: core.Engine{
 			Left:       "{{",
 			Right:      "}}",
 			Directory:  directory,
@@ -76,7 +75,7 @@ func NewPathForwardingFileSystem(fs http.FileSystem, directory string, extension
 }
 
 // Load parses the templates to the engine.
-func (e *engine) Load() error {
+func (e *Engine) Load() error {
 	// race safe
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
@@ -177,7 +176,7 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 }
 
 // Render will render the template by name
-func (e *engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
