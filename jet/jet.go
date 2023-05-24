@@ -147,7 +147,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -156,9 +156,9 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl, err := e.Templates.GetTemplate(template)
+	tmpl, err := e.Templates.GetTemplate(name)
 	if err != nil || tmpl == nil {
-		return fmt.Errorf("render: template %s could not be Loaded: %w", template, err)
+		return fmt.Errorf("render: template %s could not be Loaded: %w", name, err)
 	}
 	bind := jetVarMap(binding)
 	if len(layout) > 0 && layout[0] != "" {
