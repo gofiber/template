@@ -31,7 +31,7 @@ func Test_Render(t *testing.T) {
 	}
 	// Partials
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", map[string]any{
+	if err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
 	}); err != nil {
 		t.Fatal("Test_Render: failed to render index")
@@ -44,7 +44,7 @@ func Test_Render(t *testing.T) {
 	}
 	// Single
 	buf.Reset()
-	if err := engine.Render(&buf, "errors/404", map[string]any{
+	if err := engine.Render(&buf, "errors/404", map[string]interface{}{
 		"Title": "Hello, World!",
 	}); err != nil {
 		t.Fatal("Test_Render: failed to render 404")
@@ -68,7 +68,7 @@ func Test_Layout(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", map[string]any{
+	if err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
 	}, "layouts/main"); err != nil {
 		t.Fatal("Test_Layout: failed to render index")
@@ -92,7 +92,7 @@ func Test_Empty_Layout(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", map[string]any{
+	if err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
 	}, ""); err != nil {
 		t.Fatal("Test_Empty_Layout: failed to render index")
@@ -116,7 +116,7 @@ func Test_FileSystem(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", map[string]any{
+	if err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
 	}, "layouts/main"); err != nil {
 		t.Fatal("Test_FileSystem: failed to render index")
@@ -185,7 +185,7 @@ func Test_AddFuncMap(t *testing.T) {
 
 	engine := New(dir, ".pug")
 
-	fm := map[string]any{
+	fm := map[string]interface{}{
 		"lower": strings.ToLower,
 		"upper": strings.ToUpper,
 	}
@@ -197,7 +197,7 @@ func Test_AddFuncMap(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "func_map", map[string]any{
+	if err := engine.Render(&buf, "func_map", map[string]interface{}{
 		"Var1": "LOwEr",
 		"Var2": "upPEr",
 	}); err != nil {
@@ -234,7 +234,7 @@ func Benchmark_Pug(b *testing.B) {
 		bb.ResetTimer()
 		for i := 0; i < bb.N; i++ {
 			buf.Reset()
-			err = engine.Render(&buf, "simple", map[string]any{
+			err = engine.Render(&buf, "simple", map[string]interface{}{
 				"Title": "Hello, World!",
 			})
 		}
@@ -253,7 +253,7 @@ func Benchmark_Pug(b *testing.B) {
 		bb.ResetTimer()
 		for i := 0; i < bb.N; i++ {
 			buf.Reset()
-			err = engine.Render(&buf, "extended", map[string]any{
+			err = engine.Render(&buf, "extended", map[string]interface{}{
 				"User": admin,
 			}, "layouts/main")
 		}

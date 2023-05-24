@@ -157,7 +157,7 @@ func Benchmark_Mustache(b *testing.B) {
 		bb.ResetTimer()
 		for i := 0; i < bb.N; i++ {
 			buf.Reset()
-			err = engine.Render(&buf, "simple", map[string]any{
+			err = engine.Render(&buf, "simple", map[string]interface{}{
 				"Title": "Hello, World!",
 			})
 		}

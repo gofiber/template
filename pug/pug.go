@@ -32,7 +32,7 @@ func New(directory, extension string) *Engine {
 			Directory:  directory,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]any),
+			Funcmap:    make(map[string]interface{}),
 		},
 	}
 	engine.AddFunc(engine.LayoutName, func() error {
@@ -51,7 +51,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]any),
+			Funcmap:    make(map[string]interface{}),
 		},
 	}
 	engine.AddFunc(engine.LayoutName, func() error {
@@ -135,7 +135,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -153,7 +153,7 @@ func (e *Engine) Render(out io.Writer, name string, binding any, layout ...strin
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
-		lay.Funcs(map[string]any{
+		lay.Funcs(map[string]interface{}{
 			e.LayoutName: func() error {
 				return tmpl.Execute(out, binding)
 			},

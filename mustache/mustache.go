@@ -137,7 +137,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -156,12 +156,12 @@ func (e *Engine) Render(out io.Writer, name string, binding any, layout ...strin
 		if err := tmpl.FRender(buf, binding); err != nil {
 			return err
 		}
-		var bind map[string]any
+		var bind map[string]interface{}
 		switch binds := binding.(type) {
-		case fiber.Map, map[string]any:
+		case fiber.Map, map[string]interface{}:
 			bind = binds.(fiber.Map)
 		default:
-			bind = make(map[string]any, 1)
+			bind = make(map[string]interface{}, 1)
 		}
 		bind[e.LayoutName] = buf.String()
 		lay := e.Templates[layout[0]]
