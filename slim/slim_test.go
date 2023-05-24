@@ -171,7 +171,7 @@ p = upper(Var2)`), 0o600); err != nil {
 
 	engine := New(dir, ".slim")
 
-	fm := map[string]any{
+	fm := map[string]interface{}{
 		"lower": func(s ...slim.Value) (slim.Value, error) {
 			slimvalue, ok := s[0].(string)
 			if !ok {

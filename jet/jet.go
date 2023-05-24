@@ -9,9 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
+
 	"github.com/CloudyKit/jet/v6"
 	"github.com/CloudyKit/jet/v6/loaders/httpfs"
-	"github.com/gofiber/fiber/v2"
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
@@ -27,7 +28,7 @@ type Engine struct {
 func New(directory, extension string) *Engine {
 	// jet library does not export or give us any option to modify the file extension
 	if extension != ".html.jet" && extension != ".jet.html" && extension != ".jet" {
-		log.Fatalf("%s Extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension)
+		log.Fatalf("%s Extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension) //nolint:revive // this is not an issue
 	}
 
 	engine := &Engine{
@@ -46,7 +47,7 @@ func New(directory, extension string) *Engine {
 func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	// jet library does not export or give us any option to modify the file extension
 	if extension != ".html.jet" && extension != ".jet.html" && extension != ".jet" {
-		log.Fatalf("%s Extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension)
+		log.Fatalf("%s Extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension) //nolint:revive // this is not an issue
 	}
 
 	engine := &Engine{
@@ -63,7 +64,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 }
 
 // Load parses the templates to the engine.
-func (e *Engine) Load() (err error) {
+func (e *Engine) Load() error {
 	// race safe
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
@@ -72,12 +73,13 @@ func (e *Engine) Load() (err error) {
 	// e.Templates = jet.NewHTMLSet(e.Directory)
 
 	var loader jet.Loader
+	var err error
 
 	if e.FileSystem != nil {
 		loader, err = httpfs.NewLoader(e.FileSystem)
 
 		if err != nil {
-			return
+			return err
 		}
 	} else {
 		loader = jet.NewInMemLoader()
@@ -100,7 +102,7 @@ func (e *Engine) Load() (err error) {
 	}
 
 	walkFn := func(path string, info os.FileInfo, err error) error {
-		l := loader.(*jet.InMemLoader)
+		l := loader.(*jet.InMemLoader) //nolint:errcheck,forcetypeassert // check line 106
 		// Return error if exist
 		if err != nil {
 			return err
@@ -129,7 +131,7 @@ func (e *Engine) Load() (err error) {
 		l.Set(name, string(buf))
 		// Debugging
 		if e.Verbose {
-			fmt.Printf("views: parsed template: %s\n", name)
+			log.Printf("views: parsed template: %s\n", name)
 		}
 
 		return err
@@ -141,7 +143,7 @@ func (e *Engine) Load() (err error) {
 		return filepath.Walk(e.Directory, walkFn)
 	}
 
-	return
+	return err
 }
 
 // Render will render the template by name
@@ -156,7 +158,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	}
 	tmpl, err := e.Templates.GetTemplate(template)
 	if err != nil || tmpl == nil {
-		return fmt.Errorf("render: template %s could not be Loaded: %v", template, err)
+		return fmt.Errorf("render: template %s could not be Loaded: %w", template, err)
 	}
 	bind := jetVarMap(binding)
 	if len(layout) > 0 && layout[0] != "" {
@@ -165,7 +167,7 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 		bind.Set(e.LayoutName, func() {
-			_ = tmpl.Execute(out, bind, nil)
+			err = tmpl.Execute(out, bind, nil)
 		})
 		return lay.Execute(out, bind, nil)
 	}
@@ -177,17 +179,18 @@ func jetVarMap(binding interface{}) jet.VarMap {
 	if binding == nil {
 		return bind
 	}
-	if binds, ok := binding.(map[string]interface{}); ok {
+	switch binds := binding.(type) {
+	case map[string]interface{}:
 		bind = make(jet.VarMap)
 		for key, value := range binds {
 			bind.Set(key, value)
 		}
-	} else if binds, ok := binding.(fiber.Map); ok {
+	case fiber.Map:
 		bind = make(jet.VarMap)
 		for key, value := range binds {
 			bind.Set(key, value)
 		}
-	} else if binds, ok := binding.(jet.VarMap); ok {
+	case jet.VarMap:
 		bind = binds
 	}
 	return bind
