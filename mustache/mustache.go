@@ -9,8 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cbroglie/mustache"
 	"github.com/gofiber/fiber/v2"
+
+	"github.com/cbroglie/mustache"
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 	"github.com/valyala/bytebufferpool"
@@ -158,8 +159,10 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 		var bind map[string]interface{}
 		switch binds := binding.(type) {
-		case fiber.Map, map[string]interface{}:
-			bind = binds.(fiber.Map)
+		case fiber.Map:
+			bind = binds
+		case map[string]interface{}:
+			bind = binds
 		default:
 			bind = make(map[string]interface{}, 1)
 		}

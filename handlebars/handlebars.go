@@ -3,14 +3,16 @@ package handlebars
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
-	"github.com/aymerick/raymond"
 	"github.com/gofiber/fiber/v2"
+
+	"github.com/aymerick/raymond"
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
@@ -52,10 +54,11 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 }
 
 // Load parses the templates to the engine.
-func (e *Engine) Load() (err error) {
+func (e *Engine) Load() error {
 	// race safe
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
+	var err error
 	// Set template settings
 	e.Templates = make(map[string]*raymond.Template)
 	e.registerHelpersOnce.Do(func() {
@@ -86,7 +89,6 @@ func (e *Engine) Load() (err error) {
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
 		name = strings.TrimSuffix(name, e.Extension)
-		// name = strings.Replace(name, e.Extension, "", -1)
 
 		// Read the file
 		// #gosec G304
@@ -106,7 +108,7 @@ func (e *Engine) Load() (err error) {
 
 		// Debugging
 		if e.Verbose {
-			fmt.Printf("views: parsed template: %s\n", name)
+			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
@@ -123,11 +125,11 @@ func (e *Engine) Load() (err error) {
 	}
 	// notify Engine that we parsed all templates
 	e.Loaded = true
-	return
+	return err
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -136,13 +138,13 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl := e.Templates[template]
+	tmpl := e.Templates[name]
 	if tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", template)
+		return fmt.Errorf("render: template %s does not exist", name)
 	}
 	parsed, err := tmpl.Exec(binding)
 	if err != nil {
-		return fmt.Errorf("render: %v", err)
+		return fmt.Errorf("render: %w", err)
 	}
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates[layout[0]]
@@ -150,25 +152,26 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
 		}
 		var bind map[string]interface{}
-		if m, ok := binding.(fiber.Map); ok {
-			bind = m
-		} else if m, ok := binding.(map[string]interface{}); ok {
-			bind = m
-		} else {
+		switch binds := binding.(type) {
+		case fiber.Map:
+			bind = binds
+		case map[string]interface{}:
+			bind = binds
+		default:
 			bind = make(map[string]interface{}, 1)
 		}
 		bind[e.LayoutName] = raymond.SafeString(parsed)
 		parsed, err := lay.Exec(bind)
 		if err != nil {
-			return fmt.Errorf("render: %v", err)
+			return fmt.Errorf("render: %w", err)
 		}
 		if _, err = out.Write([]byte(parsed)); err != nil {
-			return fmt.Errorf("render: %v", err)
+			return fmt.Errorf("render: %w", err)
 		}
 		return nil
 	}
 	if _, err = out.Write([]byte(parsed)); err != nil {
-		return fmt.Errorf("render: %v", err)
+		return fmt.Errorf("render: %w", err)
 	}
 	return err
 }
