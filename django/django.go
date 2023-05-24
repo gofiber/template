@@ -176,7 +176,7 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -185,9 +185,9 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl, ok := e.Templates[template]
+	tmpl, ok := e.Templates[name]
 	if !ok {
-		return fmt.Errorf("template %s does not exist", template)
+		return fmt.Errorf("template %s does not exist", name)
 	}
 
 	bind := getPongoBinding(binding)

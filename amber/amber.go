@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -74,7 +75,7 @@ func (e *Engine) Load() error {
 		funcs[k] = v
 	}
 
-	amber.FuncMap = funcs
+	amber.FuncMap = funcs //nolint:reassign // this is fine, as long as it's not run in parallel in a test.
 
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -121,7 +122,7 @@ func (e *Engine) Load() error {
 		e.Templates[name] = tmpl
 		// Debugging
 		if e.Verbose {
-			fmt.Printf("views: parsed template: %s\n", name)
+			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
@@ -134,7 +135,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will execute the template name along with the given values.
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -143,9 +144,9 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl := e.Templates[template]
+	tmpl := e.Templates[name]
 	if tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", template)
+		return fmt.Errorf("render: template %s does not exist", name)
 	}
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates[layout[0]]
