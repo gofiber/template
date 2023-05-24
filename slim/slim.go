@@ -128,7 +128,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding any, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -137,9 +137,9 @@ func (e *Engine) Render(out io.Writer, template string, binding any, layout ...s
 			return err
 		}
 	}
-	tmpl := e.Templates[template]
+	tmpl := e.Templates[name]
 	if tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", template)
+		return fmt.Errorf("render: template %s does not exist", name)
 	}
 	if len(layout) > 0 && layout[0] != "" {
 		buf := bytebufferpool.Get()
