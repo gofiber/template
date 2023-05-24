@@ -80,7 +80,7 @@ func (e *Engine) Load() error {
 		if info == nil || info.IsDir() {
 			return nil
 		}
-		// Skip file if it does not equal the given template Extension
+		// Skip file if it does not equal the given template extension
 		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
 			return nil
 		}

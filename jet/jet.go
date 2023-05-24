@@ -25,7 +25,7 @@ type Engine struct {
 
 // New returns a Jet render engine for Fiber
 func New(directory, extension string) *Engine {
-	// jet library does not export or give us any option to modify the file Extension
+	// jet library does not export or give us any option to modify the file extension
 	if extension != ".html.jet" && extension != ".jet.html" && extension != ".jet" {
 		log.Fatalf("%s Extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension)
 	}
@@ -44,7 +44,7 @@ func New(directory, extension string) *Engine {
 
 // NewFileSystem returns a Jet render engine for Fiber with file system
 func NewFileSystem(fs http.FileSystem, extension string) *Engine {
-	// jet library does not export or give us any option to modify the file Extension
+	// jet library does not export or give us any option to modify the file extension
 	if extension != ".html.jet" && extension != ".jet.html" && extension != ".jet" {
 		log.Fatalf("%s Extension is not a valid jet engine ['.html.jet', .jet.html', '.jet']", extension)
 	}
@@ -105,7 +105,7 @@ func (e *Engine) Load() (err error) {
 		if err != nil {
 			return err
 		}
-		// Skip file if it's a Directory or has no file info
+		// Skip file if it's a directory or has no file info
 		if info == nil || info.IsDir() {
 			return nil
 		}
