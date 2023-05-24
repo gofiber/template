@@ -8,117 +8,57 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/eknkc/amber"
+	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
 
 // Engine struct
 type Engine struct {
-	// views folder
-	directory string
-	// http.FileSystem supports embedded files
-	fileSystem http.FileSystem
-	// views extension
-	extension string
-	// layout variable name that incapsulates the template
-	layout string
-	// determines if the engine parsed all templates
-	loaded bool
-	// reload on each render
-	reload bool
-	// debug prints the parsed templates
-	debug bool
-	// lock for funcMap and templates
-	mutex sync.RWMutex
-	// template funcMap
-	funcMap map[string]interface{}
+	core.Engine
 	// templates
 	Templates map[string]*template.Template
 }
 
-// New returns a Amber render engine for Fiber
+// New returns an Amber render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
-		directory: directory,
-		extension: extension,
-		layout:    "embed",
-		funcMap:   make(map[string]interface{}),
+		Engine: core.Engine{
+			Directory:  directory,
+			Extension:  extension,
+			LayoutName: "embed",
+			Funcmap:    make(map[string]interface{}),
+		},
 	}
-	engine.AddFunc(engine.layout, func() error {
-		return fmt.Errorf("layout called unexpectedly.")
+	engine.AddFunc(engine.LayoutName, func() error {
+		return fmt.Errorf("layoutName called unexpectedly")
 	})
 	return engine
 }
 
+// NewFileSystem returns an Amber render engine for Fiber with file system
 func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	engine := &Engine{
-		directory:  "/",
-		fileSystem: fs,
-		extension:  extension,
-		layout:     "embed",
-		funcMap:    make(map[string]interface{}),
+		Engine: core.Engine{
+			Directory:  "/",
+			FileSystem: fs,
+			Extension:  extension,
+			LayoutName: "embed",
+			Funcmap:    make(map[string]interface{}),
+		},
 	}
-	engine.AddFunc(engine.layout, func() error {
-		return fmt.Errorf("layout called unexpectedly.")
+	engine.AddFunc(engine.LayoutName, func() error {
+		return fmt.Errorf("layoutName called unexpectedly")
 	})
 	return engine
-}
-
-// Layout defines the variable name that will incapsulate the template
-func (e *Engine) Layout(key string) *Engine {
-	e.layout = key
-	return e
-}
-
-// Delims sets the action delimiters to the specified strings, to be used in
-// templates. An empty delimiter stands for the
-// corresponding default: {{ or }}.
-func (e *Engine) Delims(left, right string) *Engine {
-	fmt.Println("delims: this method is not supported for amber")
-	return e
-}
-
-// AddFunc adds the function to the template's function map.
-// It is legal to overwrite elements of the default actions
-func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
-	e.mutex.Lock()
-	e.funcMap[name] = fn
-	e.mutex.Unlock()
-	return e
-}
-
-// AddFuncMap adds the functions from a map to the template's function map.
-// It is legal to overwrite elements of the default actions
-func (e *Engine) AddFuncMap(m map[string]interface{}) *Engine {
-	e.mutex.Lock()
-	for name, fn := range m {
-		e.funcMap[name] = fn
-	}
-	e.mutex.Unlock()
-	return e
-}
-
-// Reload if set to true the templates are reloading on each render,
-// use it when you're in development and you don't want to restart
-// the application when you edit a template file.
-func (e *Engine) Reload(enabled bool) *Engine {
-	e.reload = enabled
-	return e
-}
-
-// Debug will print the parsed templates when Load is triggered.
-func (e *Engine) Debug(enabled bool) *Engine {
-	e.debug = enabled
-	return e
 }
 
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
-	e.mutex.Lock()
-	defer e.mutex.Unlock()
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 
 	e.Templates = make(map[string]*template.Template)
 
@@ -130,7 +70,7 @@ func (e *Engine) Load() error {
 		funcs[k] = v
 	}
 
-	for k, v := range e.funcMap {
+	for k, v := range e.Funcmap {
 		funcs[k] = v
 	}
 
@@ -147,12 +87,12 @@ func (e *Engine) Load() error {
 			return nil
 		}
 		// Skip file if it does not equal the given template extension
-		if len(e.extension) >= len(path) || path[len(path)-len(e.extension):] != e.extension {
+		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
 			return nil
 		}
 		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.directory, path)
+		rel, err := filepath.Rel(e.Directory, path)
 		if err != nil {
 			return err
 		}
@@ -160,19 +100,19 @@ func (e *Engine) Load() error {
 		// partials\footer.tmpl -> partials/footer.tmpl
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.extension)
-		// name = strings.Replace(name, e.extension, "", -1)
+		name = strings.TrimSuffix(name, e.Extension)
+		// name = strings.Replace(name, e.Extension, "", -1)
 		// Read the file
 		// #gosec G304
-		buf, err := utils.ReadFile(path, e.fileSystem)
+		buf, err := utils.ReadFile(path, e.FileSystem)
 		if err != nil {
 			return err
 		}
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
 		option := amber.DefaultOptions
-		if e.fileSystem != nil {
-			option.VirtualFilesystem = e.fileSystem
+		if e.FileSystem != nil {
+			option.VirtualFilesystem = e.FileSystem
 		}
 		tmpl, err := amber.CompileData(buf, name, option)
 		if err != nil {
@@ -180,24 +120,24 @@ func (e *Engine) Load() error {
 		}
 		e.Templates[name] = tmpl
 		// Debugging
-		if e.debug {
+		if e.Verbose {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
-	// notify engine that we parsed all templates
-	e.loaded = true
-	if e.fileSystem != nil {
-		return utils.Walk(e.fileSystem, e.directory, walkFn)
+	// notify Engine that we parsed all templates
+	e.Loaded = true
+	if e.FileSystem != nil {
+		return utils.Walk(e.FileSystem, e.Directory, walkFn)
 	}
-	return filepath.Walk(e.directory, walkFn)
+	return filepath.Walk(e.Directory, walkFn)
 }
 
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
-	if !e.loaded || e.reload {
-		if e.reload {
-			e.loaded = false
+	if !e.Loaded || e.ShouldReload {
+		if e.ShouldReload {
+			e.Loaded = false
 		}
 		if err := e.Load(); err != nil {
 			return err
@@ -210,19 +150,14 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates[layout[0]]
 		if lay == nil {
-			return fmt.Errorf("render: layout %s does not exist", layout[0])
+			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
 		}
 		lay.Funcs(map[string]interface{}{
-			e.layout: func() error {
+			e.LayoutName: func() error {
 				return tmpl.Execute(out, binding)
 			},
 		})
 		return lay.Execute(out, binding)
 	}
 	return tmpl.Execute(out, binding)
-}
-
-// FuncMap returns the template's function map.
-func (e *Engine) FuncMap() map[string]interface{} {
-	return e.funcMap
 }

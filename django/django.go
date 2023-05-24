@@ -7,38 +7,18 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/flosch/pongo2/v6"
 	"github.com/gofiber/fiber/v2"
+	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
 
 // Engine struct
 type Engine struct {
-	// delimiters
-	left  string
-	right string
-	// views folder
-	directory string
-	// http.FileSystem supports embedded files
-	fileSystem http.FileSystem
-	// views extension
-	extension string
-	// layout variable name that incapsulates the template
-	layout string
-	// determines if the engine parsed all templates
-	loaded bool
-	// reload on each render
-	reload bool
-	// debug prints the parsed templates
-	debug bool
-	// forward the base path to the template engine
+	core.Engine
+	// forward the base path to the template Engine
 	forwardPath bool
-	// lock for funcMap and templates
-	mutex sync.RWMutex
-	// template funcMap
-	funcMap map[string]interface{}
 	// templates
 	Templates map[string]*pongo2.Template
 }
@@ -46,104 +26,71 @@ type Engine struct {
 // New returns a Django render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
-		left:      "{{",
-		right:     "}}",
-		directory: directory,
-		extension: extension,
-		layout:    "embed",
-		funcMap:   make(map[string]interface{}),
+		Engine: core.Engine{
+			Left:       "{{",
+			Right:      "}}",
+			Directory:  directory,
+			Extension:  extension,
+			LayoutName: "embed",
+			Funcmap:    make(map[string]interface{}),
+		},
 	}
 	return engine
 }
 
+// NewFileSystem returns a Django render engine for Fiber with file system
 func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	engine := &Engine{
-		left:       "{{",
-		right:      "}}",
-		directory:  "/",
-		fileSystem: fs,
-		extension:  extension,
-		layout:     "embed",
-		funcMap:    make(map[string]interface{}),
+		Engine: core.Engine{
+			Left:       "{{",
+			Right:      "}}",
+			Directory:  "/",
+			FileSystem: fs,
+			Extension:  extension,
+			LayoutName: "embed",
+			Funcmap:    make(map[string]interface{}),
+		},
 	}
 	return engine
 }
 
-// NewPathForwardingFileSystem Passes "directory" to the template engine where alternative functions don't.
+// NewPathForwardingFileSystem Passes "Directory" to the template engine where alternative functions don't.
 //
 //	This fixes errors during resolution of templates when "{% extends 'parent.html' %}" is used.
 func NewPathForwardingFileSystem(fs http.FileSystem, directory string, extension string) *Engine {
-	engine := NewFileSystem(fs, extension)
-	engine.forwardPath = true
-	engine.directory = directory
-	return engine
-}
 
-// Layout defines the variable name that will incapsulate the template
-func (e *Engine) Layout(key string) *Engine {
-	e.layout = key
-	return e
-}
-
-// Delims sets the action delimiters to the specified strings, to be used in
-// templates. An empty delimiter stands for the
-// corresponding default: {{ or }}.
-func (e *Engine) Delims(left, right string) *Engine {
-	fmt.Println("delims: this method is not supported for django")
-	return e
-}
-
-// AddFunc adds the function to the template's function map.
-// It is legal to overwrite elements of the default actions
-func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
-	e.mutex.Lock()
-	e.funcMap[name] = fn
-	e.mutex.Unlock()
-	return e
-}
-
-// AddFuncMap adds the functions from a map to the template's function map.
-// It is legal to overwrite elements of the default actions
-func (e *Engine) AddFuncMap(m map[string]interface{}) *Engine {
-	e.mutex.Lock()
-	for name, fn := range m {
-		e.funcMap[name] = fn
+	engine := &Engine{
+		Engine: core.Engine{
+			Left:       "{{",
+			Right:      "}}",
+			Directory:  directory,
+			FileSystem: fs,
+			Extension:  extension,
+			LayoutName: "embed",
+			Funcmap:    make(map[string]interface{}),
+		},
+		forwardPath: true,
 	}
-	e.mutex.Unlock()
-	return e
-}
-
-// Reload if set to true the templates are reloading on each render,
-// use it when you're in development and you don't want to restart
-// the application when you edit a template file.
-func (e *Engine) Reload(enabled bool) *Engine {
-	e.reload = enabled
-	return e
-}
-
-// Debug will print the parsed templates when Load is triggered.
-func (e *Engine) Debug(enabled bool) *Engine {
-	e.debug = enabled
-	return e
+	return engine
 }
 
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
-	e.mutex.Lock()
-	defer e.mutex.Unlock()
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 
 	e.Templates = make(map[string]*pongo2.Template)
 
-	baseDir := e.directory
+	baseDir := e.Directory
 
 	var pongoloader pongo2.TemplateLoader
-	if e.fileSystem != nil {
+	if e.FileSystem != nil {
 		// ensures creation of httpFileSystemLoader only when filesystem is defined
 		if e.forwardPath {
-			pongoloader = pongo2.MustNewHttpFileSystemLoader(e.fileSystem, baseDir)
+			pongoloader = pongo2.MustNewHttpFileSystemLoader(e.FileSystem, baseDir)
 		} else {
-			pongoloader = pongo2.MustNewHttpFileSystemLoader(e.fileSystem, "")
+			pongoloader = pongo2.MustNewHttpFileSystemLoader(e.FileSystem, "")
 		}
 	} else {
 		pongoloader = pongo2.MustNewLocalFileSystemLoader(baseDir)
@@ -152,10 +99,10 @@ func (e *Engine) Load() error {
 	// New pongo2 defaultset
 	pongoset := pongo2.NewSet("default", pongoloader)
 	// Set template settings
-	pongoset.Globals.Update(e.funcMap)
+	pongoset.Globals.Update(e.Funcmap)
 	pongo2.SetAutoescape(false)
 
-	// Loop trough each directory and register template files
+	// Loop trough each Directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
@@ -165,13 +112,13 @@ func (e *Engine) Load() error {
 		if info == nil || info.IsDir() {
 			return nil
 		}
-		// Skip file if it does not equal the given template extension
-		if len(e.extension) >= len(path) || path[len(path)-len(e.extension):] != e.extension {
+		// Skip file if it does not equal the given template Extension
+		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
 			return nil
 		}
 		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.directory, path)
+		rel, err := filepath.Rel(e.Directory, path)
 		if err != nil {
 			return err
 		}
@@ -179,11 +126,11 @@ func (e *Engine) Load() error {
 		// partials\footer.tmpl -> partials/footer.tmpl
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.extension)
-		// name = strings.Replace(name, e.extension, "", -1)
+		name = strings.TrimSuffix(name, e.Extension)
+		// name = strings.Replace(name, e.Extension, "", -1)
 		// Read the file
 		// #gosec G304
-		buf, err := utils.ReadFile(path, e.fileSystem)
+		buf, err := utils.ReadFile(path, e.FileSystem)
 		if err != nil {
 			return err
 		}
@@ -194,17 +141,17 @@ func (e *Engine) Load() error {
 		}
 		e.Templates[name] = tmpl
 		// Debugging
-		if e.debug {
+		if e.Verbose {
 			fmt.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
 	// notify engine that we parsed all templates
-	e.loaded = true
-	if e.fileSystem != nil {
-		return utils.Walk(e.fileSystem, e.directory, walkFn)
+	e.Loaded = true
+	if e.FileSystem != nil {
+		return utils.Walk(e.FileSystem, e.Directory, walkFn)
 	}
-	return filepath.Walk(e.directory, walkFn)
+	return filepath.Walk(e.Directory, walkFn)
 }
 
 func getPongoBinding(binding interface{}) pongo2.Context {
@@ -230,9 +177,9 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
-	if !e.loaded || e.reload {
-		if e.reload {
-			e.loaded = false
+	if !e.Loaded || e.ShouldReload {
+		if e.ShouldReload {
+			e.Loaded = false
 		}
 		if err := e.Load(); err != nil {
 			return err
@@ -252,10 +199,10 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		if bind == nil {
 			bind = make(map[string]interface{}, 1)
 		}
-		bind[e.layout] = parsed
+		bind[e.LayoutName] = parsed
 		lay := e.Templates[layout[0]]
 		if lay == nil {
-			return fmt.Errorf("layout %s does not exist", layout[0])
+			return fmt.Errorf("LayoutName %s does not exist", layout[0])
 		}
 		return lay.ExecuteWriter(bind, out)
 	}
@@ -263,9 +210,4 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		return err
 	}
 	return nil
-}
-
-// FuncMap returns the template's function map.
-func (e *Engine) FuncMap() map[string]interface{} {
-	return e.funcMap
 }
