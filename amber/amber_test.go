@@ -138,7 +138,7 @@ func Test_Reload(t *testing.T) {
 }
 
 func Test_AddFuncMap(t *testing.T) {
-	// Create a temporary Directory
+	// Create a temporary directory
 	dir, _ := os.MkdirTemp(".", "")
 	defer os.RemoveAll(dir)
 

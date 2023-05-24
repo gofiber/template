@@ -69,14 +69,14 @@ func (e *Engine) Load() error {
 	e.Templates.Delims(e.Left, e.Right)
 	e.Templates.Funcs(e.Funcmap)
 
-	// Loop trough each Directory and register template files
+	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		path = strings.TrimRight(path, ".")
 		// Return error if exist
 		if err != nil {
 			return err
 		}
-		// Skip file if it's a Directory or has no file info
+		// Skip file if it's a directory or has no file info
 		if info == nil || info.IsDir() {
 			return nil
 		}

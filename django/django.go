@@ -108,7 +108,7 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
-		// Skip file if it's a Directory or has no file info
+		// Skip file if it's a directory or has no file info
 		if info == nil || info.IsDir() {
 			return nil
 		}

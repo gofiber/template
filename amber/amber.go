@@ -76,13 +76,13 @@ func (e *Engine) Load() error {
 
 	amber.FuncMap = funcs
 
-	// Loop trough each Directory and register template files
+	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
 		}
-		// Skip file if it's a Directory or has no file info
+		// Skip file if it's a directory or has no file info
 		if info == nil || info.IsDir() {
 			return nil
 		}
