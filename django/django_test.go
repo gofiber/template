@@ -1,3 +1,4 @@
+//nolint:paralleltest // running these in parallel causes a data race
 package django
 
 import (
@@ -22,7 +23,6 @@ func trim(str string) string {
 }
 
 func Test_Render(t *testing.T) {
-	t.Parallel()
 	engine := New("./views", ".django")
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
@@ -56,7 +56,6 @@ func Test_Render(t *testing.T) {
 }
 
 func Test_Layout(t *testing.T) {
-	t.Parallel()
 	engine := New("./views", ".django")
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
@@ -78,7 +77,6 @@ func Test_Layout(t *testing.T) {
 }
 
 func Test_Empty_Layout(t *testing.T) {
-	t.Parallel()
 	engine := New("./views", ".django")
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
@@ -100,7 +98,6 @@ func Test_Empty_Layout(t *testing.T) {
 }
 
 func Test_FileSystem(t *testing.T) {
-	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".django")
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
@@ -122,7 +119,6 @@ func Test_FileSystem(t *testing.T) {
 }
 
 func Test_AddFunc(t *testing.T) {
-	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".django")
 	engine.Debug(true)
 
@@ -149,7 +145,6 @@ func Test_AddFunc(t *testing.T) {
 }
 
 func Test_Reload(t *testing.T) {
-	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".django")
 	engine.Reload(true) // Optional. Default: false
 
@@ -188,7 +183,6 @@ func Test_Reload(t *testing.T) {
 var viewsAsssets embed.FS
 
 func Test_PathForwardingFileSystem(t *testing.T) {
-	t.Parallel()
 	engine := NewPathForwardingFileSystem(http.FS(viewsAsssets), "/views", ".django")
 	engine.Debug(true)
 	if err := engine.Load(); err != nil {
@@ -210,7 +204,6 @@ func Test_PathForwardingFileSystem(t *testing.T) {
 }
 
 func Test_AddFuncMap(t *testing.T) {
-	t.Parallel()
 	// Create a temporary directory
 	dir, err := os.MkdirTemp(".", "")
 	if err != nil {
