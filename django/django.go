@@ -3,13 +3,15 @@ package django
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/flosch/pongo2/v6"
 	"github.com/gofiber/fiber/v2"
+
+	"github.com/flosch/pongo2/v6"
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
@@ -57,8 +59,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 // NewPathForwardingFileSystem Passes "Directory" to the template engine where alternative functions don't.
 //
 //	This fixes errors during resolution of templates when "{% extends 'parent.html' %}" is used.
-func NewPathForwardingFileSystem(fs http.FileSystem, directory string, extension string) *Engine {
-
+func NewPathForwardingFileSystem(fs http.FileSystem, directory, extension string) *Engine {
 	engine := &Engine{
 		Engine: core.Engine{
 			Left:       "{{",
@@ -142,7 +143,7 @@ func (e *Engine) Load() error {
 		e.Templates[name] = tmpl
 		// Debugging
 		if e.Verbose {
-			fmt.Printf("views: parsed template: %s\n", name)
+			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
@@ -158,13 +159,12 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
 	}
-	if binds, ok := binding.(pongo2.Context); ok {
+	switch binds := binding.(type) {
+	case pongo2.Context:
 		return binds
-	}
-	if binds, ok := binding.(map[string]interface{}); ok {
+	case map[string]interface{}:
 		return binds
-	}
-	if binds, ok := binding.(fiber.Map); ok {
+	case fiber.Map:
 		bind := make(pongo2.Context)
 		for key, value := range binds {
 			bind[key] = value
