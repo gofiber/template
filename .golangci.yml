@@ -280,5 +280,5 @@ linters:
     # - varnamelen
     - wastedassign
     - whitespace
-    - wrapcheck
+    # - wrapcheck # disabled
     # - wsl

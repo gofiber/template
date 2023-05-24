@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -33,7 +34,7 @@ func New(directory, extension string) *Engine {
 			Directory:  directory,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 	return engine
@@ -49,7 +50,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 	return engine
@@ -87,7 +88,7 @@ func (e *Engine) Load() error {
 		// partials\footer.tmpl -> partials/footer.tmpl
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.Replace(name, e.Extension, "", -1)
+		name = strings.ReplaceAll(name, e.Extension, "")
 		// Read the file
 		// #gosec G304
 		buf, err := utils.ReadFile(path, e.FileSystem)
@@ -114,7 +115,7 @@ func (e *Engine) Load() error {
 		e.Templates[name] = tmpl
 		// Debugging
 		if e.Verbose {
-			fmt.Printf("views: parsed template: %s\n", name)
+			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
@@ -127,7 +128,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, template string, binding any, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -146,13 +147,11 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 		if err := tmpl.Execute(buf, binding); err != nil {
 			return err
 		}
-		var bind map[string]interface{}
-		if bind == nil {
-			bind = make(map[string]interface{}, 1)
-		} else if context, ok := binding.(map[string]interface{}); ok {
+		var bind map[string]any
+		if context, ok := binding.(map[string]any); ok {
 			bind = context
 		} else {
-			bind = make(map[string]interface{}, 1)
+			bind = make(map[string]any, 1)
 		}
 		bind[e.LayoutName] = buf.String()
 		lay := e.Templates[layout[0]]
