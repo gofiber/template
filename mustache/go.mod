@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/cbroglie/mustache v1.4.0
-	github.com/gofiber/fiber/v2 v2.44.0
+	github.com/gofiber/fiber/v2 v2.46.0
 	github.com/gofiber/template v0.0.0-00010101000000-000000000000
 	github.com/gofiber/utils v1.1.0
 	github.com/valyala/bytebufferpool v1.0.0
@@ -22,9 +22,9 @@ require (
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
-	github.com/valyala/fasthttp v1.45.0 // indirect
+	github.com/valyala/fasthttp v1.47.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
 )
 
 replace github.com/gofiber/template => ../.
