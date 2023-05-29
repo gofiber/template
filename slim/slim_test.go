@@ -13,21 +13,24 @@ import (
 
 func trim(str string) string {
 	trimmed := strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllString(str, " "))
-	trimmed = strings.Replace(trimmed, " <", "<", -1)
-	trimmed = strings.Replace(trimmed, "> ", ">", -1)
+	trimmed = strings.ReplaceAll(trimmed, " <", "<")
+	trimmed = strings.ReplaceAll(trimmed, "> ", ">")
 	return trimmed
 }
 
 func Test_Render(t *testing.T) {
+	t.Parallel()
 	engine := New("./views", ".slim")
 	if err := engine.Load(); err != nil {
 		t.Fatalf("load: %v\n", err)
 	}
 	// Partials
 	var buf bytes.Buffer
-	engine.Render(&buf, "index", map[string]interface{}{
+	if err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
-	})
+	}); err != nil {
+		t.Fatal("Test_Render: failed to render index")
+	}
 	expect := `<div><h2>Header</h2></div><h1>Hello, World!</h1><div><h2>Footer</h2></div>`
 
 	result := trim(buf.String())
@@ -36,9 +39,11 @@ func Test_Render(t *testing.T) {
 	}
 	// Single
 	buf.Reset()
-	engine.Render(&buf, "errors/404", map[string]interface{}{
+	if err := engine.Render(&buf, "errors/404", map[string]interface{}{
 		"Title": "Hello, World!",
-	})
+	}); err != nil {
+		t.Fatal("Test_Render: failed to render 404")
+	}
 	expect = `<h1>Hello, World!</h1>`
 	result = trim(buf.String())
 	if expect != result {
@@ -47,6 +52,7 @@ func Test_Render(t *testing.T) {
 }
 
 func Test_Layout(t *testing.T) {
+	t.Parallel()
 	engine := New("./views", ".slim")
 
 	if err := engine.Load(); err != nil {
@@ -54,9 +60,11 @@ func Test_Layout(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	engine.Render(&buf, "index", map[string]interface{}{
+	if err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
-	}, "layouts/main")
+	}, "layouts/main"); err != nil {
+		t.Fatal("Test_Layout: failed to render index")
+	}
 	expect := `<!doctype html><html><head><title>Main</title></head><body><div><div><h2>Header</h2></div><h1>Hello, World!</h1><div><h2>Footer</h2></div></div></body></html>`
 	result := trim(buf.String())
 	if expect != result {
@@ -65,6 +73,7 @@ func Test_Layout(t *testing.T) {
 }
 
 func Test_Empty_Layout(t *testing.T) {
+	t.Parallel()
 	engine := New("./views", ".slim")
 
 	if err := engine.Load(); err != nil {
@@ -72,9 +81,11 @@ func Test_Empty_Layout(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	engine.Render(&buf, "index", map[string]interface{}{
+	if err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
-	}, "")
+	}, ""); err != nil {
+		t.Fatal("Test_Empty_Layout: failed to render index")
+	}
 	expect := `<div><h2>Header</h2></div><h1>Hello, World!</h1><div><h2>Footer</h2></div>`
 	result := trim(buf.String())
 	if expect != result {
@@ -83,6 +94,7 @@ func Test_Empty_Layout(t *testing.T) {
 }
 
 func Test_FileSystem(t *testing.T) {
+	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".slim")
 
 	if err := engine.Load(); err != nil {
@@ -90,9 +102,11 @@ func Test_FileSystem(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	engine.Render(&buf, "index", map[string]interface{}{
+	if err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
-	}, "layouts/main")
+	}, "layouts/main"); err != nil {
+		t.Fatal("Test_FileSystem: failed to render index")
+	}
 	expect := `<!doctype html><html><head><title>Main</title></head><body><div><div><h2>Header</h2></div><h1>Hello, World!</h1><div><h2>Footer</h2></div></div></body></html>`
 	result := trim(buf.String())
 	if expect != result {
@@ -101,6 +115,7 @@ func Test_FileSystem(t *testing.T) {
 }
 
 func Test_Reload(t *testing.T) {
+	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".slim")
 	engine.Reload(true) // Optional. Default: false
 
@@ -108,19 +123,23 @@ func Test_Reload(t *testing.T) {
 		t.Fatalf("load: %v\n", err)
 	}
 
-	if err := os.WriteFile("./views/ShouldReload.slim", []byte("p after ShouldReload\n"), 0644); err != nil {
+	if err := os.WriteFile("./views/ShouldReload.slim", []byte("p after ShouldReload\n"), 0o600); err != nil {
 		t.Fatalf("write file: %v\n", err)
 	}
 	defer func() {
-		if err := os.WriteFile("./views/ShouldReload.slim", []byte("p before ShouldReload\n"), 0644); err != nil {
+		if err := os.WriteFile("./views/ShouldReload.slim", []byte("p before ShouldReload\n"), 0o600); err != nil {
 			t.Fatalf("write file: %v\n", err)
 		}
 	}()
 
-	engine.Load()
+	if err := engine.Load(); err != nil {
+		t.Fatal("engine failed to load")
+	}
 
 	var buf bytes.Buffer
-	engine.Render(&buf, "ShouldReload", nil)
+	if err := engine.Render(&buf, "ShouldReload", nil); err != nil {
+		t.Fatal("Test_Reload: failed to render ShouldReload")
+	}
 	expect := "<p>after ShouldReload</p>"
 	result := trim(buf.String())
 	if expect != result {
@@ -129,23 +148,43 @@ func Test_Reload(t *testing.T) {
 }
 
 func Test_AddFuncMap(t *testing.T) {
+	t.Parallel()
 	// Create a temporary directory
-	dir, _ := os.MkdirTemp(".", "")
-	defer os.RemoveAll(dir)
+	dir, err := os.MkdirTemp(".", "")
+	if err != nil {
+		t.Fatal("failed to create temporary directory")
+	}
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		if err != nil {
+			t.Fatal("failed to delete temporary directory")
+		}
+	}()
 
 	// Create a temporary template file.
-	_ = os.WriteFile(dir+"/func_map.slim", []byte(`
+	if err = os.WriteFile(dir+"/func_map.slim", []byte(`
 h2 = lower(Var1)
-p = upper(Var2)`), 0700)
+p = upper(Var2)`), 0o600); err != nil {
+		t.Fatal("Test_AddFuncMap: failed to write to func_map.slim")
+	}
 
 	engine := New(dir, ".slim")
 
 	fm := map[string]interface{}{
 		"lower": func(s ...slim.Value) (slim.Value, error) {
-			return strings.ToLower(s[0].(string)), nil
+			slimvalue, ok := s[0].(string)
+			if !ok {
+				t.Fatal("failed type assertion on slim lower")
+			}
+			return strings.ToLower(slimvalue), nil
 		},
 		"upper": func(s ...slim.Value) (slim.Value, error) {
-			return strings.ToUpper(s[0].(string)), nil
+			slimvalue, ok := s[0].(string)
+			if !ok {
+				t.Fatal("failed type assertion on slim lower")
+			}
+			return strings.ToUpper(slimvalue), nil
 		},
 	}
 	engine.AddFuncMap(fm)
@@ -155,10 +194,12 @@ p = upper(Var2)`), 0700)
 	}
 
 	var buf bytes.Buffer
-	engine.Render(&buf, "func_map", map[string]interface{}{
+	if err := engine.Render(&buf, "func_map", map[string]interface{}{
 		"Var1": "LOwEr",
 		"Var2": "upPEr",
-	})
+	}); err != nil {
+		t.Fatal("Test_AddFuncMap: failed to render func_map")
+	}
 	expect := `<h2>lower</h2><p>UPPER</p>`
 	result := trim(buf.String())
 	if expect != result {
@@ -177,7 +218,6 @@ p = upper(Var2)`), 0700)
 
 func Benchmark_Slim(b *testing.B) {
 	expectSimple := `<h1>Hello, World!</h1>`
-	//expectExtended := `<!DOCTYPE html><html><head><title>Title</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
 	engine := New("./views", ".slim")
 	engine.AddFunc("isAdmin", func(user string) bool {
 		return user == "admin"

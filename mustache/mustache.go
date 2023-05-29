@@ -3,13 +3,15 @@ package mustache
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/cbroglie/mustache"
 	"github.com/gofiber/fiber/v2"
+
+	"github.com/cbroglie/mustache"
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 	"github.com/valyala/bytebufferpool"
@@ -30,8 +32,8 @@ type fileSystemPartialProvider struct {
 }
 
 func (p fileSystemPartialProvider) Get(path string) (string, error) {
-	buf, _ := utils.ReadFile(path+p.extension, p.fileSystem)
-	return string(buf), nil
+	buf, err := utils.ReadFile(path+p.extension, p.fileSystem)
+	return string(buf), err
 }
 
 // New returns a Mustache render engine for Fiber
@@ -123,7 +125,7 @@ func (e *Engine) Load() error {
 		e.Templates[name] = tmpl
 		// Debugging
 		if e.Verbose {
-			fmt.Printf("views: parsed template: %s\n", name)
+			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
@@ -136,7 +138,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -145,9 +147,9 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl := e.Templates[template]
+	tmpl := e.Templates[name]
 	if tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", template)
+		return fmt.Errorf("render: template %s does not exist", name)
 	}
 	if len(layout) > 0 && layout[0] != "" {
 		buf := bytebufferpool.Get()
@@ -156,11 +158,12 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 		var bind map[string]interface{}
-		if m, ok := binding.(fiber.Map); ok {
-			bind = m
-		} else if m, ok := binding.(map[string]interface{}); ok {
-			bind = m
-		} else {
+		switch binds := binding.(type) {
+		case fiber.Map:
+			bind = binds
+		case map[string]interface{}:
+			bind = binds
+		default:
 			bind = make(map[string]interface{}, 1)
 		}
 		bind[e.LayoutName] = buf.String()

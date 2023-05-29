@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -23,7 +24,7 @@ type Engine struct {
 }
 
 // New returns a Pug render engine for Fiber
-func New(directory string, extension string) *Engine {
+func New(directory, extension string) *Engine {
 	engine := &Engine{
 		Engine: core.Engine{
 			Left:       "{{",
@@ -121,7 +122,7 @@ func (e *Engine) Load() error {
 		}
 		// Debugging
 		if e.Verbose {
-			fmt.Printf("views: parsed template: %s\n", name)
+			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
@@ -134,7 +135,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, template string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -143,9 +144,9 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			return err
 		}
 	}
-	tmpl := e.Templates.Lookup(template)
+	tmpl := e.Templates.Lookup(name)
 	if tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", template)
+		return fmt.Errorf("render: template %s does not exist", name)
 	}
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates.Lookup(layout[0])
@@ -158,7 +159,6 @@ func (e *Engine) Render(out io.Writer, template string, binding interface{}, lay
 			},
 		})
 		return lay.Execute(out, binding)
-
 	}
 	return tmpl.Execute(out, binding)
 }
