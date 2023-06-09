@@ -20,7 +20,7 @@
 
 This package provides universal methods to use multiple template engines with the [Fiber web framework](https://github.com/gofiber/fiber) using the new [Views](https://godoc.org/github.com/gofiber/fiber#Views) interface that is available from `> v1.11.1`. Special thanks to @bdtomlin & @arsmn for helping!
 
-8 template engines are supported:
+9 template engines are supported:
 - [html](https://github.com/gofiber/template/tree/master/html) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Html%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-html.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B">
   </a>
