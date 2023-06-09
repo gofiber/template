@@ -78,7 +78,7 @@ func (e *Engine) Debug(enabled bool) *Engine {
 
 // Delims sets the action delimiters to the specified strings, to be used in
 // templates. An empty delimiter stands for the
-// corresponding default: {{ or }}.
+// corresponding default: "{{" and "}}".
 func (e *Engine) Delims(left, right string) *Engine {
 	e.Left, e.Right = left, right
 	return e
