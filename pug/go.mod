@@ -9,6 +9,9 @@ require (
 	github.com/gofiber/utils v1.1.0
 )
 
-require golang.org/x/net v0.10.0 // indirect
+require (
+	github.com/rivo/uniseg v0.2.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+)
 
 replace github.com/gofiber/template => ../.
