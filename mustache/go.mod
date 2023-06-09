@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/cbroglie/mustache v1.4.0
 	github.com/gofiber/fiber/v2 v2.46.0
-	github.com/gofiber/template v1.8.1
+	github.com/gofiber/template v1.8.2
 	github.com/gofiber/utils v1.1.0
 	github.com/valyala/bytebufferpool v1.0.0
 )
@@ -13,9 +13,9 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/klauspost/compress v1.16.3 // indirect
+	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.18 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
