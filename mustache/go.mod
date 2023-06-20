@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/cbroglie/mustache v1.4.0
-	github.com/gofiber/fiber/v2 v2.46.0
+	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/gofiber/template v1.8.2
 	github.com/gofiber/utils v1.1.0
 	github.com/valyala/bytebufferpool v1.0.0
@@ -24,7 +24,7 @@ require (
 	github.com/tinylib/msgp v1.1.8 // indirect
 	github.com/valyala/fasthttp v1.47.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 )
 
 replace github.com/gofiber/template => ../.
