@@ -94,8 +94,8 @@ This function provides the proper configuration for resolving inherited template
 
 Assume you have the following files:
 
-- [views/ancenstor.django](views/ancestor.django)
-- [views/descendant.djando](views/descendant.django)
+- [views/ancenstor.django](https://github.com/gofiber/template/blob/master/django/views/ancestor.django)
+- [views/descendant.djando](https://github.com/gofiber/template/blob/master/django/views/descendant.django)
 
 then
 
