@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Some env variables
-BRANCH="main"
+BRANCH="master"
 REPO="template"
 REPO_URL="github.com/gofiber/docs.git"
 AUTHOR_EMAIL="github-actions[bot]@users.noreply.github.com"
