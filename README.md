@@ -27,24 +27,24 @@ sidebar_position: 1
 This package provides universal methods to use multiple template engines with the [Fiber web framework](https://github.com/gofiber/fiber) using the new [Views](https://godoc.org/github.com/gofiber/fiber#Views) interface that is available from `> v1.11.1`. Special thanks to @bdtomlin & @arsmn for helping!
 
 9 template engines are supported:
-- [html](https://github.com/gofiber/template/tree/master/html) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Html%22">
+- [html](./html/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Html%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-html.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/>
   </a>
-- [ace](https://github.com/gofiber/template/tree/master/ace) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Ace%22">
+- [ace](./ace/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Ace%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-ace.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
-- [amber](https://github.com/gofiber/template/tree/master/amber) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Amber%22">
+- [amber](./amber/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Amber%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-amber.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
-- [django](https://github.com/gofiber/template/tree/master/django) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Django%22">
+- [django](./django/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Django%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-django.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
-- [handlebars](https://github.com/gofiber/template/tree/master/handlebars) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Handlebars%22">
+- [handlebars](./handlebars/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Handlebars%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-handlebars.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
-- [jet](https://github.com/gofiber/template/tree/master/jet) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Jet%22">
+- [jet](./jet/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Jet%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-jet.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
-- [mustache](https://github.com/gofiber/template/tree/master/mustache) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Mustache%22">
+- [mustache](./mustache/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Mustache%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-mustache.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
-- [pug](https://github.com/gofiber/template/tree/master/pug) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Pug%22">
+- [pug](./pug/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Pug%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-pug.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
-- [slim](https://github.com/gofiber/template/tree/master/slim) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Slim%22">
+- [slim](./slim/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Slim%22">
   <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-slim.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
 
 ### Installation
@@ -248,9 +248,9 @@ func main() {
 ### Benchmarks
 
 #### Simple
-![](.github/data/Simple-TimeperOperation.png)
+![](https://raw.githubusercontent.com/gofiber/template/master/.github/data/Simple-TimeperOperation.png)
 
 #### Extended
-![](.github/data/Extended-TimeperOperation.png)
+![](https://raw.githubusercontent.com/gofiber/template/master/.github/data/Extended-TimeperOperation.png)
 
 Benchmarks were ran on Apple Macbook M1. Each engine was benchmarked 20 times and the results averaged into a single xlsx file. Mustache was excluded from the extended benchmark
