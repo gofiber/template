@@ -1,3 +1,9 @@
+---
+title: 👋 Welcome
+description: 🧬 Template engine middlewares for Fiber.
+sidebar_position: 1
+---
+
 <p align="center">
   <a href="https://gofiber.io">
       <picture>
@@ -7,7 +13,7 @@
   </a>
   <br>
 
-  <a href="https://pkg.go.dev/github.com/gofiber/template/html?tab=doc">
+  <a href="https://pkg.go.dev/github.com/gofiber/template?tab=doc">
     <img src="https://img.shields.io/badge/%F0%9F%93%9A%20godoc-pkg-00ACD7.svg?color=00ACD7&style=flat">
   </a>
   <a href="https://goreportcard.com/report/github.com/gofiber/template">
@@ -121,15 +127,15 @@ func main() {
 ### More Examples
 
 To view more specific examples, you could visit each engine folder to learn more
-- [html](https://github.com/gofiber/template/tree/master/html)
-- [ace](https://github.com/gofiber/template/tree/master/ace)
-- [amber](https://github.com/gofiber/template/tree/master/amber)
-- [django](https://github.com/gofiber/template/tree/master/django)
-- [handlebars](https://github.com/gofiber/template/tree/master/handlebars)
-- [jet](https://github.com/gofiber/template/tree/master/jet)
-- [mustache](https://github.com/gofiber/template/tree/master/mustache)
-- [pug](https://github.com/gofiber/template/tree/master/pug)
-- [slim](https://github.com/gofiber/template/tree/master/slim)
+- [html](./html/README.md)
+- [ace](./ace/README.md)
+- [amber](./amber/README.md)
+- [django](./django/README.md)
+- [handlebars](./handlebars/README.md)
+- [jet](./jet/README.md)
+- [mustache](./mustache/README.md)
+- [pug](./pug/README.md)
+- [slim](./slim/README.md)
 
 
 ### embedded Systems
