@@ -118,11 +118,11 @@ func main() {
 ### More Examples
 
 To view more specific examples, you could visit each engine folder to learn more
-- [html](./html/README.md)
 - [ace](./ace/README.md)
 - [amber](./amber/README.md)
 - [django](./django/README.md)
 - [handlebars](./handlebars/README.md)
+- [html](./html/README.md)
 - [jet](./jet/README.md)
 - [mustache](./mustache/README.md)
 - [pug](./pug/README.md)
