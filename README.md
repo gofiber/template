@@ -6,12 +6,10 @@ sidebar_position: 1
 
 
 <p align="center">
-  <a href="https://gofiber.io">
-      <picture>
+    <picture>
         <source height="125" media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gofiber/template/master/.github/logo-dark.svg"/>
         <img height="125" alt="Fiber" src="https://raw.githubusercontent.com/gofiber/template/master/.github/logo.svg"/>
-      </picture>
-  </a>
+    </picture>
   <br/>
 
   <a href="https://pkg.go.dev/github.com/gofiber/template?tab=doc">
