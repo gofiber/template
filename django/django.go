@@ -195,17 +195,22 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	if err != nil {
 		return err
 	}
-	if len(layout) > 0 && layout[0] != "" {
-		if bind == nil {
-			bind = make(map[string]interface{}, 1)
-		}
+	// allow for nested layouts, (multiple embed tags)
+	// cases where nested layouts (embed) are required:  post.django -> layout.django -> index.django
+	if bind == nil {
+		bind = make(map[string]interface{}, 1)
+	}
+	for _, alayout := range layout {
+		lay := e.Templates[alayout]
 		bind[e.LayoutName] = parsed
-		lay := e.Templates[layout[0]]
+		parsed, err = lay.Execute(bind)
+
 		if lay == nil {
-			return fmt.Errorf("LayoutName %s does not exist", layout[0])
+			return fmt.Errorf("LayoutName %s does not exist", alayout)
 		}
 		return lay.ExecuteWriter(bind, out)
 	}
+
 	if _, err = out.Write([]byte(parsed)); err != nil {
 		return err
 	}
