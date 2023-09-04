@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/aymerick/raymond v2.0.2+incompatible
-	github.com/gofiber/fiber/v2 v2.49.0
+	github.com/gofiber/fiber/v2 v2.49.1
 	github.com/gofiber/template v1.8.2
 	github.com/gofiber/utils v1.1.0
 )
@@ -18,7 +18,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.48.0 // indirect
+	github.com/valyala/fasthttp v1.49.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
