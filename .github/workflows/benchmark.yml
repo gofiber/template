@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - "**"
+      - "!**.md"
+  pull_request:
+    paths:
+      - "**"
+      - "!**.md"
+
+name: Run Benchmarks
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.x"
+      - name: Publish Benchmarks
+        run: go run github.com/efectn-forks/gobenchdata@latest action
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_PRUNE_COUNT: 30
+          INPUT_GO_TEST_FLAGS: -cpu 1,2
+          INPUT_PUBLISH: true
+          INPUT_CHECKS: false
+          INPUT_CHECKS_CONFIG: .github/gobenchdata-checks.yml
+          INPUT_SUBDIRECTORY: ace amber django html jet mustache pug slim
+          INPUT_PUBLISH_BRANCH: gh-pages
