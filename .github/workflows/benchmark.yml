@@ -11,25 +11,49 @@ on:
       - "**"
       - "!**.md"
 
-name: Run Benchmarks
+permissions:
+  deployments: write
+  contents: write
+
+name: Benchmark
 jobs:
-  publish:
+  Compare:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Fetch Repository
         uses: actions/checkout@v4
+
       - name: Install Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.21.x"
-      - name: Publish Benchmarks
-        run: go run github.com/efectn-forks/gobenchdata@latest action
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          INPUT_PRUNE_COUNT: 30
-          INPUT_GO_TEST_FLAGS: -cpu 1,2
-          INPUT_PUBLISH: true
-          INPUT_CHECKS: false
-          INPUT_CHECKS_CONFIG: .github/gobenchdata-checks.yml
-          INPUT_SUBDIRECTORY: ace amber django html jet mustache pug slim
-          INPUT_PUBLISH_BRANCH: gh-pages
+          # NOTE: Keep this in sync with the version from go.mod
+          go-version: "1.20.x"
+
+      - name: Run Benchmarks
+        run: |
+          set -o pipefail
+          for d in */ ; do
+            cd "$d"
+            go test ./... -benchmem -run=^$ -bench . | tee -a ../output.txt
+            cd ..
+          done
+        shell: bash
+
+      - name: Get Previous Benchmark Results
+        uses: actions/cache@v3
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
+
+      - name: Save Benchmark Results
+        uses: benchmark-action/github-action-benchmark@v1.18.0
+        with:
+          tool: "go"
+          output-file-path: output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          benchmark-data-dir-path: "benchmarks"
+          fail-on-alert: true
+          comment-on-alert: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+          #summary-always: ${{ github.event_name != 'push' && github.event_name != 'workflow_dispatch' }}
+          auto-push: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+          save-data-file: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
