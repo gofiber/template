@@ -34,7 +34,7 @@ jobs:
           set -o pipefail
           for d in */ ; do
             cd "$d"
-            go test ./... -benchmem -run=^$ -bench . | tee -a ../output.txt
+            go test ./... -benchmem -run=^$ -bench . | awk 'NR>3 && !/ok|PASS/{print}' | tee -a ../output.txt
             cd ..
           done
         shell: bash
