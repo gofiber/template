@@ -234,7 +234,7 @@
                         dataList.push(toDataSet(packageName, packageDataSet, colors[i]));
                         ++i;
                     }
-                    dataset = dataset?.[0] || [];
+                    dataset = Array.from(dataset)?.[0]?.[1] || [];
                 } else if (Array.isArray(dataset)) {
                     dataList.push(toDataSet(name, dataset, colors[1]));
                 }
