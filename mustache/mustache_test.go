@@ -2,6 +2,7 @@ package mustache
 
 import (
 	"bytes"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
 	"regexp"
@@ -21,128 +22,102 @@ func trim(str string) string {
 func Test_Render(t *testing.T) {
 	t.Parallel()
 	engine := New("./views", ".mustache")
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
+	require.NoError(t, engine.Load())
+
 	// Partials
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", fiber.Map{
+	err := engine.Render(&buf, "index", fiber.Map{
 		"Title": "Hello, World!",
-	}); err != nil {
-		t.Fatal("Test_Render: failed to render index")
-	}
+	})
+	require.NoError(t, err)
+
 	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
 	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
+
 	// Single
 	buf.Reset()
-	if err := engine.Render(&buf, "errors/404", fiber.Map{
+	err = engine.Render(&buf, "errors/404", fiber.Map{
 		"Title": "Hello, World!",
-	}); err != nil {
-		t.Fatal("Test_Render: failed to render 404")
-	}
+	})
+	require.NoError(t, err)
+
 	expect = `<h1>Hello, World!</h1>`
 	result = trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
 }
 
 func Test_Layout(t *testing.T) {
 	t.Parallel()
 	engine := New("./views", ".mustache")
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
-
-	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", fiber.Map{
-		"Title": "Hello, World!",
-	}, "layouts/main"); err != nil {
-		t.Fatalf("render: %v", err)
-	}
-	expect := `<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
-	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
-}
-
-func Test_Empty_Layout(t *testing.T) {
-	t.Parallel()
-	engine := New("./views", ".mustache")
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
-
-	var buf bytes.Buffer
-	err := engine.Render(&buf, "index", fiber.Map{
-		"Title": "Hello, World!",
-	}, "")
-	if err != nil {
-		t.Fatalf("render: %v", err)
-	}
-	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
-	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
-}
-
-func Test_FileSystem(t *testing.T) {
-	t.Parallel()
-	engine := NewFileSystemPartials(http.Dir("./views"), ".mustache", http.Dir("."))
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
+	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
 	err := engine.Render(&buf, "index", fiber.Map{
 		"Title": "Hello, World!",
 	}, "layouts/main")
-	if err != nil {
-		t.Fatalf("render: %v", err)
-	}
+	require.NoError(t, err)
+
 	expect := `<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
 	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
+}
+
+func Test_Empty_Layout(t *testing.T) {
+	t.Parallel()
+	engine := New("./views", ".mustache")
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "index", fiber.Map{
+		"Title": "Hello, World!",
+	}, "")
+	require.NoError(t, err)
+
+	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
+	result := trim(buf.String())
+	require.Equal(t, expect, result)
+}
+
+func Test_FileSystem(t *testing.T) {
+	t.Parallel()
+	engine := NewFileSystemPartials(http.Dir("./views"), ".mustache", http.Dir("."))
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "index", fiber.Map{
+		"Title": "Hello, World!",
+	}, "layouts/main")
+	require.NoError(t, err)
+
+	expect := `<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
+	result := trim(buf.String())
+	require.Equal(t, expect, result)
 }
 
 func Test_Reload(t *testing.T) {
 	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".mustache")
 	engine.Reload(true) // Optional. Default: false
+	require.NoError(t, engine.Load())
 
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
+	err := os.WriteFile("./views/reload.mustache", []byte("after reload\n"), 0o600)
+	require.NoError(t, err)
 
-	if err := os.WriteFile("./views/reload.mustache", []byte("after reload\n"), 0o600); err != nil {
-		t.Fatalf("write file: %v\n", err)
-	}
 	defer func() {
-		if err := os.WriteFile("./views/reload.mustache", []byte("before reload\n"), 0o600); err != nil {
-			t.Fatalf("write file: %v\n", err)
-		}
+		err := os.WriteFile("./views/reload.mustache", []byte("before reload\n"), 0o600)
+		require.NoError(t, err)
 	}()
 
-	if err := engine.Load(); err != nil {
-		t.Fatal("engine failed to load")
-	}
+	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "reload", nil); err != nil {
-		t.Fatal("Test_Reload: failed to render reload")
-	}
+	err = engine.Render(&buf, "reload", nil)
+	require.NoError(t, err)
+
 	expect := "after reload"
 	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
 }
 
 func Benchmark_Mustache(b *testing.B) {
@@ -162,12 +137,7 @@ func Benchmark_Mustache(b *testing.B) {
 			})
 		}
 
-		if err != nil {
-			bb.Fatalf("Failed to render: %v", err)
-		}
-		result := trim(buf.String())
-		if expectSimple != result {
-			bb.Fatalf("Expected:\n%s\nResult:\n%s\n", expectSimple, result)
-		}
+		require.NoError(b, err)
+		require.Equal(b, expectSimple, trim(buf.String()))
 	})
 }

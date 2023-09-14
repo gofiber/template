@@ -2,6 +2,7 @@ package slim
 
 import (
 	"bytes"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
 	"regexp"
@@ -21,199 +22,158 @@ func trim(str string) string {
 func Test_Render(t *testing.T) {
 	t.Parallel()
 	engine := New("./views", ".slim")
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
+	require.NoError(t, engine.Load())
+
 	// Partials
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", map[string]interface{}{
+	err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
-	}); err != nil {
-		t.Fatal("Test_Render: failed to render index")
-	}
-	expect := `<div><h2>Header</h2></div><h1>Hello, World!</h1><div><h2>Footer</h2></div>`
+	})
+	require.NoError(t, err)
 
+	expect := `<div><h2>Header</h2></div><h1>Hello, World!</h1><div><h2>Footer</h2></div>`
 	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
+
 	// Single
 	buf.Reset()
-	if err := engine.Render(&buf, "errors/404", map[string]interface{}{
+	err = engine.Render(&buf, "errors/404", map[string]interface{}{
 		"Title": "Hello, World!",
-	}); err != nil {
-		t.Fatal("Test_Render: failed to render 404")
-	}
+	})
+	require.NoError(t, err)
+
 	expect = `<h1>Hello, World!</h1>`
 	result = trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
 }
 
 func Test_Layout(t *testing.T) {
 	t.Parallel()
 	engine := New("./views", ".slim")
-
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
+	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", map[string]interface{}{
+	err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
-	}, "layouts/main"); err != nil {
-		t.Fatal("Test_Layout: failed to render index")
-	}
+	}, "layouts/main")
+	require.NoError(t, err)
+
 	expect := `<!doctype html><html><head><title>Main</title></head><body><div><div><h2>Header</h2></div><h1>Hello, World!</h1><div><h2>Footer</h2></div></div></body></html>`
 	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
 }
 
 func Test_Empty_Layout(t *testing.T) {
 	t.Parallel()
 	engine := New("./views", ".slim")
 
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
+	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", map[string]interface{}{
+	err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
-	}, ""); err != nil {
-		t.Fatal("Test_Empty_Layout: failed to render index")
-	}
+	}, "")
+	require.NoError(t, err)
+
 	expect := `<div><h2>Header</h2></div><h1>Hello, World!</h1><div><h2>Footer</h2></div>`
 	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
 }
 
 func Test_FileSystem(t *testing.T) {
 	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".slim")
-
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
+	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "index", map[string]interface{}{
+	err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
-	}, "layouts/main"); err != nil {
-		t.Fatal("Test_FileSystem: failed to render index")
-	}
+	}, "layouts/main")
+	require.NoError(t, err)
+
 	expect := `<!doctype html><html><head><title>Main</title></head><body><div><div><h2>Header</h2></div><h1>Hello, World!</h1><div><h2>Footer</h2></div></div></body></html>`
 	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
 }
 
 func Test_Reload(t *testing.T) {
 	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".slim")
 	engine.Reload(true) // Optional. Default: false
+	require.NoError(t, engine.Load())
 
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
+	err := os.WriteFile("./views/ShouldReload.slim", []byte("p after ShouldReload\n"), 0o600)
+	require.NoError(t, err)
 
-	if err := os.WriteFile("./views/ShouldReload.slim", []byte("p after ShouldReload\n"), 0o600); err != nil {
-		t.Fatalf("write file: %v\n", err)
-	}
 	defer func() {
-		if err := os.WriteFile("./views/ShouldReload.slim", []byte("p before ShouldReload\n"), 0o600); err != nil {
-			t.Fatalf("write file: %v\n", err)
-		}
+		err := os.WriteFile("./views/ShouldReload.slim", []byte("p before ShouldReload\n"), 0o600)
+		require.NoError(t, err)
 	}()
 
-	if err := engine.Load(); err != nil {
-		t.Fatal("engine failed to load")
-	}
+	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "ShouldReload", nil); err != nil {
-		t.Fatal("Test_Reload: failed to render ShouldReload")
-	}
+	err = engine.Render(&buf, "ShouldReload", nil)
+	require.NoError(t, err)
+
 	expect := "<p>after ShouldReload</p>"
 	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
 }
 
 func Test_AddFuncMap(t *testing.T) {
 	t.Parallel()
 	// Create a temporary directory
 	dir, err := os.MkdirTemp(".", "")
-	if err != nil {
-		t.Fatal("failed to create temporary directory")
-	}
+	require.NoError(t, err)
 
 	defer func() {
 		err := os.RemoveAll(dir)
-		if err != nil {
-			t.Fatal("failed to delete temporary directory")
-		}
+		require.NoError(t, err)
 	}()
 
 	// Create a temporary template file.
-	if err = os.WriteFile(dir+"/func_map.slim", []byte(`
+	err = os.WriteFile(dir+"/func_map.slim", []byte(`
 h2 = lower(Var1)
-p = upper(Var2)`), 0o600); err != nil {
-		t.Fatal("Test_AddFuncMap: failed to write to func_map.slim")
-	}
+p = upper(Var2)`), 0o600)
+	require.NoError(t, err)
 
 	engine := New(dir, ".slim")
-
 	fm := map[string]interface{}{
 		"lower": func(s ...slim.Value) (slim.Value, error) {
 			slimvalue, ok := s[0].(string)
-			if !ok {
-				t.Fatal("failed type assertion on slim lower")
-			}
+			require.True(t, ok)
+
 			return strings.ToLower(slimvalue), nil
 		},
 		"upper": func(s ...slim.Value) (slim.Value, error) {
 			slimvalue, ok := s[0].(string)
-			if !ok {
-				t.Fatal("failed type assertion on slim lower")
-			}
+			require.True(t, ok)
+
 			return strings.ToUpper(slimvalue), nil
 		},
 	}
 	engine.AddFuncMap(fm)
 
-	if err := engine.Load(); err != nil {
-		t.Fatalf("load: %v\n", err)
-	}
+	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
-	if err := engine.Render(&buf, "func_map", map[string]interface{}{
+	err = engine.Render(&buf, "func_map", map[string]interface{}{
 		"Var1": "LOwEr",
 		"Var2": "upPEr",
-	}); err != nil {
-		t.Fatal("Test_AddFuncMap: failed to render func_map")
-	}
+	})
+	require.NoError(t, err)
+
 	expect := `<h2>lower</h2><p>UPPER</p>`
 	result := trim(buf.String())
-	if expect != result {
-		t.Fatalf("Expected:\n%s\nResult:\n%s\n", expect, result)
-	}
+	require.Equal(t, expect, result)
 
 	// FuncMap
 	fm2 := engine.FuncMap()
-	if _, ok := fm2["lower"]; !ok {
-		t.Fatalf("Function lower does not exist in FuncMap().\n")
-	}
-	if _, ok := fm2["upper"]; !ok {
-		t.Fatalf("Function upper does not exist in FuncMap().\n")
-	}
+	_, ok := fm2["lower"]
+	require.True(t, ok)
+	_, ok = fm2["upper"]
+	require.True(t, ok)
 }
 
 func Benchmark_Slim(b *testing.B) {
@@ -235,12 +195,7 @@ func Benchmark_Slim(b *testing.B) {
 			})
 		}
 
-		if err != nil {
-			bb.Fatalf("Failed to render: %v", err)
-		}
-		result := trim(buf.String())
-		if expectSimple != result {
-			bb.Fatalf("Expected:\n%s\nResult:\n%s\n", expectSimple, result)
-		}
+		require.NoError(b, err)
+		require.Equal(b, expectSimple, trim(buf.String()))
 	})
 }
