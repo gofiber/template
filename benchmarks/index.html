@@ -217,7 +217,7 @@
                 label: name,
                 data: dataset.map(d => d.bench.value),
                 borderColor: color,
-                backgroundColor: color + '30', // Add alpha for #rrggbbaa
+                backgroundColor: color + '10', // Add alpha for #rrggbbaa
                 fill: true,
             };
         }
@@ -244,13 +244,17 @@
 
                 const data = {labels: dataset.map(d => d.commit.id.slice(0, 7)), datasets: dataList};
                 const options = {
+                    onResize: (chart, newSize) => {
+                        chart.options.plugins.legend.display = window.screen.width < 450 ? false : true;
+                        chart.update();
+                    },
                     plugins: {
                         title: {
                             display: isPackageDataSet,
                             text: name,
                         },
                         legend: {
-                            display: window.screen.width < 400 ? false : true,
+                            display: window.screen.width < 450 ? false : true,
                         },
                         scales: {
                             x: {
@@ -275,9 +279,8 @@
                                     return [data.commit.message, data.commit.timestamp + ' committed by @' + data.commit.committer.username];
                                 },
                                 label: (context) => {
-                                    const item = context.label;
                                     const {range, unit, value} = dataset[context.dataIndex].bench;
-                                    let label = value + ' ' + unit;
+                                    let label = [context.dataset.label, value, unit].filter(Boolean).join(' ');
                                     if (range) {
                                         label += ' (' + range + ')';
                                     }
