@@ -179,8 +179,8 @@ p = upper(Var2)`), 0o600)
 func Benchmark_Slim(b *testing.B) {
 	expectSimple := `<h1>Hello, World!</h1>`
 	engine := New("./views", ".slim")
-	engine.AddFunc("isAdmin", func(user string) bool {
-		return user == "admin"
+	engine.AddFunc("isAdmin", func(s ...slim.Value) (slim.Value, error) {
+		return s[0].(string) == "admin", nil
 	})
 	var buf bytes.Buffer
 	var err error
