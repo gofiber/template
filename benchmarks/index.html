@@ -96,6 +96,7 @@
 
         .benchmark-chart {
             max-width: 33%;
+            max-height: 500px;
         }
 
         @media only screen and (max-width: 900px) {
@@ -107,6 +108,7 @@
         @media only screen and (max-width: 700px) {
             .benchmark-chart {
                 max-width: 100%;
+                max-height: 100%;
             }
         }
     </style>
@@ -132,7 +134,7 @@
     </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="data.js"></script>
 <script id="main-script">
     'use strict';
@@ -215,7 +217,8 @@
                 label: name,
                 data: dataset.map(d => d.bench.value),
                 borderColor: color,
-                backgroundColor: color + '60', // Add alpha for #rrggbbaa
+                backgroundColor: color + '30', // Add alpha for #rrggbbaa
+                fill: true,
             };
         }
 
@@ -241,59 +244,57 @@
 
                 const data = {labels: dataset.map(d => d.commit.id.slice(0, 7)), datasets: dataList};
                 const options = {
-                    title: {
-                        display: isPackageDataSet,
-                        text: name,
-                    },
-                    scales: {
-                        xAxes: [
-                            {
-                                scaleLabel: {
+                    plugins: {
+                        title: {
+                            display: isPackageDataSet,
+                            text: name,
+                        },
+                        legend: {
+                            display: window.screen.width < 400 ? false : true,
+                        },
+                        scales: {
+                            x: {
+                                title: {
                                     display: true,
-                                    labelString: 'commit',
+                                    text: 'commit',
                                 },
                             },
-                        ],
-                        yAxes: [
-                            {
-                                scaleLabel: {
+                            y: {
+                                title: {
                                     display: true,
-                                    labelString: dataset.length > 0 ? dataset[0].bench.unit : '',
+                                    text: dataset.length > 0 ? dataset[0].bench.unit : '',
                                 },
-                                ticks: {
-                                    beginAtZero: true,
+                                beginAtZero: true,
+                            },
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => {
+                                    const index = context[0].dataIndex;
+                                    const data = dataset[index];
+                                    return [data.commit.message, data.commit.timestamp + ' committed by @' + data.commit.committer.username];
                                 },
-                            },
-                        ],
-                    },
-                    tooltips: {
-                        callbacks: {
-                            afterTitle: items => {
-                                const {index} = items[0];
-                                const data = dataset[index];
-                                return '\n' + data.commit.message + '\n\n' + data.commit.timestamp + ' committed by @' + data.commit.committer.username + '\n';
-                            },
-                            label: item => {
-                                let label = item.value;
-                                const {range, unit} = dataset[item.index].bench;
-                                label += ' ' + unit;
-                                if (range) {
-                                    label += ' (' + range + ')';
-                                }
-                                return label;
-                            },
-                            afterLabel: item => {
-                                const {extra} = dataset[item.index].bench;
-                                return extra ? '\n' + extra : '';
+                                label: (context) => {
+                                    const item = context.label;
+                                    const {range, unit, value} = dataset[context.dataIndex].bench;
+                                    let label = value + ' ' + unit;
+                                    if (range) {
+                                        label += ' (' + range + ')';
+                                    }
+                                    return label;
+                                },
+                                afterLabel: (context) => {
+                                    const {extra} = dataset[context.dataIndex].bench;
+                                    return extra ? extra : '';
+                                },
                             },
                         },
                     },
-                    onClick: (_mouseEvent, activeElems) => {
+                    onClick: (_event, activeElems) => {
                         if (activeElems.length === 0) {
                             return;
                         }
-                        // XXX: Undocumented. How can we know the index?
-                        const index = activeElems[0]._index;
+                        const index = activeElems[0].index;
                         const url = dataset[index].commit.url;
                         window.open(url, '_blank');
                     },
