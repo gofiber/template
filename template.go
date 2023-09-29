@@ -52,7 +52,7 @@ type Engine struct {
 
 // AddFunc adds the function to the template's function map.
 // It is legal to overwrite elements of the default actions
-func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
+func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
 	e.Mutex.Lock()
 	e.Funcmap[name] = fn
 	e.Mutex.Unlock()
@@ -61,7 +61,7 @@ func (e *Engine) AddFunc(name string, fn interface{}) *Engine {
 
 // AddFuncMap adds the functions from a map to the template's function map.
 // It is legal to overwrite elements of the default actions
-func (e *Engine) AddFuncMap(m map[string]interface{}) *Engine {
+func (e *Engine) AddFuncMap(m map[string]interface{}) IEngineCore {
 	e.Mutex.Lock()
 	for name, fn := range m {
 		e.Funcmap[name] = fn
@@ -71,7 +71,7 @@ func (e *Engine) AddFuncMap(m map[string]interface{}) *Engine {
 }
 
 // Debug will print the parsed templates when Load is triggered.
-func (e *Engine) Debug(enabled bool) *Engine {
+func (e *Engine) Debug(enabled bool) IEngineCore {
 	e.Verbose = enabled
 	return e
 }
@@ -79,7 +79,7 @@ func (e *Engine) Debug(enabled bool) *Engine {
 // Delims sets the action delimiters to the specified strings, to be used in
 // templates. An empty delimiter stands for the
 // corresponding default: "{{" and "}}".
-func (e *Engine) Delims(left, right string) *Engine {
+func (e *Engine) Delims(left, right string) IEngineCore {
 	e.Left, e.Right = left, right
 	return e
 }
@@ -90,7 +90,7 @@ func (e *Engine) FuncMap() map[string]interface{} {
 }
 
 // Layout defines the variable name that will incapsulate the template
-func (e *Engine) Layout(key string) *Engine {
+func (e *Engine) Layout(key string) IEngineCore {
 	e.LayoutName = key
 	return e
 }
@@ -98,7 +98,7 @@ func (e *Engine) Layout(key string) *Engine {
 // Reload if set to true the templates are reloading on each render,
 // use it when you're in development and you don't want to restart
 // the application when you edit a template file.
-func (e *Engine) Reload(enabled bool) *Engine {
+func (e *Engine) Reload(enabled bool) IEngineCore {
 	e.ShouldReload = enabled
 	return e
 }
