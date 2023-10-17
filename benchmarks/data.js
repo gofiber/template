@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1697509476372,
+  "lastUpdate": 1697509640854,
   "repoUrl": "https://github.com/gofiber/template",
   "entries": {
     "Benchmark": [
@@ -3740,6 +3740,318 @@ window.BENCHMARK_DATA = {
             "value": 21,
             "unit": "allocs/op",
             "extra": "449749 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "rene@gofiber.io",
+            "name": "RW",
+            "username": "ReneWerner87"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ceecc8bbc5f273b7db500be5d12bf9693ffd5afb",
+          "message": "Merge pull request #304 from gofiber/dependabot/go_modules/jet/github.com/gofiber/fiber/v2-2.50.0\n\nBump github.com/gofiber/fiber/v2 from 2.49.2 to 2.50.0 in /jet",
+          "timestamp": "2023-10-17T04:26:05+02:00",
+          "tree_id": "a7c1af971d30a766601a851332abecfcdaf9c7eb",
+          "url": "https://github.com/gofiber/template/commit/ceecc8bbc5f273b7db500be5d12bf9693ffd5afb"
+        },
+        "date": 1697509640413,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "Benchmark_Ace/simple - ns/op",
+            "value": 1845,
+            "unit": "ns/op",
+            "extra": "565543 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "565543 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "565543 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended - ns/op",
+            "value": 3759,
+            "unit": "ns/op",
+            "extra": "303208 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended - B/op",
+            "value": 857,
+            "unit": "B/op",
+            "extra": "303208 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "303208 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple - ns/op",
+            "value": 1779,
+            "unit": "ns/op",
+            "extra": "669866 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "669866 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "669866 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended - ns/op",
+            "value": 3679,
+            "unit": "ns/op",
+            "extra": "302106 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended - B/op",
+            "value": 921,
+            "unit": "B/op",
+            "extra": "302106 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "302106 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple - ns/op",
+            "value": 1573,
+            "unit": "ns/op",
+            "extra": "674682 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple - B/op",
+            "value": 880,
+            "unit": "B/op",
+            "extra": "674682 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple - allocs/op",
+            "value": 10,
+            "unit": "allocs/op",
+            "extra": "674682 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended - ns/op",
+            "value": 8292,
+            "unit": "ns/op",
+            "extra": "144975 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended - B/op",
+            "value": 3953,
+            "unit": "B/op",
+            "extra": "144975 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended - allocs/op",
+            "value": 37,
+            "unit": "allocs/op",
+            "extra": "144975 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple - ns/op",
+            "value": 2028,
+            "unit": "ns/op",
+            "extra": "607086 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple - B/op",
+            "value": 880,
+            "unit": "B/op",
+            "extra": "607086 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "607086 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended - ns/op",
+            "value": 8819,
+            "unit": "ns/op",
+            "extra": "129748 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended - B/op",
+            "value": 3280,
+            "unit": "B/op",
+            "extra": "129748 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended - allocs/op",
+            "value": 80,
+            "unit": "allocs/op",
+            "extra": "129748 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple - ns/op",
+            "value": 1837,
+            "unit": "ns/op",
+            "extra": "647444 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "647444 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "647444 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended - ns/op",
+            "value": 3889,
+            "unit": "ns/op",
+            "extra": "295903 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended - B/op",
+            "value": 857,
+            "unit": "B/op",
+            "extra": "295903 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "295903 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple - ns/op",
+            "value": 937.7,
+            "unit": "ns/op",
+            "extra": "1267466 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple - B/op",
+            "value": 792,
+            "unit": "B/op",
+            "extra": "1267466 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple - allocs/op",
+            "value": 9,
+            "unit": "allocs/op",
+            "extra": "1267466 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended - ns/op",
+            "value": 3438,
+            "unit": "ns/op",
+            "extra": "330769 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended - B/op",
+            "value": 1344,
+            "unit": "B/op",
+            "extra": "330769 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "330769 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple - ns/op",
+            "value": 788.2,
+            "unit": "ns/op",
+            "extra": "1681053 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple - B/op",
+            "value": 440,
+            "unit": "B/op",
+            "extra": "1681053 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple - allocs/op",
+            "value": 8,
+            "unit": "allocs/op",
+            "extra": "1681053 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple - ns/op",
+            "value": 1765,
+            "unit": "ns/op",
+            "extra": "577578 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "577578 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "577578 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended - ns/op",
+            "value": 3360,
+            "unit": "ns/op",
+            "extra": "339265 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended - B/op",
+            "value": 761,
+            "unit": "B/op",
+            "extra": "339265 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended - allocs/op",
+            "value": 19,
+            "unit": "allocs/op",
+            "extra": "339265 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple - ns/op",
+            "value": 2433,
+            "unit": "ns/op",
+            "extra": "420080 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple - B/op",
+            "value": 3696,
+            "unit": "B/op",
+            "extra": "420080 times\n2 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "420080 times\n2 procs"
           }
         ]
       }
