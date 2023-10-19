@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,6 +16,8 @@ import (
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
+
+var reIdentifiers = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
 // Engine struct
 type Engine struct {
@@ -155,24 +158,43 @@ func (e *Engine) Load() error {
 	return filepath.Walk(e.Directory, walkFn)
 }
 
+// getPongoBinding creates a pongo2.Context containing
+// only valid identifiers from a binding interface.
+//
+// It supports the following types:
+// - pongo2.Context
+// - map[string]interface{}
+// - fiber.Map
+//
+// It returns nil if the binding is not one of the supported types.
 func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
 	}
 	switch binds := binding.(type) {
 	case pongo2.Context:
-		return binds
+		return createBindFromMap(binds)
 	case map[string]interface{}:
-		return binds
+		return createBindFromMap(binds)
 	case fiber.Map:
-		bind := make(pongo2.Context)
-		for key, value := range binds {
-			bind[key] = value
-		}
-		return bind
+		return createBindFromMap(binds)
 	}
 
 	return nil
+}
+
+// createBindFromMap creates a pongo2.Context containing
+// only valid identifiers from a map.
+func createBindFromMap(binds map[string]interface{}) pongo2.Context {
+	bind := make(pongo2.Context)
+	for key, value := range binds {
+		if !reIdentifiers.MatchString(key) {
+			// Skip invalid identifiers
+			continue
+		}
+		bind[key] = value
+	}
+	return bind
 }
 
 // Render will render the template by name
