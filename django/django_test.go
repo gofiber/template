@@ -4,12 +4,13 @@ package django
 import (
 	"bytes"
 	"embed"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -74,6 +75,23 @@ func Test_Empty_Layout(t *testing.T) {
 	var buf bytes.Buffer
 	err := engine.Render(&buf, "index", map[string]interface{}{
 		"Title": "Hello, World!",
+	}, "")
+	require.NoError(t, err)
+
+	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
+	result := trim(buf.String())
+	require.Equal(t, expect, result)
+}
+
+func Test_Invalid_Identifiers(t *testing.T) {
+	engine := New("./views", ".django")
+	engine.Debug(true)
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "index", map[string]interface{}{
+		"Title":               "Hello, World!",
+		"Invalid.Identifiers": "Don't return error from checkForValidIdentifiers!",
 	}, "")
 	require.NoError(t, err)
 
