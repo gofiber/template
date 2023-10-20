@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,8 +15,6 @@ import (
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
-
-var reIdentifiers = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
 // Engine struct
 type Engine struct {
@@ -158,43 +155,36 @@ func (e *Engine) Load() error {
 	return filepath.Walk(e.Directory, walkFn)
 }
 
-// getPongoBinding creates a pongo2.Context containing
-// only valid identifiers from a binding interface.
-//
-// It supports the following types:
-// - pongo2.Context
-// - map[string]interface{}
-// - fiber.Map
-//
-// It returns nil if the binding is not one of the supported types.
 func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
 	}
 	switch binds := binding.(type) {
 	case pongo2.Context:
-		return createBindFromMap(binds)
+		return binds
 	case map[string]interface{}:
-		return createBindFromMap(binds)
+		return binds
 	case fiber.Map:
-		return createBindFromMap(binds)
+		bind := make(pongo2.Context)
+		for key, value := range binds {
+			bind[key] = value
+		}
+		return bind
 	}
 
 	return nil
 }
 
-// createBindFromMap creates a pongo2.Context containing
-// only valid identifiers from a map.
-func createBindFromMap(binds map[string]interface{}) pongo2.Context {
-	bind := make(pongo2.Context)
-	for key, value := range binds {
-		if !reIdentifiers.MatchString(key) {
-			// Skip invalid identifiers
-			continue
+// isValidKey checks if the key is valid
+//
+// Valid keys match the following regex: [a-zA-Z0-9_]+
+func isValidKey(key string) bool {
+	for _, ch := range key {
+		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '_') {
+			return false
 		}
-		bind[key] = value
 	}
-	return bind
+	return true
 }
 
 // Render will render the template by name
@@ -213,6 +203,14 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	}
 
 	bind := getPongoBinding(binding)
+
+	// Remove invalid keys
+	for key := range bind {
+		if !isValidKey(key) {
+			delete(bind, key)
+		}
+	}
+
 	parsed, err := tmpl.Execute(bind)
 	if err != nil {
 		return err
