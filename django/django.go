@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,8 +15,6 @@ import (
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
 )
-
-var reIdentifiers = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
 // Engine struct
 type Engine struct {
@@ -171,30 +168,43 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
 	}
+	var bind pongo2.Context
 	switch binds := binding.(type) {
 	case pongo2.Context:
-		return createBindFromMap(binds)
+		bind = binds
 	case map[string]interface{}:
-		return createBindFromMap(binds)
+		bind = binds
 	case fiber.Map:
-		return createBindFromMap(binds)
+		bind = make(pongo2.Context)
+		for key, value := range binds {
+			// only add valid keys
+			if isValidKey(key) {
+				bind[key] = value
+			}
+		}
+		return bind
 	}
 
-	return nil
+	// Remove invalid keys
+	for key := range bind {
+		if !isValidKey(key) {
+			delete(bind, key)
+		}
+	}
+
+	return bind
 }
 
-// createBindFromMap creates a pongo2.Context containing
-// only valid identifiers from a map.
-func createBindFromMap(binds map[string]interface{}) pongo2.Context {
-	bind := make(pongo2.Context)
-	for key, value := range binds {
-		if !reIdentifiers.MatchString(key) {
-			// Skip invalid identifiers
-			continue
+// isValidKey checks if the key is valid
+//
+// Valid keys match the following regex: [a-zA-Z0-9_]+
+func isValidKey(key string) bool {
+	for _, ch := range key {
+		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '_') {
+			return false
 		}
-		bind[key] = value
 	}
-	return bind
+	return true
 }
 
 // Render will render the template by name
