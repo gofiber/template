@@ -155,24 +155,44 @@ func (e *Engine) Load() error {
 	return filepath.Walk(e.Directory, walkFn)
 }
 
+// getPongoBinding creates a pongo2.Context containing
+// only valid identifiers from a binding interface.
+//
+// It supports the following types:
+// - pongo2.Context
+// - map[string]interface{}
+// - fiber.Map
+//
+// It returns nil if the binding is not one of the supported types.
 func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
 	}
+	var bind pongo2.Context
 	switch binds := binding.(type) {
 	case pongo2.Context:
-		return binds
+		bind = binds
 	case map[string]interface{}:
-		return binds
+		bind = binds
 	case fiber.Map:
-		bind := make(pongo2.Context)
+		bind = make(pongo2.Context)
 		for key, value := range binds {
-			bind[key] = value
+			// only add valid keys
+			if isValidKey(key) {
+				bind[key] = value
+			}
 		}
 		return bind
 	}
 
-	return nil
+	// Remove invalid keys
+	for key := range bind {
+		if !isValidKey(key) {
+			delete(bind, key)
+		}
+	}
+
+	return bind
 }
 
 // isValidKey checks if the key is valid
@@ -203,14 +223,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	}
 
 	bind := getPongoBinding(binding)
-
-	// Remove invalid keys
-	for key := range bind {
-		if !isValidKey(key) {
-			delete(bind, key)
-		}
-	}
-
 	parsed, err := tmpl.Execute(bind)
 	if err != nil {
 		return err
