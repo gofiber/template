@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1700034748683,
+  "lastUpdate": 1700121500175,
   "repoUrl": "https://github.com/gofiber/template",
   "entries": {
     "Benchmark": [
@@ -7076,6 +7076,354 @@ window.BENCHMARK_DATA = {
             "value": 21,
             "unit": "allocs/op",
             "extra": "508184 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "rene@gofiber.io",
+            "name": "RW",
+            "username": "ReneWerner87"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b0631d3864503c54c9ec44b223319a1c319e03d1",
+          "message": "Merge pull request #275 from gofiber/dependabot/github_actions/dependabot/fetch-metadata-1.6.0\n\nBump dependabot/fetch-metadata from 1.5.1 to 1.6.0",
+          "timestamp": "2023-11-16T08:56:27+01:00",
+          "tree_id": "fb9a6c32c74ed3fbe799700e2806e34401c939a9",
+          "url": "https://github.com/gofiber/template/commit/b0631d3864503c54c9ec44b223319a1c319e03d1"
+        },
+        "date": 1700121499757,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "Benchmark_Ace/simple - ns/op",
+            "value": 1416,
+            "unit": "ns/op",
+            "extra": "716322 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "716322 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "716322 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended - ns/op",
+            "value": 2967,
+            "unit": "ns/op",
+            "extra": "398415 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended - B/op",
+            "value": 857,
+            "unit": "B/op",
+            "extra": "398415 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "398415 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple - ns/op",
+            "value": 1415,
+            "unit": "ns/op",
+            "extra": "737216 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "737216 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "737216 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended - ns/op",
+            "value": 2945,
+            "unit": "ns/op",
+            "extra": "389252 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended - B/op",
+            "value": 921,
+            "unit": "B/op",
+            "extra": "389252 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "389252 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple - ns/op",
+            "value": 1260,
+            "unit": "ns/op",
+            "extra": "852116 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple - B/op",
+            "value": 880,
+            "unit": "B/op",
+            "extra": "852116 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple - allocs/op",
+            "value": 10,
+            "unit": "allocs/op",
+            "extra": "852116 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended - ns/op",
+            "value": 6236,
+            "unit": "ns/op",
+            "extra": "188676 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended - B/op",
+            "value": 3954,
+            "unit": "B/op",
+            "extra": "188676 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended - allocs/op",
+            "value": 37,
+            "unit": "allocs/op",
+            "extra": "188676 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys - ns/op",
+            "value": 1621,
+            "unit": "ns/op",
+            "extra": "681573 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys - B/op",
+            "value": 880,
+            "unit": "B/op",
+            "extra": "681573 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys - allocs/op",
+            "value": 10,
+            "unit": "allocs/op",
+            "extra": "681573 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys - ns/op",
+            "value": 7795,
+            "unit": "ns/op",
+            "extra": "155485 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys - B/op",
+            "value": 3954,
+            "unit": "B/op",
+            "extra": "155485 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys - allocs/op",
+            "value": 37,
+            "unit": "allocs/op",
+            "extra": "155485 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple - ns/op",
+            "value": 1560,
+            "unit": "ns/op",
+            "extra": "786854 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple - B/op",
+            "value": 880,
+            "unit": "B/op",
+            "extra": "786854 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "786854 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended - ns/op",
+            "value": 6802,
+            "unit": "ns/op",
+            "extra": "171991 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended - B/op",
+            "value": 3281,
+            "unit": "B/op",
+            "extra": "171991 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended - allocs/op",
+            "value": 80,
+            "unit": "allocs/op",
+            "extra": "171991 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple - ns/op",
+            "value": 1414,
+            "unit": "ns/op",
+            "extra": "707755 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "707755 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "707755 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended - ns/op",
+            "value": 3030,
+            "unit": "ns/op",
+            "extra": "374445 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended - B/op",
+            "value": 857,
+            "unit": "B/op",
+            "extra": "374445 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "374445 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple - ns/op",
+            "value": 756,
+            "unit": "ns/op",
+            "extra": "1593009 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple - B/op",
+            "value": 793,
+            "unit": "B/op",
+            "extra": "1593009 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple - allocs/op",
+            "value": 9,
+            "unit": "allocs/op",
+            "extra": "1593009 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended - ns/op",
+            "value": 2682,
+            "unit": "ns/op",
+            "extra": "409461 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended - B/op",
+            "value": 1344,
+            "unit": "B/op",
+            "extra": "409461 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "409461 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple - ns/op",
+            "value": 599.7,
+            "unit": "ns/op",
+            "extra": "2004410 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple - B/op",
+            "value": 440,
+            "unit": "B/op",
+            "extra": "2004410 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple - allocs/op",
+            "value": 8,
+            "unit": "allocs/op",
+            "extra": "2004410 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple - ns/op",
+            "value": 1480,
+            "unit": "ns/op",
+            "extra": "741777 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "741777 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "741777 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended - ns/op",
+            "value": 2807,
+            "unit": "ns/op",
+            "extra": "398055 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended - B/op",
+            "value": 761,
+            "unit": "B/op",
+            "extra": "398055 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended - allocs/op",
+            "value": 19,
+            "unit": "allocs/op",
+            "extra": "398055 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple - ns/op",
+            "value": 1965,
+            "unit": "ns/op",
+            "extra": "611598 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple - B/op",
+            "value": 3696,
+            "unit": "B/op",
+            "extra": "611598 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "611598 times\n4 procs"
           }
         ]
       }
