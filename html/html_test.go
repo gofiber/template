@@ -193,6 +193,25 @@ func Test_Layout_Multi(t *testing.T) {
 	}
 }
 
+func Test_Layout_Nested(t *testing.T) {
+	t.Parallel()
+	engine := New("./views", ".html")
+
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == admin
+	})
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "index", map[string]interface{}{
+		"Title": "Hello, World!",
+	}, "layouts/nested/main", "layouts/nested/base")
+	require.NoError(t, err)
+
+	result := trim(buf.String())
+	require.Equal(t, complexexpect, result)
+}
+
 func Test_FileSystem(t *testing.T) {
 	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".html")
