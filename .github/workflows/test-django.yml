@@ -6,6 +6,8 @@ on:
         paths:
             - 'django/**'
     pull_request:
+        branches:
+            - '*'
         paths:
             - 'django/**'
 name: Tests Django

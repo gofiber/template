@@ -27,9 +27,6 @@ jobs:
               with:
                   node-version: '18'
 
-            - name: Install JQ
-              run: sudo apt-get install jq
-
             - name: Sync docs
               run: ./.github/scripts/sync_docs.sh
               env:

@@ -6,6 +6,8 @@ on:
         paths:
             - 'mustache/**'
     pull_request:
+        branches:
+            - '*'
         paths:
             - 'mustache/**'
 name: Tests Mustache

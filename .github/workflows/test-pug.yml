@@ -6,6 +6,8 @@ on:
         paths:
             - 'pug/**'
     pull_request:
+        branches:
+            - '*'
         paths:
             - 'pug/**'
 name: Tests Pug

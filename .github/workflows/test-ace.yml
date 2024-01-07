@@ -6,6 +6,8 @@ on:
         paths:
             - 'ace/**'
     pull_request:
+        branches:
+            - '*'
         paths:
             - 'ace/**'
 name: Tests Ace

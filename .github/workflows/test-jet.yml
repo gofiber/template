@@ -6,6 +6,8 @@ on:
         paths:
             - 'jet/**'
     pull_request:
+        branches:
+            - '*'
         paths:
             - 'jet/**'
 name: Tests Jet

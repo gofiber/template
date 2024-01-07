@@ -6,6 +6,8 @@ on:
         paths:
             - 'handlebars/**'
     pull_request:
+        branches:
+            - '*'
         paths:
             - 'handlebars/**'
 name: Tests Handlebars
