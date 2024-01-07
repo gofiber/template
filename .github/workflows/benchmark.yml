@@ -6,18 +6,19 @@ on:
       - "master"
       - "main"
     paths:
-      - '**.go'
+      - "**.go"
+      - "**/go.mod"
   pull_request:
     branches:
       - "*"
     paths:
-      - '**.go'
+      - "**.go"
+      - "**/go.mod"
 
 permissions:
   deployments: write
   contents: write
 
-name: Benchmark
 jobs:
   Compare:
     runs-on: ubuntu-latest
