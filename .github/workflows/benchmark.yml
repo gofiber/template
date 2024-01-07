@@ -3,6 +3,8 @@ on:
     branches:
       - "master"
       - "main"
+    paths:
+      - '**.go'
     paths-ignore:
       - "**.md"
       - LICENSE
@@ -11,6 +13,8 @@ on:
   pull_request:
     branches:
       - "*"
+    paths:
+      - '**.go'
     paths-ignore:
       - "**.md"
       - LICENSE
