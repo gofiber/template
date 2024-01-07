@@ -6,6 +6,8 @@ on:
         paths:
             - 'html/**'
     pull_request:
+        branches:
+            - "*"
         paths:
             - 'html/**'
 name: Tests Html
