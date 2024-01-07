@@ -1,3 +1,5 @@
+name: Benchmark
+
 on:
   push:
     branches:
@@ -5,21 +7,11 @@ on:
       - "main"
     paths:
       - '**.go'
-    paths-ignore:
-      - "**.md"
-      - LICENSE
-      - ".github/ISSUE_TEMPLATE/*.yml"
-      - ".github/dependabot.yml"
   pull_request:
     branches:
       - "*"
     paths:
       - '**.go'
-    paths-ignore:
-      - "**.md"
-      - LICENSE
-      - ".github/ISSUE_TEMPLATE/*.yml"
-      - ".github/dependabot.yml"
 
 permissions:
   deployments: write
