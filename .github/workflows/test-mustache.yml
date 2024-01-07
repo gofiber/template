@@ -6,6 +6,8 @@ on:
         paths:
             - 'mustache/**'
     pull_request:
+        branches:
+            - '*'
         paths:
             - 'mustache/**'
 name: Tests Mustache
@@ -25,7 +27,7 @@ jobs:
             -   name: Fetch Repository
                 uses: actions/checkout@v4
             -   name: Install Go
-                uses: actions/setup-go@v4
+                uses: actions/setup-go@v5
                 with:
                     go-version: '${{ matrix.go-version }}'
             -   name: Run Test

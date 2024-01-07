@@ -1,21 +1,24 @@
+name: Benchmark
+
 on:
   push:
     branches:
-      - master
-      - main
+      - "master"
+      - "main"
     paths:
-      - "**"
-      - "!**.md"
+      - "**.go"
+      - "**/go.mod"
   pull_request:
+    branches:
+      - "*"
     paths:
-      - "**"
-      - "!**.md"
+      - "**.go"
+      - "**/go.mod"
 
 permissions:
   deployments: write
   contents: write
 
-name: Benchmark
 jobs:
   Compare:
     runs-on: ubuntu-latest
@@ -24,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           # NOTE: Keep this in sync with the version from go.mod
           go-version: "1.20.x"
@@ -50,7 +53,7 @@ jobs:
         with:
           tool: "go"
           output-file-path: output.txt
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.BENCHMARK_TOKEN }}
           benchmark-data-dir-path: "benchmarks"
           fail-on-alert: true
           comment-on-alert: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
