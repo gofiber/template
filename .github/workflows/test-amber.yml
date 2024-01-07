@@ -6,6 +6,8 @@ on:
         paths:
             - 'amber/**'
     pull_request:
+        branches:
+            - '*'
         paths:
             - 'amber/**'
 name: Tests Amber

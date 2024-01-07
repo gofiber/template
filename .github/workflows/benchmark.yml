@@ -1,21 +1,24 @@
+name: Benchmark
+
 on:
   push:
     branches:
-      - master
-      - main
+      - "master"
+      - "main"
     paths:
-      - "**"
-      - "!**.md"
+      - "**.go"
+      - "**/go.mod"
   pull_request:
+    branches:
+      - "*"
     paths:
-      - "**"
-      - "!**.md"
+      - "**.go"
+      - "**/go.mod"
 
 permissions:
   deployments: write
   contents: write
 
-name: Benchmark
 jobs:
   Compare:
     runs-on: ubuntu-latest

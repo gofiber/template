@@ -1,57 +1,55 @@
-# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directory: "/ace/" # Location of package manifests
+    directory: "/ace/"
     labels:
       - "🤖 Dependencies"
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: "/amber/" # Location of package manifests
+    directory: "/amber/"
     labels:
       - "🤖 Dependencies"
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: "/django/" # Location of package manifests
+    directory: "/django/"
     labels:
       - "🤖 Dependencies"
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: "/handlebars/" # Location of package manifests
+    directory: "/handlebars/"
     labels:
       - "🤖 Dependencies"
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: "/html/" # Location of package manifests
+    directory: "/html/"
     labels:
       - "🤖 Dependencies"
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: "/jet/" # Location of package manifests
+    directory: "/jet/"
     labels:
       - "🤖 Dependencies"
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: "/mustache/" # Location of package manifests
+    directory: "/mustache/"
     labels:
       - "🤖 Dependencies"
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: "/pug/" # Location of package manifests
+    directory: "/pug/"
     labels:
       - "🤖 Dependencies"
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
-    directory: "/slim/" # Location of package manifests
+    directory: "/slim/"
     labels:
       - "🤖 Dependencies"
     schedule:
