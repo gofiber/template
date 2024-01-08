@@ -133,24 +133,34 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return err
 		}
 	}
-
 	tmpl := e.Templates.Lookup(name)
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
+	render := renderFuncCreate(e, out, binding, *tmpl, nil)
 	if len(layout) > 0 && layout[0] != "" {
-		lay := e.Templates.Lookup(layout[0])
-		if lay == nil {
-			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
-		}
 		e.Mutex.Lock()
 		defer e.Mutex.Unlock()
-		lay.Funcs(map[string]interface{}{
-			e.LayoutName: func() error {
-				return tmpl.Execute(out, binding)
-			},
-		})
-		return lay.Execute(out, binding)
 	}
-	return tmpl.Execute(out, binding)
+	// construct a nested render function to embed templates in layouts
+	for _, layName := range layout {
+		if layName == "" {
+			break
+		}
+		lay := e.Templates.Lookup(layName)
+		if lay == nil {
+			return fmt.Errorf("render: LayoutName %s does not exist", layName)
+		}
+		render = renderFuncCreate(e, out, binding, *lay, render)
+	}
+	return render()
+}
+
+func renderFuncCreate(e *Engine, out io.Writer, binding interface{}, tmpl template.Template, childRenderFunc func() error) func() error {
+	return func() error {
+		tmpl.Funcs(map[string]interface{}{
+			e.LayoutName: childRenderFunc,
+		})
+		return tmpl.Execute(out, binding)
+	}
 }

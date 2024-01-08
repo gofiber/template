@@ -93,6 +93,13 @@ func main() {
 		}, "layouts/main")
 	})
 
+	app.Get("/layouts-nested", func(c *fiber.Ctx) error {
+		// Render index within layouts/nested/main within layouts/nested/base
+		return c.Render("index", fiber.Map{
+			"Title": "Hello, World!",
+		}, "layouts/nested/main", "layouts/nested/base")
+	})
+
 	log.Fatal(app.Listen(":3000"))
 }
 
