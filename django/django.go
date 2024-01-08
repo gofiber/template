@@ -101,7 +101,8 @@ func (e *Engine) Load() error {
 	pongoset := pongo2.NewSet("default", pongoloader)
 	// Set template settings
 	pongoset.Globals.Update(e.Funcmap)
-	pongo2.SetAutoescape(false)
+	// Enable autoescaping
+	pongo2.SetAutoescape(true)
 
 	// Loop trough each Directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
