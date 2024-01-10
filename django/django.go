@@ -233,7 +233,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			bind = make(map[string]interface{}, 1)
 		}
 
-		// Wrokaround for custom {{embed}} tag
+		// Workaround for custom {{embed}} tag
 		// Mark the `embed` variable as safe
 		// it has already been escaped above
 		// e.LayoutName will be 'embed'
