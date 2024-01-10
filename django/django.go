@@ -232,7 +232,16 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if bind == nil {
 			bind = make(map[string]interface{}, 1)
 		}
-		bind[e.LayoutName] = parsed
+
+		// Wrokaround for custom {{embed}} tag
+		// Mark the `embed` variable as safe
+		// it has already been escaped above
+		// e.LayoutName will be 'embed'
+		safeEmbed := pongo2.AsSafeValue(parsed)
+
+		// Add the safe value to the binding map
+		bind[e.LayoutName] = safeEmbed
+
 		lay := e.Templates[layout[0]]
 		if lay == nil {
 			return fmt.Errorf("LayoutName %s does not exist", layout[0])
