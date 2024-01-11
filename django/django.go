@@ -23,6 +23,8 @@ type Engine struct {
 	forwardPath bool
 	// templates
 	Templates map[string]*pongo2.Template
+	// set auto escape globally
+	AutoEscape bool
 }
 
 // New returns a Django render engine for Fiber
@@ -36,6 +38,7 @@ func New(directory, extension string) *Engine {
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
+		AutoEscape: true,
 	}
 	return engine
 }
@@ -52,6 +55,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
+		AutoEscape: true,
 	}
 	return engine
 }
@@ -70,6 +74,7 @@ func NewPathForwardingFileSystem(fs http.FileSystem, directory, extension string
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
+		AutoEscape: true,
 		forwardPath: true,
 	}
 	return engine
@@ -101,8 +106,8 @@ func (e *Engine) Load() error {
 	pongoset := pongo2.NewSet("default", pongoloader)
 	// Set template settings
 	pongoset.Globals.Update(e.Funcmap)
-	// Enable autoescaping
-	pongo2.SetAutoescape(true)
+	// Set autoescaping
+	pongo2.SetAutoescape(e.AutoEscape)
 
 	// Loop trough each Directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -206,6 +211,11 @@ func isValidKey(key string) bool {
 		}
 	}
 	return true
+}
+
+// SetAutoEscape sets the auto-escape property of the template engine
+func (e *Engine) SetAutoEscape(autoEscape bool) {
+	e.AutoEscape = autoEscape
 }
 
 // Render will render the template by name
