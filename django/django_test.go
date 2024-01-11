@@ -311,6 +311,37 @@ func Test_Invalid_Layout(t *testing.T) {
 	require.Error(t, err)
 }
 
+func Test_XSS(t *testing.T) {
+	engine := New("./views", ".django")
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "index", map[string]interface{}{
+		"Title": "<script>alert('XSS')</script>",
+	}, "layouts/main")
+	require.NoError(t, err)
+
+	expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>&lt;script&gt;alert(&#39;XSS&#39;)&lt;/script&gt;</h1><h2>Footer</h2></body></html>`
+	result := trim(buf.String())
+	require.Equal(t, expect, result)
+}
+
+func Test_XSS_WithAutoEscapeDisabled(t *testing.T) {
+    engine := New("./views", ".django")
+    engine.SetAutoEscape(false)
+    require.NoError(t, engine.Load())
+
+    var buf bytes.Buffer
+    err := engine.Render(&buf, "index", map[string]interface{}{
+        "Title": "<script>alert('XSS')</script>",
+    }, "layouts/main")
+    require.NoError(t, err)
+
+    expect := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1><script>alert('XSS')</script></h1><h2>Footer</h2></body></html>`
+    result := trim(buf.String())
+    require.Equal(t, expect, result)
+}
+
 func Benchmark_Django(b *testing.B) {
 	expectSimple := `<h1>Hello, World!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`

@@ -21,6 +21,8 @@ type Engine struct {
 	core.Engine
 	// forward the base path to the template Engine
 	forwardPath bool
+	// set auto escape globally
+	autoEscape bool
 	// templates
 	Templates map[string]*pongo2.Template
 }
@@ -36,6 +38,7 @@ func New(directory, extension string) *Engine {
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
+		autoEscape: true,
 	}
 	return engine
 }
@@ -52,6 +55,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
+		autoEscape: true,
 	}
 	return engine
 }
@@ -70,6 +74,7 @@ func NewPathForwardingFileSystem(fs http.FileSystem, directory, extension string
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
+		autoEscape: true,
 		forwardPath: true,
 	}
 	return engine
@@ -101,7 +106,8 @@ func (e *Engine) Load() error {
 	pongoset := pongo2.NewSet("default", pongoloader)
 	// Set template settings
 	pongoset.Globals.Update(e.Funcmap)
-	pongo2.SetAutoescape(false)
+	// Set autoescaping
+	pongo2.SetAutoescape(e.autoEscape)
 
 	// Loop trough each Directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -207,6 +213,11 @@ func isValidKey(key string) bool {
 	return true
 }
 
+// SetAutoEscape sets the auto-escape property of the template engine
+func (e *Engine) SetAutoEscape(autoEscape bool) {
+	e.autoEscape = autoEscape
+}
+
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	if !e.Loaded || e.ShouldReload {
@@ -231,7 +242,16 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if bind == nil {
 			bind = make(map[string]interface{}, 1)
 		}
-		bind[e.LayoutName] = parsed
+
+		// Workaround for custom {{embed}} tag
+		// Mark the `embed` variable as safe
+		// it has already been escaped above
+		// e.LayoutName will be 'embed'
+		safeEmbed := pongo2.AsSafeValue(parsed)
+
+		// Add the safe value to the binding map
+		bind[e.LayoutName] = safeEmbed
+
 		lay := e.Templates[layout[0]]
 		if lay == nil {
 			return fmt.Errorf("LayoutName %s does not exist", layout[0])
