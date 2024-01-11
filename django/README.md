@@ -209,6 +209,27 @@ engine := django.New("./views", ".django")
 engine.SetAutoEscape(false)
 ```
 
+### Setting AutoEscape using Django built-in template tags
+
+- Explicitly turning off autoescaping for a section:
+```django  
+  {% autoescape off %}
+  {{ "<script>alert('Hello World');</script>" }}
+  {% endautoescape %}
+```
+
+- Turning autoescaping back on for a section:
+```django
+  {% autoescape on %}
+  {{ "<script>alert('Hello World');</script>" }}
+  {% endautoescape %}
+```
+- It can also be done on a per variable basis using the *safe* built-in:
+```django
+<h1>{{ someSafeVar | safe }}</h1>
+{{ "<script>"|safe }}
+```
+
 ### Security Implications of Disabling Auto-Escape
 
 Disabling auto-escape should be approached with caution. It can expose your application to XSS attacks, where malicious scripts are injected into web pages. Without auto-escaping, there is a risk of rendering harmful HTML or JavaScript from user-supplied data.
