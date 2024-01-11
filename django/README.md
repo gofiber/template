@@ -59,9 +59,9 @@ func main() {
 	// Create a new engine
 	engine := django.New("./views", ".django")
 
-  // Or from an embedded system
-  // See github.com/gofiber/embed for examples
-  // engine := html.NewFileSystem(http.Dir("./views", ".django"))
+	// Or from an embedded system
+	// See github.com/gofiber/embed for examples
+	// engine := html.NewFileSystem(http.Dir("./views", ".django"))
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
@@ -195,3 +195,22 @@ c.Render("index", fiber.Map{
     "Fiber": "Hello, World!\n\nGreetings from Fiber Team",
     "MyKey": c.Locals("my-key"),
 })
+
+### AutoEscape is enabled by default
+
+When you create a new instance of the `Engine`, the auto-escape is **enabled by default**. This setting automatically escapes output, providing a critical security measure against Cross-Site Scripting (XSS) attacks.
+
+### Disabling Auto-Escape
+
+Auto-escaping can be disabled if necessary, using the `SetAutoEscape` method:
+
+```go
+engine := django.New("./views", ".django")
+engine.SetAutoEscape(false)
+```
+
+### Security Implications of Disabling Auto-Escape
+
+Disabling auto-escape should be approached with caution. It can expose your application to XSS attacks, where malicious scripts are injected into web pages. Without auto-escaping, there is a risk of rendering harmful HTML or JavaScript from user-supplied data.
+
+It is advisable to keep auto-escape enabled unless there is a strong reason to disable it. If you do disable it, ensure all user-supplied content is thoroughly sanitized and validated to avoid XSS vulnerabilities.
