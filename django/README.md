@@ -227,7 +227,7 @@ engine.SetAutoEscape(false)
 - It can also be done on a per variable basis using the *safe* built-in:
 ```django
 <h1>{{ someSafeVar | safe }}</h1>
-{{ "<script>"|safe }}
+{{ "<script>" | safe }}
 ```
 
 ### Security Implications of Disabling Auto-Escape
