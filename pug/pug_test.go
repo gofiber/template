@@ -2,12 +2,13 @@ package pug
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -189,34 +190,123 @@ func Benchmark_Pug(b *testing.B) {
 	engine.AddFunc("isAdmin", func(user string) bool {
 		return user == admin
 	})
-	var buf bytes.Buffer
-	var err error
+	require.NoError(b, engine.Load())
 
-	b.Run("simple", func(bb *testing.B) {
+	b.Run("Simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		for i := 0; i < bb.N; i++ {
-			buf.Reset()
-			err = engine.Render(&buf, "simple", map[string]interface{}{
+			var buf bytes.Buffer
+			//nolint:gosec,errcheck // Return value not needed for benchmark
+			_ = engine.Render(&buf, "simple", map[string]interface{}{
 				"Title": "Hello, World!",
 			})
 		}
-
-		require.NoError(b, err)
-		require.Equal(b, expectSimple, trim(buf.String()))
 	})
 
-	b.Run("extended", func(bb *testing.B) {
+	b.Run("Extended", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		for i := 0; i < bb.N; i++ {
-			buf.Reset()
-			err = engine.Render(&buf, "extended", map[string]interface{}{
+			var buf bytes.Buffer
+			//nolint:gosec,errcheck // Return value not needed for benchmark
+			_ = engine.Render(&buf, "extended", map[string]interface{}{
 				"User": admin,
 			}, "layouts/main")
 		}
+	})
 
-		require.NoError(b, err)
-		require.Equal(b, expectExtended, trim(buf.String()))
+	b.Run("SimpleAsserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		for i := 0; i < bb.N; i++ {
+			var buf bytes.Buffer
+			err := engine.Render(&buf, "simple", map[string]interface{}{
+				"Title": "Hello, World!",
+			})
+			require.NoError(bb, err)
+			require.Equal(bb, expectSimple, trim(buf.String()))
+		}
+	})
+
+	b.Run("ExtendedAsserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		for i := 0; i < bb.N; i++ {
+			var buf bytes.Buffer
+			err := engine.Render(&buf, "extended", map[string]interface{}{
+				"User": admin,
+			}, "layouts/main")
+			require.NoError(bb, err)
+			require.Equal(bb, expectExtended, trim(buf.String()))
+		}
+	})
+}
+
+func Benchmark_Concurrent(b *testing.B) {
+	expectSimple := `<h1>Hello, Concurrent!</h1>`
+	expectExtended := `<!DOCTYPE html><html><head><title>Main</title><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
+	engine := New("./views", ".pug")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == admin
+	})
+	require.NoError(b, engine.Load())
+
+	b.Run("ConcurrentSimple", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				//nolint:gosec,errcheck // Return value not needed for benchmark
+				_ = engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Concurrent!",
+				})
+			}
+		})
+	})
+
+	b.Run("ConcurrentExtended", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				//nolint:gosec,errcheck // Return value not needed for benchmark
+				_ = engine.Render(&buf, "extended", map[string]interface{}{
+					"User": admin,
+				}, "layouts/main")
+			}
+		})
+	})
+
+	b.Run("ConcurrentSimpleAsserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				err := engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Concurrent!",
+				})
+				require.NoError(bb, err)
+				require.Equal(bb, expectSimple, trim(buf.String()))
+			}
+		})
+	})
+
+	b.Run("ConcurrentExtendedAsserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				err := engine.Render(&buf, "extended", map[string]interface{}{
+					"User": admin,
+				}, "layouts/main")
+				require.NoError(bb, err)
+				require.Equal(bb, expectExtended, trim(buf.String()))
+			}
+		})
 	})
 }

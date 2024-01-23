@@ -136,6 +136,9 @@ func (e *Engine) Load() error {
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
+	e.Mutex.Lock()
+	sdefer e.Mutex.Unlock()
+
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -144,10 +147,13 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return err
 		}
 	}
+
 	tmpl := e.Templates.Lookup(name)
+
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
+
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates.Lookup(layout[0])
 		if lay == nil {
