@@ -137,7 +137,7 @@ func (e *Engine) Load() error {
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	e.Mutex.Lock()
-	sdefer e.Mutex.Unlock()
+	defer e.Mutex.Unlock()
 
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
