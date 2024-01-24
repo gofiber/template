@@ -243,7 +243,7 @@ func Benchmark_Pug(b *testing.B) {
 	})
 }
 
-func Benchmark_Concurrent(b *testing.B) {
+func Benchmark_Pug_Concurrent(b *testing.B) {
 	expectSimple := `<h1>Hello, Concurrent!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
 	engine := New("./views", ".pug")

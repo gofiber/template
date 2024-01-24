@@ -263,7 +263,6 @@ func Test_Reload(t *testing.T) {
 func Benchmark_Html(b *testing.B) {
 	expectSimple := `<h1>Hello, World!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
-
 	engine := New("./views", ".html")
 	engine.AddFunc("isAdmin", func(user string) bool {
 		return user == admin
@@ -323,11 +322,10 @@ func Benchmark_Html(b *testing.B) {
 	})
 }
 
-func Benchmark_Concurrent(b *testing.B) {
+func Benchmark_Html_Concurrent(b *testing.B) {
 	expectSimple := `<h1>Hello, Concurrent!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
 	engine := New("./views", ".html")
-
 	engine.AddFunc("isAdmin", func(user string) bool {
 		return user == admin
 	})

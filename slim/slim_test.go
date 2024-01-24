@@ -211,7 +211,7 @@ func Benchmark_Slim(b *testing.B) {
 	})
 }
 
-func Benchmark_Concurrent(b *testing.B) {
+func Benchmark_Slim_Concurrent(b *testing.B) {
 	expectSimple := `<h1>Hello, Concurrent!</h1>`
 	engine := New("./views", ".slim")
 	engine.AddFunc("isAdmin", func(s ...slim.Value) (slim.Value, error) {

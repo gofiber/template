@@ -169,7 +169,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// Handle layout if specified
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates.Lookup(layout[0])
-
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
@@ -179,7 +178,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 				return tmpl.Execute(out, binding)
 			},
 		})
-
 		return lay.Execute(out, binding)
 	}
 
