@@ -136,35 +136,52 @@ func (e *Engine) Load() error {
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
+	// Check if templates need to be loaded/reloaded
+	e.Mutex.RLock()
+	shouldReload := e.ShouldReload
+	e.Mutex.RUnlock()
 
-	if !e.Loaded || e.ShouldReload {
+	if !e.Loaded || shouldReload {
+		e.Mutex.Lock()
 		if e.ShouldReload {
 			e.Loaded = false
 		}
+		e.Mutex.Unlock()
+
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
 
+	// Acquire read lock for accessing the template
+	e.Mutex.RLock()
 	tmpl := e.Templates.Lookup(name)
+	e.Mutex.RUnlock()
 
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
 
+	// Lock while executing layout
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
+	// Handle layout if specified
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates.Lookup(layout[0])
+
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
+
 		lay.Funcs(map[string]interface{}{
 			e.LayoutName: func() error {
 				return tmpl.Execute(out, binding)
 			},
 		})
+
 		return lay.Execute(out, binding)
 	}
+
 	return tmpl.Execute(out, binding)
 }

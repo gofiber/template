@@ -185,7 +185,7 @@ func Benchmark_Slim(b *testing.B) {
 	})
 	require.NoError(b, engine.Load())
 
-	b.Run("Simple", func(bb *testing.B) {
+	b.Run("simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		for i := 0; i < bb.N; i++ {
@@ -197,7 +197,7 @@ func Benchmark_Slim(b *testing.B) {
 		}
 	})
 
-	b.Run("SimpleAsserted", func(bb *testing.B) {
+	b.Run("simple_asserted", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		for i := 0; i < bb.N; i++ {
@@ -219,7 +219,7 @@ func Benchmark_Concurrent(b *testing.B) {
 	})
 	require.NoError(b, engine.Load())
 
-	b.Run("ConcurrentSimple", func(bb *testing.B) {
+	b.Run("concurrent_simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
@@ -233,7 +233,7 @@ func Benchmark_Concurrent(b *testing.B) {
 		})
 	})
 
-	b.Run("ConcurrentSimpleAsserted", func(bb *testing.B) {
+	b.Run("concurrent_simple_asserted", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
