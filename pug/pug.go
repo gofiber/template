@@ -120,33 +120,30 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
-		// Debugging
-		if e.Verbose {
+
+		if e.Verbose() {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
+
 	// notify Engine that we parsed all templates
-	e.Loaded = true
+	e.SetLoaded(true)
+
 	if e.FileSystem != nil {
 		return utils.Walk(e.FileSystem, e.Directory, walkFn)
 	}
+
 	return filepath.Walk(e.Directory, walkFn)
 }
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
-	e.Mutex.RLock()
-	shouldReload := e.ShouldReload
-	e.Mutex.RUnlock()
-
-	if !e.Loaded || shouldReload {
-		e.Mutex.Lock()
-		if e.ShouldReload {
-			e.Loaded = false
+	if !e.Loaded() || e.ShouldReload() {
+		if e.ShouldReload() {
+			e.LockAndSetLoaded(false)
 		}
-		e.Mutex.Unlock()
 
 		if err := e.Load(); err != nil {
 			return err
@@ -169,6 +166,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// Handle layout if specified
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates.Lookup(layout[0])
+
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}

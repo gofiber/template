@@ -22,6 +22,10 @@ type IEngineCore interface {
 	FuncMap() map[string]interface{}
 	Layout(key string) IEngineCore
 	Reload(enabled bool) IEngineCore
+	ShouldReload() bool
+	Loaded() bool
+	SetLoaded(enabled bool) IEngineCore
+	LockAndSetLoaded(enabled bool) IEngineCore
 }
 
 // Engine engine struct
@@ -38,24 +42,24 @@ type Engine struct {
 	Extension string
 	// layout variable name that incapsulates the template
 	LayoutName string
-	// determines if the engine parsed all templates
-	Loaded bool
-	// reload on each render
-	ShouldReload bool
-	// debug prints the parsed templates
-	Verbose bool
 	// lock for funcmap and templates
 	Mutex sync.RWMutex
 	// template funcmap
 	Funcmap map[string]interface{}
+	// debug prints the parsed templates
+	verbose bool
+	// determines if the engine parsed all templates
+	loaded bool
+	// reload on each render
+	shouldReload bool
 }
 
 // AddFunc adds the function to the template's function map.
 // It is legal to overwrite elements of the default actions
 func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
 	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 	e.Funcmap[name] = fn
-	e.Mutex.Unlock()
 	return e
 }
 
@@ -63,18 +67,16 @@ func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
 // It is legal to overwrite elements of the default actions
 func (e *Engine) AddFuncMap(m map[string]interface{}) IEngineCore {
 	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 	for name, fn := range m {
 		e.Funcmap[name] = fn
 	}
-	e.Mutex.Unlock()
 	return e
 }
 
 // Debug will print the parsed templates when Load is triggered.
 func (e *Engine) Debug(enabled bool) IEngineCore {
-	e.Mutex.Lock()
-	e.Verbose = enabled
-	e.Mutex.Unlock()
+	e.verbose = enabled
 	return e
 }
 
@@ -83,21 +85,23 @@ func (e *Engine) Debug(enabled bool) IEngineCore {
 // corresponding default: "{{" and "}}".
 func (e *Engine) Delims(left, right string) IEngineCore {
 	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 	e.Left, e.Right = left, right
-	e.Mutex.Unlock()
 	return e
 }
 
 // FuncMap returns the template's function map.
 func (e *Engine) FuncMap() map[string]interface{} {
+	e.Mutex.RLock()
+	defer e.Mutex.RUnlock()
 	return e.Funcmap
 }
 
 // Layout defines the variable name that will incapsulate the template
 func (e *Engine) Layout(key string) IEngineCore {
 	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 	e.LayoutName = key
-	e.Mutex.Unlock()
 	return e
 }
 
@@ -106,7 +110,33 @@ func (e *Engine) Layout(key string) IEngineCore {
 // the application when you edit a template file.
 func (e *Engine) Reload(enabled bool) IEngineCore {
 	e.Mutex.Lock()
-	e.ShouldReload = enabled
-	e.Mutex.Unlock()
+	defer e.Mutex.Unlock()
+	e.shouldReload = enabled
 	return e
+}
+
+func (e *Engine) ShouldReload() bool {
+	e.Mutex.RLock()
+	defer e.Mutex.RUnlock()
+	return e.shouldReload
+}
+
+func (e *Engine) Loaded() bool {
+	e.Mutex.RLock()
+	defer e.Mutex.RUnlock()
+	return e.loaded
+}
+func (e *Engine) SetLoaded(enabled bool) IEngineCore {
+	e.loaded = enabled
+	return e
+}
+
+func (e *Engine) LockAndSetLoaded(enabled bool) IEngineCore {
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+	return e.SetLoaded(enabled)
+}
+
+func (e *Engine) Verbose() bool {
+	return e.verbose
 }

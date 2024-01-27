@@ -60,7 +60,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
-	if e.Loaded {
+	if e.Loaded() {
 		return nil
 	}
 	// race safe

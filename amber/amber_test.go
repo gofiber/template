@@ -3,15 +3,17 @@ package amber
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 const (
+	admin         = "admin"
 	complexexpect = `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2></body></html>`
 )
 
@@ -175,6 +177,7 @@ func Benchmark_Amber(b *testing.B) {
 	engine.AddFunc("isAdmin", func(user string) bool {
 		return user == "admin"
 	})
+	require.NoError(b, engine.Load())
 
 	var buf bytes.Buffer
 	var err error
@@ -199,11 +202,79 @@ func Benchmark_Amber(b *testing.B) {
 		for i := 0; i < bb.N; i++ {
 			buf.Reset()
 			err = engine.Render(&buf, "extended", map[string]interface{}{
-				"User": "admin",
+				"User": admin,
 			}, "layouts/main")
 		}
 
 		require.NoError(b, err)
 		require.Equal(b, expectExtended, trim(buf.String()))
+	})
+}
+
+func Benchmark_Amber_Concurrent(b *testing.B) {
+	expectSimple := `<h1>Hello, Concurrent!</h1>`
+	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
+	engine := New("./views", ".amber")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
+	require.NoError(b, engine.Load())
+
+	b.Run("concurrent_simple", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				//nolint:gosec,errcheck // Return value not needed for benchmark
+				_ = engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Concurrent!",
+				})
+			}
+		})
+	})
+
+	b.Run("concurrent_extended", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				//nolint:gosec,errcheck // Return value not needed for benchmark
+				_ = engine.Render(&buf, "extended", map[string]interface{}{
+					"User": admin,
+				}, "layouts/main")
+			}
+		})
+	})
+
+	b.Run("concurrent_simple_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				err := engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Concurrent!",
+				})
+				require.NoError(bb, err)
+				require.Equal(bb, expectSimple, trim(buf.String()))
+			}
+		})
+	})
+
+	b.Run("concurrent_extended_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				err := engine.Render(&buf, "extended", map[string]interface{}{
+					"User": admin,
+				}, "layouts/main")
+				require.NoError(bb, err)
+				require.Equal(bb, expectExtended, trim(buf.String()))
+			}
+		})
 	})
 }
