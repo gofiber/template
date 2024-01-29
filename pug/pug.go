@@ -25,35 +25,29 @@ type Engine struct {
 
 // New returns a Pug render engine for Fiber
 func New(directory, extension string) *Engine {
+	return newEngine(directory, extension, nil)
+}
+
+// NewFileSystem returns a Pug render engine for Fiber with file system
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	return newEngine("/", extension, fs)
+}
+
+// newEngine creates a new Engine instance with common initialization logic.
+func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 	engine := &Engine{
 		Engine: core.Engine{
 			Left:       "{{",
 			Right:      "}}",
 			Directory:  directory,
-			Extension:  extension,
-			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
-		},
-	}
-	engine.AddFunc(engine.LayoutName, func() error {
-		return fmt.Errorf("layoutName called unexpectedly")
-	})
-	return engine
-}
-
-// NewFileSystem returns a Pug render engine for Fiber with file system
-func NewFileSystem(fs http.FileSystem, extension string) *Engine {
-	engine := &Engine{
-		Engine: core.Engine{
-			Left:       "{{",
-			Right:      "}}",
-			Directory:  "/",
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
 	}
+	// Add a default function that throws an error if called unexpectedly.
+	// This can be useful for debugging or ensuring certain functions are used correctly.
 	engine.AddFunc(engine.LayoutName, func() error {
 		return fmt.Errorf("layoutName called unexpectedly")
 	})
