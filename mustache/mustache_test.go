@@ -124,21 +124,30 @@ func Test_Reload(t *testing.T) {
 func Benchmark_Mustache(b *testing.B) {
 	expectSimple := `<h1>Hello, World!</h1>`
 	engine := New("./views", ".mustache")
-
-	var buf bytes.Buffer
-	var err error
+	require.NoError(b, engine.Load())
 
 	b.Run("simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		for i := 0; i < bb.N; i++ {
-			buf.Reset()
-			err = engine.Render(&buf, "simple", map[string]interface{}{
+			var buf bytes.Buffer
+			//nolint:gosec,errcheck // Return value not needed for benchmark
+			_ = engine.Render(&buf, "simple", map[string]interface{}{
 				"Title": "Hello, World!",
 			})
 		}
+	})
 
-		require.NoError(b, err)
-		require.Equal(b, expectSimple, trim(buf.String()))
+	b.Run("simple_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		for i := 0; i < bb.N; i++ {
+			var buf bytes.Buffer
+			err := engine.Render(&buf, "simple", map[string]interface{}{
+				"Title": "Hello, World!",
+			})
+			require.NoError(bb, err)
+			require.Equal(bb, expectSimple, trim(buf.String()))
+		}
 	})
 }
