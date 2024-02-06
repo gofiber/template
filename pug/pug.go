@@ -92,13 +92,14 @@ func (e *Engine) Load() error {
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
 		name = strings.TrimSuffix(name, e.Extension)
-		// name = strings.Replace(name, e.extension, "", -1)
+
 		// Read the file
 		// #gosec G304
 		buf, err := utils.ReadFile(path, e.FileSystem)
 		if err != nil {
 			return err
 		}
+
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
 		var pug string

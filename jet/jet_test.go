@@ -2,12 +2,13 @@ package jet
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func trim(str string) string {

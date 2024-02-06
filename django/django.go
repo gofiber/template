@@ -74,7 +74,7 @@ func NewPathForwardingFileSystem(fs http.FileSystem, directory, extension string
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
-		autoEscape: true,
+		autoEscape:  true,
 		forwardPath: true,
 	}
 	return engine

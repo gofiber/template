@@ -27,26 +27,21 @@ type slimFunc = func(...slim.Value) (slim.Value, error)
 
 // New returns a Slim render engine for Fiber
 func New(directory, extension string) *Engine {
+	return newEngine(directory, extension, nil)
+}
+
+// NewFileSystem returns a Slim render engine for Fiber with file system
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	return newEngine("/", extension, fs)
+}
+
+// newEngine creates a new Engine instance with common initialization logic.
+func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 	engine := &Engine{
 		Engine: core.Engine{
 			Left:       "{{",
 			Right:      "}}",
 			Directory:  directory,
-			Extension:  extension,
-			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
-		},
-	}
-	return engine
-}
-
-// NewFileSystem returns a Slim render engine for Fiber with file system
-func NewFileSystem(fs http.FileSystem, extension string) *Engine {
-	engine := &Engine{
-		Engine: core.Engine{
-			Left:       "{{",
-			Right:      "}}",
-			Directory:  "/",
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
@@ -111,16 +106,17 @@ func (e *Engine) Load() error {
 			newFuncMap[key] = slimFunc
 		}
 		tmpl.FuncMap(newFuncMap)
-
 		e.Templates[name] = tmpl
-		// Debugging
-		if e.Verbose {
+
+		if e.Verbose() {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
-	// notify engine that we parsed all templates
-	e.Loaded = true
+
+	// notify Engine that we parsed all templates
+	e.SetLoaded(true)
+
 	if e.FileSystem != nil {
 		return utils.Walk(e.FileSystem, e.Directory, walkFn)
 	}
@@ -129,18 +125,30 @@ func (e *Engine) Load() error {
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
-	if !e.Loaded || e.ShouldReload {
-		if e.ShouldReload {
-			e.Loaded = false
+	// Check if templates need to be loaded/reloaded
+	if !e.Loaded() || e.ShouldReload() {
+		if e.ShouldReload() {
+			e.LockAndSetLoaded(false)
 		}
+
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
+
+	// Acquire read lock for accessing the template
+	e.Mutex.RLock()
 	tmpl := e.Templates[name]
+	e.Mutex.RUnlock()
+
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
+
+	// Lock while executing layout
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
 	if len(layout) > 0 && layout[0] != "" {
 		buf := bytebufferpool.Get()
 		defer bytebufferpool.Put(buf)

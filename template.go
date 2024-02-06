@@ -126,6 +126,7 @@ func (e *Engine) Loaded() bool {
 	defer e.Mutex.RUnlock()
 	return e.loaded
 }
+
 func (e *Engine) SetLoaded(enabled bool) IEngineCore {
 	e.loaded = enabled
 	return e
