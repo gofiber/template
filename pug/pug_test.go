@@ -195,8 +195,9 @@ func Benchmark_Pug(b *testing.B) {
 	b.Run("simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
+		var buf bytes.Buffer
 		for i := 0; i < bb.N; i++ {
-			var buf bytes.Buffer
+			buf.Reset()
 			//nolint:gosec,errcheck // Return value not needed for benchmark
 			_ = engine.Render(&buf, "simple", map[string]interface{}{
 				"Title": "Hello, World!",
@@ -207,8 +208,9 @@ func Benchmark_Pug(b *testing.B) {
 	b.Run("extended", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
+		var buf bytes.Buffer
 		for i := 0; i < bb.N; i++ {
-			var buf bytes.Buffer
+			buf.Reset()
 			//nolint:gosec,errcheck // Return value not needed for benchmark
 			_ = engine.Render(&buf, "extended", map[string]interface{}{
 				"User": admin,
@@ -219,8 +221,9 @@ func Benchmark_Pug(b *testing.B) {
 	b.Run("simple_asserted", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
+		var buf bytes.Buffer
 		for i := 0; i < bb.N; i++ {
-			var buf bytes.Buffer
+			buf.Reset()
 			err := engine.Render(&buf, "simple", map[string]interface{}{
 				"Title": "Hello, World!",
 			})
@@ -232,8 +235,9 @@ func Benchmark_Pug(b *testing.B) {
 	b.Run("extended_asserted", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
+		var buf bytes.Buffer
 		for i := 0; i < bb.N; i++ {
-			var buf bytes.Buffer
+			buf.Reset()
 			err := engine.Render(&buf, "extended", map[string]interface{}{
 				"User": admin,
 			}, "layouts/main")

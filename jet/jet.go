@@ -71,7 +71,6 @@ func (e *Engine) Load() error {
 
 	// parse templates
 	// e.Templates = jet.NewHTMLSet(e.Directory)
-
 	var loader jet.Loader
 	var err error
 
@@ -84,7 +83,8 @@ func (e *Engine) Load() error {
 	} else {
 		loader = jet.NewInMemLoader()
 	}
-	if e.Verbose {
+
+	if e.Verbose() {
 		e.Templates = jet.NewSet(
 			loader,
 			jet.WithDelims(e.Left, e.Right),
@@ -107,19 +107,23 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
+
 		// Skip file if it's a directory or has no file info
 		if info == nil || info.IsDir() {
 			return nil
 		}
+
 		// Skip file if it does not equal the given template Extension
 		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
 			return nil
 		}
+
 		// ./views/html/index.tmpl -> index.tmpl
 		rel, err := filepath.Rel(e.Directory, path)
 		if err != nil {
 			return err
 		}
+
 		name := strings.TrimSuffix(rel, e.Extension)
 		// Read the file
 		// #gosec G304
@@ -129,15 +133,15 @@ func (e *Engine) Load() error {
 		}
 
 		l.Set(name, string(buf))
-		// Debugging
-		if e.Verbose {
+		if e.Verbose() {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 
 		return err
 	}
 
-	e.Loaded = true
+	// notify Engine that we parsed all templates
+	e.SetLoaded(true)
 
 	if _, ok := loader.(*jet.InMemLoader); ok {
 		return filepath.Walk(e.Directory, walkFn)
@@ -148,19 +152,32 @@ func (e *Engine) Load() error {
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
-	if !e.Loaded || e.ShouldReload {
-		if e.ShouldReload {
-			e.Loaded = false
+	// Check if templates need to be loaded/reloaded
+	if !e.Loaded() || e.ShouldReload() {
+		if e.ShouldReload() {
+			e.LockAndSetLoaded(false)
 		}
+
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
+
+	// Acquire read lock for accessing the template
+	e.Mutex.RLock()
 	tmpl, err := e.Templates.GetTemplate(name)
+	e.Mutex.RUnlock()
+
 	if err != nil || tmpl == nil {
 		return fmt.Errorf("render: template %s could not be Loaded: %w", name, err)
 	}
+
+	// Lock while executing layout
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
 	bind := jetVarMap(binding)
+
 	if len(layout) > 0 && layout[0] != "" {
 		lay, err := e.Templates.GetTemplate(layout[0])
 		if err != nil {
