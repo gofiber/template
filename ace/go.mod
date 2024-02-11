@@ -1,6 +1,6 @@
 module github.com/gofiber/template/ace/v2
 
-go 1.17
+go 1.18
 
 require github.com/yosssi/ace v0.0.5
 

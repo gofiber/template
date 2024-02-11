@@ -10,16 +10,16 @@ import (
 type IEngine interface {
 	IEngineCore
 	Load() error
-	Render(out io.Writer, template string, binding interface{}, layout ...string) error
+	Render(out io.Writer, template string, binding any, layout ...string) error
 }
 
 // IEngineCore interface
 type IEngineCore interface {
-	AddFunc(name string, fn interface{}) IEngineCore
-	AddFuncMap(m map[string]interface{}) IEngineCore
+	AddFunc(name string, fn any) IEngineCore
+	AddFuncMap(m map[string]any) IEngineCore
 	Debug(enabled bool) IEngineCore
 	Delims(left, right string) IEngineCore
-	FuncMap() map[string]interface{}
+	FuncMap() map[string]any
 	Layout(key string) IEngineCore
 	Reload(enabled bool) IEngineCore
 	ShouldReload() bool
@@ -45,7 +45,7 @@ type Engine struct {
 	// lock for funcmap and templates
 	Mutex sync.RWMutex
 	// template funcmap
-	Funcmap map[string]interface{}
+	Funcmap map[string]any
 	// debug prints the parsed templates
 	verbose bool
 	// determines if the engine parsed all templates
@@ -56,7 +56,7 @@ type Engine struct {
 
 // AddFunc adds the function to the template's function map.
 // It is legal to overwrite elements of the default actions
-func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
+func (e *Engine) AddFunc(name string, fn any) IEngineCore {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 	e.Funcmap[name] = fn
@@ -65,7 +65,7 @@ func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
 
 // AddFuncMap adds the functions from a map to the template's function map.
 // It is legal to overwrite elements of the default actions
-func (e *Engine) AddFuncMap(m map[string]interface{}) IEngineCore {
+func (e *Engine) AddFuncMap(m map[string]any) IEngineCore {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 	for name, fn := range m {
@@ -91,7 +91,7 @@ func (e *Engine) Delims(left, right string) IEngineCore {
 }
 
 // FuncMap returns the template's function map.
-func (e *Engine) FuncMap() map[string]interface{} {
+func (e *Engine) FuncMap() map[string]any {
 	e.Mutex.RLock()
 	defer e.Mutex.RUnlock()
 	return e.Funcmap
