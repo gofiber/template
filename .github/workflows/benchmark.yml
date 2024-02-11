@@ -8,12 +8,14 @@ on:
     paths:
       - "**.go"
       - "**/go.mod"
+      - ".github/workflows/benchmark.yml"
   pull_request:
     branches:
       - "*"
     paths:
       - "**.go"
       - "**/go.mod"
+      - ".github/workflows/benchmark.yml"
 
 permissions:
   deployments: write
