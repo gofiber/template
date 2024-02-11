@@ -40,7 +40,7 @@ linters-settings:
       - ifElseChain
 
   gofumpt:
-    module-path: github.com/gofiber/fiber
+    module-path: github.com/gofiber/template
     extra-rules: true
 
   gosec:
