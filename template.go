@@ -115,29 +115,34 @@ func (e *Engine) Reload(enabled bool) IEngineCore {
 	return e
 }
 
+// ShouldReload returns true if the templates should be reloaded
 func (e *Engine) ShouldReload() bool {
 	e.Mutex.RLock()
 	defer e.Mutex.RUnlock()
 	return e.shouldReload
 }
 
+// Loaded returns true if templates are loaded
 func (e *Engine) Loaded() bool {
 	e.Mutex.RLock()
 	defer e.Mutex.RUnlock()
 	return e.loaded
 }
 
+// SetLoaded sets the loaded status
 func (e *Engine) SetLoaded(enabled bool) IEngineCore {
 	e.loaded = enabled
 	return e
 }
 
+// LockAndSetLoaded locks and sets the loaded status
 func (e *Engine) LockAndSetLoaded(enabled bool) IEngineCore {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 	return e.SetLoaded(enabled)
 }
 
+// Verbose returns the verbose status
 func (e *Engine) Verbose() bool {
 	return e.verbose
 }

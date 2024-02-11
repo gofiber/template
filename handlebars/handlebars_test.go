@@ -240,9 +240,7 @@ func Benchmark_Handlebars_Concurrent(b *testing.B) {
 	expectSimple := `<h1>Hello, Concurrent!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
 	engine := New("./views", ".hbs")
-	engine.AddFunc("isAdmin", func(user string) bool {
-		return user == "admin"
-	})
+	// Note we don't register isAdmin again because handlebars does not support re-registering helpers
 	require.NoError(b, engine.Load())
 
 	b.Run("concurrent_simple", func(bb *testing.B) {

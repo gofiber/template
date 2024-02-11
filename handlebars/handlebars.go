@@ -12,9 +12,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/aymerick/raymond"
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
+	"github.com/mailgun/raymond/v2"
 )
 
 // Engine struct
@@ -59,6 +59,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 	var err error
+
 	// Set template settings
 	e.Templates = make(map[string]*raymond.Template)
 	e.registerHelpersOnce.Do(func() {
