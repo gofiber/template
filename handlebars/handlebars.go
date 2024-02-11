@@ -160,7 +160,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	}
 
 	parsed, err := tmpl.Exec(binding)
-
 	if err != nil {
 		return fmt.Errorf("render: %w", err)
 	}

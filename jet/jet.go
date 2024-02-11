@@ -76,7 +76,6 @@ func (e *Engine) Load() error {
 
 	if e.FileSystem != nil {
 		loader, err = httpfs.NewLoader(e.FileSystem)
-
 		if err != nil {
 			return err
 		}

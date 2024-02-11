@@ -463,6 +463,7 @@ func Benchmark_Django(b *testing.B) {
 		}
 	})
 }
+
 func Benchmark_Django_Concurrent(b *testing.B) {
 	expectSimple := `<h1>Hello, Concurrent!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
