@@ -36,11 +36,6 @@ func New(directory, extension string) *Engine {
 			Funcmap:    make(map[string]interface{}),
 		},
 	}
-	// Set template settings
-	engine.Templates = make(map[string]*raymond.Template)
-	engine.registerHelpersOnce.Do(func() {
-		raymond.RegisterHelpers(engine.Funcmap)
-	})
 	return engine
 }
 
@@ -55,11 +50,6 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 			Funcmap:    make(map[string]interface{}),
 		},
 	}
-	// Set template settings
-	engine.Templates = make(map[string]*raymond.Template)
-	engine.registerHelpersOnce.Do(func() {
-		raymond.RegisterHelpers(engine.Funcmap)
-	})
 	return engine
 }
 
@@ -69,24 +59,25 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 	var err error
-
+	// Set template settings
+	e.Templates = make(map[string]*raymond.Template)
+	e.registerHelpersOnce.Do(func() {
+		raymond.RegisterHelpers(e.Funcmap)
+	})
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
 		}
-
 		// Skip file if it's a directory or has no file info
 		if info == nil || info.IsDir() {
 			return nil
 		}
-
 		// Skip file if it does not equal the given template Extension
 		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
 			return nil
 		}
-
 		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
 		rel, err := filepath.Rel(e.Directory, path)
@@ -115,7 +106,6 @@ func (e *Engine) Load() error {
 		// raymond.RegisterPartialTemplate(name, tmpl)
 		e.Templates[name] = tmpl
 
-		// Debugging
 		if e.Verbose() {
 			log.Printf("views: parsed template: %s\n", name)
 		}
@@ -132,6 +122,7 @@ func (e *Engine) Load() error {
 			e.Templates[j].RegisterPartialTemplate(n, template)
 		}
 	}
+
 	// notify Engine that we parsed all templates
 	e.SetLoaded(true)
 	return err
@@ -150,11 +141,11 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
-	e.Mutex.RLock()
-	tmpl := e.Templates[name]
-	e.Mutex.RUnlock()
+	// Lock while executing layout
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 
+	tmpl := e.Templates[name]
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
@@ -164,17 +155,12 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return fmt.Errorf("render: %w", err)
 	}
 
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
-
 	if len(layout) > 0 && layout[0] != "" {
-		var bind map[string]interface{}
 		lay := e.Templates[layout[0]]
 		if lay == nil {
 			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
 		}
-
+		var bind map[string]interface{}
 		switch binds := binding.(type) {
 		case fiber.Map:
 			bind = binds
@@ -183,7 +169,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		default:
 			bind = make(map[string]interface{}, 1)
 		}
-
 		bind[e.LayoutName] = raymond.SafeString(parsed)
 		parsed, err := lay.Exec(bind)
 		if err != nil {
@@ -194,7 +179,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 		return nil
 	}
-
 	if _, err = out.Write([]byte(parsed)); err != nil {
 		return fmt.Errorf("render: %w", err)
 	}
