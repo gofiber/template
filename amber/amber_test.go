@@ -179,35 +179,58 @@ func Benchmark_Amber(b *testing.B) {
 	})
 	require.NoError(b, engine.Load())
 
-	var buf bytes.Buffer
-	var err error
-
 	b.Run("simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
+		var buf bytes.Buffer
 		for i := 0; i < bb.N; i++ {
 			buf.Reset()
-			err = engine.Render(&buf, "simple", map[string]interface{}{
+			//nolint:gosec,errcheck // Return value not needed for benchmark
+			_ = engine.Render(&buf, "simple", map[string]interface{}{
 				"Title": "Hello, World!",
 			})
 		}
-
-		require.NoError(b, err)
-		require.Equal(b, expectSimple, trim(buf.String()))
 	})
 
 	b.Run("extended", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
+		var buf bytes.Buffer
 		for i := 0; i < bb.N; i++ {
 			buf.Reset()
-			err = engine.Render(&buf, "extended", map[string]interface{}{
+			//nolint:gosec,errcheck // Return value not needed for benchmark
+			_ = engine.Render(&buf, "extended", map[string]interface{}{
 				"User": admin,
 			}, "layouts/main")
 		}
+	})
 
-		require.NoError(b, err)
-		require.Equal(b, expectExtended, trim(buf.String()))
+	b.Run("simple_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		var buf bytes.Buffer
+		for i := 0; i < bb.N; i++ {
+			buf.Reset()
+			err := engine.Render(&buf, "simple", map[string]interface{}{
+				"Title": "Hello, World!",
+			})
+			require.NoError(bb, err)
+			require.Equal(bb, expectSimple, trim(buf.String()))
+		}
+	})
+
+	b.Run("extended_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		var buf bytes.Buffer
+		for i := 0; i < bb.N; i++ {
+			buf.Reset()
+			err := engine.Render(&buf, "extended", map[string]interface{}{
+				"User": admin,
+			}, "layouts/main")
+			require.NoError(bb, err)
+			require.Equal(bb, expectExtended, trim(buf.String()))
+		}
 	})
 }
 
