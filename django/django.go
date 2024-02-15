@@ -36,9 +36,7 @@ func (e *Engine) initialize(directory, extension string, fs http.FileSystem) {
 	e.Engine.LayoutName = "embed"
 	e.Engine.Funcmap = make(map[string]interface{})
 	e.autoEscape = true
-	if fs != nil {
-		e.Engine.FileSystem = fs
-	}
+	e.Engine.FileSystem = fs
 }
 
 // New creates a new Engine with a directory and extension.

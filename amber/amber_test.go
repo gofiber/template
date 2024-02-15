@@ -175,7 +175,7 @@ func Benchmark_Amber(b *testing.B) {
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
 	engine := New("./views", ".amber")
 	engine.AddFunc("isAdmin", func(user string) bool {
-		return user == "admin"
+		return user == admin
 	})
 	require.NoError(b, engine.Load())
 
