@@ -54,7 +54,7 @@ func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
-	if e.Loaded() {
+	if e.Loaded {
 		return nil
 	}
 
