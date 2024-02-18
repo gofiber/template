@@ -5,7 +5,7 @@ go 1.17
 require github.com/yosssi/ace v0.0.5
 
 require (
-	github.com/gofiber/template v1.8.2
+	github.com/gofiber/template v1.8.3
 	github.com/gofiber/utils v1.1.0
 	github.com/stretchr/testify v1.8.4
 )
