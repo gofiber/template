@@ -129,7 +129,7 @@ func (e *Engine) Load() error {
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
-	if e.Check() {
+	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
 			return err
 		}
