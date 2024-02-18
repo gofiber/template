@@ -22,6 +22,7 @@ type IEngineCore interface {
 	FuncMap() map[string]interface{}
 	Layout(key string) IEngineCore
 	Reload(enabled bool) IEngineCore
+	PreRenderCheck() bool
 }
 
 // Engine engine struct
@@ -54,8 +55,8 @@ type Engine struct {
 // It is legal to overwrite elements of the default actions
 func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
 	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
 	e.Funcmap[name] = fn
+	e.Mutex.Unlock()
 	return e
 }
 
@@ -63,18 +64,18 @@ func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
 // It is legal to overwrite elements of the default actions
 func (e *Engine) AddFuncMap(m map[string]interface{}) IEngineCore {
 	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
 	for name, fn := range m {
 		e.Funcmap[name] = fn
 	}
+	e.Mutex.Unlock()
 	return e
 }
 
 // Debug will print the parsed templates when Load is triggered.
 func (e *Engine) Debug(enabled bool) IEngineCore {
 	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
 	e.Verbose = enabled
+	e.Mutex.Unlock()
 	return e
 }
 
@@ -83,8 +84,8 @@ func (e *Engine) Debug(enabled bool) IEngineCore {
 // corresponding default: "{{" and "}}".
 func (e *Engine) Delims(left, right string) IEngineCore {
 	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
 	e.Left, e.Right = left, right
+	e.Mutex.Unlock()
 	return e
 }
 
@@ -96,8 +97,8 @@ func (e *Engine) FuncMap() map[string]interface{} {
 // Layout defines the variable name that will incapsulate the template
 func (e *Engine) Layout(key string) IEngineCore {
 	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
 	e.LayoutName = key
+	e.Mutex.Unlock()
 	return e
 }
 
@@ -106,8 +107,8 @@ func (e *Engine) Layout(key string) IEngineCore {
 // the application when you edit a template file.
 func (e *Engine) Reload(enabled bool) IEngineCore {
 	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
 	e.ShouldReload = enabled
+	e.Mutex.Unlock()
 	return e
 }
 
