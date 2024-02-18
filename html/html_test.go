@@ -326,8 +326,8 @@ func Benchmark_Html(b *testing.B) {
 	})
 }
 
-func Benchmark_Html_Concurrent(b *testing.B) {
-	expectSimple := `<h1>Hello, Concurrent!</h1>`
+func Benchmark_Html_Parallel(b *testing.B) {
+	expectSimple := `<h1>Hello, Parallel!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
 	engine := New("./views", ".html")
 	engine.AddFunc("isAdmin", func(user string) bool {
@@ -335,7 +335,7 @@ func Benchmark_Html_Concurrent(b *testing.B) {
 	})
 	require.NoError(b, engine.Load())
 
-	b.Run("concurrent_simple", func(bb *testing.B) {
+	b.Run("parallel_simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
@@ -343,13 +343,13 @@ func Benchmark_Html_Concurrent(b *testing.B) {
 				var buf bytes.Buffer
 				//nolint:gosec,errcheck // Return value not needed for benchmark
 				_ = engine.Render(&buf, "simple", map[string]interface{}{
-					"Title": "Hello, Concurrent!",
+					"Title": "Hello, Parallel!",
 				})
 			}
 		})
 	})
 
-	b.Run("concurrent_extended", func(bb *testing.B) {
+	b.Run("parallel_extended", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
@@ -363,14 +363,14 @@ func Benchmark_Html_Concurrent(b *testing.B) {
 		})
 	})
 
-	b.Run("concurrent_simple_asserted", func(bb *testing.B) {
+	b.Run("parallel_simple_asserted", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
 				var buf bytes.Buffer
 				err := engine.Render(&buf, "simple", map[string]interface{}{
-					"Title": "Hello, Concurrent!",
+					"Title": "Hello, Parallel!",
 				})
 				require.NoError(bb, err)
 				require.Equal(bb, expectSimple, trim(buf.String()))
@@ -378,7 +378,7 @@ func Benchmark_Html_Concurrent(b *testing.B) {
 		})
 	})
 
-	b.Run("concurrent_extended_asserted", func(bb *testing.B) {
+	b.Run("parallel_extended_asserted", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {

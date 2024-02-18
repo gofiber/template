@@ -211,15 +211,15 @@ func Benchmark_Slim(b *testing.B) {
 	})
 }
 
-func Benchmark_Slim_Concurrent(b *testing.B) {
-	expectSimple := `<h1>Hello, Concurrent!</h1>`
+func Benchmark_Slim_Parallel(b *testing.B) {
+	expectSimple := `<h1>Hello, Parallel!</h1>`
 	engine := New("./views", ".slim")
 	engine.AddFunc("isAdmin", func(s ...slim.Value) (slim.Value, error) {
 		return s[0].(string) == "admin", nil
 	})
 	require.NoError(b, engine.Load())
 
-	b.Run("concurrent_simple", func(bb *testing.B) {
+	b.Run("parallel_simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
@@ -227,20 +227,20 @@ func Benchmark_Slim_Concurrent(b *testing.B) {
 				var buf bytes.Buffer
 				//nolint:gosec,errcheck // Return value not needed for benchmark
 				_ = engine.Render(&buf, "simple", map[string]interface{}{
-					"Title": "Hello, Concurrent!",
+					"Title": "Hello, Parallel!",
 				})
 			}
 		})
 	})
 
-	b.Run("concurrent_simple_asserted", func(bb *testing.B) {
+	b.Run("parallel_simple_asserted", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
 				var buf bytes.Buffer
 				err := engine.Render(&buf, "simple", map[string]interface{}{
-					"Title": "Hello, Concurrent!",
+					"Title": "Hello, Parallel!",
 				})
 				require.NoError(bb, err)
 				require.Equal(bb, expectSimple, trim(buf.String()))

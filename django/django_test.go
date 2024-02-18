@@ -464,8 +464,8 @@ func Benchmark_Django(b *testing.B) {
 	})
 }
 
-func Benchmark_Django_Concurrent(b *testing.B) {
-	expectSimple := `<h1>Hello, Concurrent!</h1>`
+func Benchmark_Django_Parallel(b *testing.B) {
+	expectSimple := `<h1>Hello, Parallel!</h1>`
 	expectExtended := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
 	engine := New("./views", ".django")
 	engine.AddFunc("isAdmin", func(user string) bool {
@@ -482,7 +482,7 @@ func Benchmark_Django_Concurrent(b *testing.B) {
 				buf.Reset()
 				//nolint:gosec,errcheck // Return value not needed for benchmark
 				_ = engine.Render(&buf, "simple", map[string]interface{}{
-					"Title": "Hello, Concurrent!",
+					"Title": "Hello, Parallel!",
 				})
 			}
 		})
@@ -512,7 +512,7 @@ func Benchmark_Django_Concurrent(b *testing.B) {
 				buf.Reset()
 				//nolint:gosec,errcheck // Return value not needed for benchmark
 				_ = engine.Render(&buf, "simple", map[string]interface{}{
-					"Title":       "Hello, Concurrent!",
+					"Title":       "Hello, Parallel!",
 					"Invalid_Key": "Don't return error from checkForValidIdentifiers!",
 				})
 			}
@@ -542,7 +542,7 @@ func Benchmark_Django_Concurrent(b *testing.B) {
 			for pb.Next() {
 				var buf bytes.Buffer
 				err := engine.Render(&buf, "simple", map[string]interface{}{
-					"Title": "Hello, Concurrent!",
+					"Title": "Hello, Parallel!",
 				})
 				require.NoError(bb, err)
 				require.Equal(bb, expectSimple, trim(buf.String()))
@@ -572,7 +572,7 @@ func Benchmark_Django_Concurrent(b *testing.B) {
 			for pb.Next() {
 				var buf bytes.Buffer
 				err := engine.Render(&buf, "simple", map[string]interface{}{
-					"Title":       "Hello, Concurrent!",
+					"Title":       "Hello, Parallel!",
 					"Invalid_Key": "Don't return error from checkForValidIdentifiers!",
 				})
 				require.NoError(bb, err)
