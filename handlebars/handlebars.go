@@ -107,7 +107,7 @@ func (e *Engine) Load() error {
 		// raymond.RegisterPartialTemplate(name, tmpl)
 		e.Templates[name] = tmpl
 
-		if e.Verbose() {
+		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
@@ -125,18 +125,14 @@ func (e *Engine) Load() error {
 	}
 
 	// notify Engine that we parsed all templates
-	e.SetLoaded(true)
+	e.Loaded = true
 	return err
 }
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
-	if !e.Loaded() || e.ShouldReload() {
-		if e.ShouldReload() {
-			e.LockAndSetLoaded(false)
-		}
-
+	if e.Check() {
 		if err := e.Load(); err != nil {
 			return err
 		}

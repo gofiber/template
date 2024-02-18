@@ -130,6 +130,8 @@ linters-settings:
       # Provided by errcheck
       - name: unhandled-error
         disabled: true
+      - name: use-any # TODO Enable for v3 release
+        disabled: true
 
   stylecheck:
     checks:

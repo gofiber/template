@@ -108,14 +108,14 @@ func (e *Engine) Load() error {
 		tmpl.FuncMap(newFuncMap)
 		e.Templates[name] = tmpl
 
-		if e.Verbose() {
+		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
 
 	// notify Engine that we parsed all templates
-	e.SetLoaded(true)
+	e.Loaded = true
 
 	if e.FileSystem != nil {
 		return utils.Walk(e.FileSystem, e.Directory, walkFn)
@@ -126,11 +126,7 @@ func (e *Engine) Load() error {
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
-	if !e.Loaded() || e.ShouldReload() {
-		if e.ShouldReload() {
-			e.LockAndSetLoaded(false)
-		}
-
+	if e.Check() {
 		if err := e.Load(); err != nil {
 			return err
 		}
