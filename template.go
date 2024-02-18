@@ -115,13 +115,14 @@ func (e *Engine) Reload(enabled bool) IEngineCore {
 // Check if the engine should reload the templates before rendering
 func (e *Engine) PreRenderCheck() bool {
 	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
 
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
 		}
+		e.Mutex.Unlock()
 		return true
 	}
+	e.Mutex.Unlock()
 	return false
 }
