@@ -85,20 +85,24 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
+
 		// Skip file if it's a directory or has no file info
 		if info == nil || info.IsDir() {
 			return nil
 		}
+
 		// Skip file if it does not equal the given template extension
 		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
 			return nil
 		}
+
 		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
 		rel, err := filepath.Rel(e.Directory, path)
 		if err != nil {
 			return err
 		}
+
 		// Reverse slashes '\' -> '/' and
 		// partials\footer.tmpl -> partials/footer.tmpl
 		name := filepath.ToSlash(rel)
@@ -111,6 +115,7 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
+
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
 		var tmpl *mustache.Template
@@ -122,15 +127,17 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
+
 		e.Templates[name] = tmpl
-		// Debugging
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
-	// notify engine that we parsed all templates
+
+	// notify Engine that we parsed all templates
 	e.Loaded = true
+
 	if e.FileSystem != nil {
 		return utils.Walk(e.FileSystem, e.Directory, walkFn)
 	}
@@ -139,25 +146,35 @@ func (e *Engine) Load() error {
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
-	if !e.Loaded || e.ShouldReload {
-		if e.ShouldReload {
-			e.Loaded = false
-		}
+	// Check if templates need to be loaded/reloaded
+	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
+
+	// Acquire read lock for accessing the template
+	e.Mutex.RLock()
 	tmpl := e.Templates[name]
+	e.Mutex.RUnlock()
+
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
+
+	// Lock while executing layout
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
 	if len(layout) > 0 && layout[0] != "" {
 		buf := bytebufferpool.Get()
 		defer bytebufferpool.Put(buf)
 		if err := tmpl.FRender(buf, binding); err != nil {
 			return err
 		}
+
 		var bind map[string]interface{}
+
 		switch binds := binding.(type) {
 		case fiber.Map:
 			bind = binds
@@ -166,6 +183,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		default:
 			bind = make(map[string]interface{}, 1)
 		}
+
 		bind[e.LayoutName] = buf.String()
 		lay := e.Templates[layout[0]]
 		if lay == nil {

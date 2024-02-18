@@ -1,8 +1,7 @@
-# Created based on v1.52.2
-# NOTE: Keep this in sync with the version in .github/workflows/lint_golangci-lint.yml
+# Created based on v1.56.1
+# NOTE: Keep this in sync with the version in .github/workflows/linter.yml
 
 run:
-  timeout: 5m
   modules-download-mode: readonly
   skip-dirs-use-default: false
   skip-dirs:
@@ -12,75 +11,61 @@ output:
   sort-results: true
 
 linters-settings:
-  depguard:
-    include-go-root: true
-    packages:
-      - flag
-      - io/ioutil
-      - reflect
-      - unsafe
-    packages-with-error-message:
-      - flag: '`flag` package is only allowed in main.go'
-      - io/ioutil: '`io/ioutil` package is deprecated, use the `io` and `os` package instead'
-      - reflect: '`reflect` package is dangerous to use'
-      - unsafe: '`unsafe` package is dangerous to use'
-
   errcheck:
-    check-type-assertions: true
-    check-blank: true
-    disable-default-exclusions: true
+     check-type-assertions: true
+     check-blank: true
+     disable-default-exclusions: true
+     exclude-functions:
+       - '(*bytes.Buffer).Write' # always returns nil error
+       - '(*github.com/valyala/bytebufferpool.ByteBuffer).Write' # always returns nil error
+       - '(*github.com/valyala/bytebufferpool.ByteBuffer).WriteByte' # always returns nil error
+       - '(*github.com/valyala/bytebufferpool.ByteBuffer).WriteString' # always returns nil error
 
   errchkjson:
     report-no-exported: true
 
   exhaustive:
-    check-generated: true
     default-signifies-exhaustive: true
 
   forbidigo:
     forbid:
       - ^(fmt\.Print(|f|ln)|print|println)$
-      # - 'http\.Default(Client|Transport)'
+      - 'http\.Default(Client|Transport)'
+      # TODO: Eventually enable these patterns
       # - 'time\.Sleep'
       # - 'panic'
 
-  gci:
-    sections:
-      - standard
-      - prefix(github.com/gofiber/fiber)
-      - default
-      - blank
-      - dot
-    custom-order: true
-
-  goconst:
-    numbers: true
-
   gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-      - experimental
-      - opinionated
     disabled-checks:
-      - hugeParam
-      - rangeValCopy
+      - ifElseChain
 
   gofumpt:
     module-path: github.com/gofiber/template
     extra-rules: true
 
   gosec:
+    excludes:
+      - G104 # Provided by errcheck
     config:
       global:
         audit: true
+  
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: flag
+            desc: '`flag` package is only allowed in main.go'
+          - pkg: io/ioutil
+            desc: '`io/ioutil` package is deprecated, use the `io` and `os` package instead'
 
   govet:
+    check-shadowing: true
     enable-all: true
     disable:
-      - fieldalignment
       - shadow
+      - fieldalignment
+      - loopclosure
 
   grouper:
     import-require-single-import: true
@@ -102,10 +87,6 @@ linters-settings:
   promlinter:
     strict: true
 
-  reassign:
-    patterns:
-      - '.*'
-
   revive:
     enable-all-rules: true
     rules:
@@ -120,31 +101,37 @@ linters-settings:
       - name: cognitive-complexity
         disabled: true
       - name: comment-spacings
-        arguments:
-          - nolint
-          - msgp
+        disabled: true # TODO https://github.com/gofiber/fiber/issues/2816
       - name: cyclomatic
+        disabled: true
+      - name: early-return
+        severity: warning
         disabled: true
       - name: exported
         disabled: true
       - name: file-header
         disabled: true
       - name: function-result-limit
-        arguments: [3]
+        disabled: true
       - name: function-length
         disabled: true
       - name: line-length-limit
-        disabled: true
-      - name: nested-structs
         disabled: true
       - name: max-public-structs
         disabled: true
       - name: modifies-parameter
         disabled: true
+      - name: nested-structs
+        disabled: true
       - name: package-comments
         disabled: true
-      - name: use-any
-        disabled: true # some tests still use go 1.17
+      - name: unchecked-type-assertion
+        disabled: true # TODO https://github.com/gofiber/fiber/issues/2816
+      # Provided by errcheck
+      - name: unhandled-error
+        disabled: true
+      - name: use-any # TODO Enable for v3 release
+        disabled: true
 
   stylecheck:
     checks:
@@ -171,13 +158,11 @@ linters-settings:
       - github.com/valyala/fasthttp
 
 issues:
-  exclude-use-default: false
-  exclude-rules:
-    - linters:
-      - goerr113
-      text: 'do not define dynamic errors, use wrapped static errors instead*'
+   exclude-use-default: false
 
 linters:
+  disable:
+    - spancheck
   enable:
     - asasalint
     - asciicheck
@@ -185,13 +170,8 @@ linters:
     - bodyclose
     - containedctx
     - contextcheck
-    # - cyclop
-    - deadcode
-    # - decorder
     - depguard
     - dogsled
-    # - dupl
-    - dupword
     - durationcheck
     - errcheck
     - errchkjson
@@ -199,76 +179,46 @@ linters:
     - errorlint
     - execinquery
     - exhaustive
-    # - exhaustivestruct
-    # - exhaustruct
     - exportloopref
     - forbidigo
     - forcetypeassert
-    # - funlen
-    - gci
-    - ginkgolinter
-    - gocheckcompilerdirectives
-    - gochecknoglobals # Enabled
-    - gochecknoinits # Enabled
-    # - gocognit
+    - gochecksumtype
     - goconst
     - gocritic
-    # - gocyclo
-    # - godot
-    # - godox
-    - goerr113
     - gofmt
     - gofumpt
-    # - goheader
-    # - goimports
-    # - golint
-    - gomnd # Enabled
+    - goimports
     - gomoddirectives
-    # - gomodguard
     - goprintffuncname
     - gosec
     - gosimple
+    - gosmopolitan
     - govet
     - grouper
-    # - ifshort
-    # - importas
-    - ineffassign
-    # - interfacebloat
-    # - interfacer
-    # - ireturn
-    # - lll
+    - inamedparam
     - loggercheck
-    # - maintidx
-    # - makezero
-    # - maligned
+    - mirror
     - misspell
-    - musttag
     - nakedret
-    # - nestif
     - nilerr
     - nilnil
-    # - nlreturn
     - noctx
     - nolintlint
     - nonamedreturns
-    - nosnakecase
     - nosprintfhostport
-    - paralleltest
-    # - prealloc
+    - perfsprint
     - predeclared
     - promlinter
     - reassign
     - revive
     - rowserrcheck
-    - scopelint
     - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
+    - tagalign
     - tagliatelle
-    - tenv
-    - testableexamples
-    # - testpackage
+    - testifylint
+    - testpackage
     - thelper
     - tparallel
     - typecheck
@@ -276,9 +226,7 @@ linters:
     - unparam
     - unused
     - usestdlibvars
-    - varcheck
-    # - varnamelen
     - wastedassign
     - whitespace
-    # - wrapcheck # disabled
-    # - wsl
+    - wrapcheck
+    - tenv

@@ -120,14 +120,16 @@ func (e *Engine) Load() error {
 			return err
 		}
 		e.Templates[name] = tmpl
-		// Debugging
+
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
+
 	// notify Engine that we parsed all templates
 	e.Loaded = true
+
 	if e.FileSystem != nil {
 		return utils.Walk(e.FileSystem, e.Directory, walkFn)
 	}
@@ -136,18 +138,26 @@ func (e *Engine) Load() error {
 
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
-	if !e.Loaded || e.ShouldReload {
-		if e.ShouldReload {
-			e.Loaded = false
-		}
+	// Check if templates need to be loaded/reloaded
+	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
+
+	// Acquire read lock for accessing the template
+	e.Mutex.RLock()
 	tmpl := e.Templates[name]
+	e.Mutex.RUnlock()
+
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
+
+	// Lock while executing layout
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates[layout[0]]
 		if lay == nil {

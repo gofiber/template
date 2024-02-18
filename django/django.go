@@ -27,56 +27,37 @@ type Engine struct {
 	Templates map[string]*pongo2.Template
 }
 
-// New returns a Django render engine for Fiber
+// This helper function is used to avoid duplication in public constructors.
+func (e *Engine) initialize(directory, extension string, fs http.FileSystem) {
+	e.Engine.Left = "{{"
+	e.Engine.Right = "}}"
+	e.Engine.Directory = directory
+	e.Engine.Extension = extension
+	e.Engine.LayoutName = "embed"
+	e.Engine.Funcmap = make(map[string]interface{})
+	e.autoEscape = true
+	e.Engine.FileSystem = fs
+}
+
+// New creates a new Engine with a directory and extension.
 func New(directory, extension string) *Engine {
-	engine := &Engine{
-		Engine: core.Engine{
-			Left:       "{{",
-			Right:      "}}",
-			Directory:  directory,
-			Extension:  extension,
-			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
-		},
-		autoEscape: true,
-	}
+	engine := &Engine{}
+	engine.initialize(directory, extension, nil)
 	return engine
 }
 
-// NewFileSystem returns a Django render engine for Fiber with file system
+// NewFileSystem creates a new Engine with a file system and extension.
 func NewFileSystem(fs http.FileSystem, extension string) *Engine {
-	engine := &Engine{
-		Engine: core.Engine{
-			Left:       "{{",
-			Right:      "}}",
-			Directory:  "/",
-			FileSystem: fs,
-			Extension:  extension,
-			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
-		},
-		autoEscape: true,
-	}
+	engine := &Engine{}
+	engine.initialize("/", extension, fs)
 	return engine
 }
 
-// NewPathForwardingFileSystem Passes "Directory" to the template engine where alternative functions don't.
-//
-//	This fixes errors during resolution of templates when "{% extends 'parent.html' %}" is used.
+// NewPathForwardingFileSystem creates a new Engine with path forwarding,
+// using a file system, directory, and extension.
 func NewPathForwardingFileSystem(fs http.FileSystem, directory, extension string) *Engine {
-	engine := &Engine{
-		Engine: core.Engine{
-			Left:       "{{",
-			Right:      "}}",
-			Directory:  directory,
-			FileSystem: fs,
-			Extension:  extension,
-			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
-		},
-		autoEscape: true,
-		forwardPath: true,
-	}
+	engine := &Engine{forwardPath: true}
+	engine.initialize(directory, extension, fs)
 	return engine
 }
 
@@ -87,10 +68,9 @@ func (e *Engine) Load() error {
 	defer e.Mutex.Unlock()
 
 	e.Templates = make(map[string]*pongo2.Template)
-
 	baseDir := e.Directory
-
 	var pongoloader pongo2.TemplateLoader
+
 	if e.FileSystem != nil {
 		// ensures creation of httpFileSystemLoader only when filesystem is defined
 		if e.forwardPath {
@@ -115,20 +95,24 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
+
 		// Skip file if it's a directory or has no file info
 		if info == nil || info.IsDir() {
 			return nil
 		}
+
 		// Skip file if it does not equal the given template Extension
 		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
 			return nil
 		}
+
 		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
 		rel, err := filepath.Rel(e.Directory, path)
 		if err != nil {
 			return err
 		}
+
 		// Reverse slashes '\' -> '/' and
 		// partials\footer.tmpl -> partials/footer.tmpl
 		name := filepath.ToSlash(rel)
@@ -141,20 +125,23 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
+
 		// Create new template associated with the current one
 		tmpl, err := pongoset.FromBytes(buf)
 		if err != nil {
 			return err
 		}
 		e.Templates[name] = tmpl
-		// Debugging
+
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
-	// notify engine that we parsed all templates
+
+	// notify Engine that we parsed all templates
 	e.Loaded = true
+
 	if e.FileSystem != nil {
 		return utils.Walk(e.FileSystem, e.Directory, walkFn)
 	}
@@ -174,6 +161,7 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
 	}
+
 	var bind pongo2.Context
 	switch binds := binding.(type) {
 	case pongo2.Context:
@@ -220,24 +208,32 @@ func (e *Engine) SetAutoEscape(autoEscape bool) {
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
-	if !e.Loaded || e.ShouldReload {
-		if e.ShouldReload {
-			e.Loaded = false
-		}
+	// Check if templates need to be loaded/reloaded
+	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
+
+	// Acquire read lock for accessing the template
+	e.Mutex.RLock()
 	tmpl, ok := e.Templates[name]
+	e.Mutex.RUnlock()
+
 	if !ok {
 		return fmt.Errorf("template %s does not exist", name)
 	}
+
+	// Lock while executing layout
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 
 	bind := getPongoBinding(binding)
 	parsed, err := tmpl.Execute(bind)
 	if err != nil {
 		return err
 	}
+
 	if len(layout) > 0 && layout[0] != "" {
 		if bind == nil {
 			bind = make(map[string]interface{}, 1)

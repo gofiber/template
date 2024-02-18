@@ -21,37 +21,31 @@ type Engine struct {
 	Templates *template.Template
 }
 
-// New returns an HTML render engine for Fiber
+// New returns a HTML render engine for Fiber
 func New(directory, extension string) *Engine {
+	return newEngine(directory, extension, nil)
+}
+
+// NewFileSystem returns a HTML render engine for Fiber with file system
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	return newEngine("/", extension, fs)
+}
+
+// newEngine creates a new Engine instance with common initialization logic.
+func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 	engine := &Engine{
 		Engine: core.Engine{
 			Left:       "{{",
 			Right:      "}}",
 			Directory:  directory,
-			Extension:  extension,
-			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
-		},
-	}
-	engine.AddFunc(engine.LayoutName, func() error {
-		return fmt.Errorf("layoutName called unexpectedly")
-	})
-	return engine
-}
-
-// NewFileSystem returns an HTML render engine for Fiber with file system
-func NewFileSystem(fs http.FileSystem, extension string) *Engine {
-	engine := &Engine{
-		Engine: core.Engine{
-			Left:       "{{",
-			Right:      "}}",
-			Directory:  "/",
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
 	}
+	// Add a default function that throws an error if called unexpectedly.
+	// This can be useful for debugging or ensuring certain functions are used correctly.
 	engine.AddFunc(engine.LayoutName, func() error {
 		return fmt.Errorf("layoutName called unexpectedly")
 	})
@@ -63,6 +57,7 @@ func (e *Engine) Load() error {
 	if e.Loaded {
 		return nil
 	}
+
 	// race safe
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
@@ -77,20 +72,24 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
+
 		// Skip file if it's a directory or has no file info
 		if info == nil || info.IsDir() {
 			return nil
 		}
+
 		// Skip file if it does not equal the given template Extension
 		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
 			return nil
 		}
+
 		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
 		rel, err := filepath.Rel(e.Directory, path)
 		if err != nil {
 			return err
 		}
+
 		// Reverse slashes '\' -> '/' and
 		// partials\footer.tmpl -> partials/footer.tmpl
 		name := filepath.ToSlash(rel)
@@ -103,20 +102,24 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
+
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
 		_, err = e.Templates.New(name).Parse(string(buf))
 		if err != nil {
 			return err
 		}
+
 		// Debugging
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
-	// notify engine that we parsed all templates
+
+	// notify Engine that we parsed all templates
 	e.Loaded = true
+
 	if e.FileSystem != nil {
 		return utils.Walk(e.FileSystem, e.Directory, walkFn)
 	}
@@ -125,23 +128,28 @@ func (e *Engine) Load() error {
 
 // Render will execute the template name along with the given values.
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
-	if !e.Loaded || e.ShouldReload {
-		if e.ShouldReload {
-			e.Loaded = false
-		}
+	// Check if templates need to be loaded/reloaded
+	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
+
+	// Acquire read lock for accessing the template
+	e.Mutex.RLock()
 	tmpl := e.Templates.Lookup(name)
+	e.Mutex.RUnlock()
+
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
+
 	render := renderFuncCreate(e, out, binding, *tmpl, nil)
 	if len(layout) > 0 && layout[0] != "" {
 		e.Mutex.Lock()
 		defer e.Mutex.Unlock()
 	}
+
 	// construct a nested render function to embed templates in layouts
 	for _, layName := range layout {
 		if layName == "" {

@@ -22,6 +22,7 @@ type IEngineCore interface {
 	FuncMap() map[string]interface{}
 	Layout(key string) IEngineCore
 	Reload(enabled bool) IEngineCore
+	PreRenderCheck() bool
 }
 
 // Engine engine struct
@@ -72,7 +73,9 @@ func (e *Engine) AddFuncMap(m map[string]interface{}) IEngineCore {
 
 // Debug will print the parsed templates when Load is triggered.
 func (e *Engine) Debug(enabled bool) IEngineCore {
+	e.Mutex.Lock()
 	e.Verbose = enabled
+	e.Mutex.Unlock()
 	return e
 }
 
@@ -80,7 +83,9 @@ func (e *Engine) Debug(enabled bool) IEngineCore {
 // templates. An empty delimiter stands for the
 // corresponding default: "{{" and "}}".
 func (e *Engine) Delims(left, right string) IEngineCore {
+	e.Mutex.Lock()
 	e.Left, e.Right = left, right
+	e.Mutex.Unlock()
 	return e
 }
 
@@ -91,7 +96,9 @@ func (e *Engine) FuncMap() map[string]interface{} {
 
 // Layout defines the variable name that will incapsulate the template
 func (e *Engine) Layout(key string) IEngineCore {
+	e.Mutex.Lock()
 	e.LayoutName = key
+	e.Mutex.Unlock()
 	return e
 }
 
@@ -99,6 +106,24 @@ func (e *Engine) Layout(key string) IEngineCore {
 // use it when you're in development and you don't want to restart
 // the application when you edit a template file.
 func (e *Engine) Reload(enabled bool) IEngineCore {
+	e.Mutex.Lock()
 	e.ShouldReload = enabled
+	e.Mutex.Unlock()
 	return e
+}
+
+// Check if the engine should reload the templates before rendering
+// Explicit Mute Unlock vs defer offers better performance
+func (e *Engine) PreRenderCheck() bool {
+	e.Mutex.Lock()
+
+	if !e.Loaded || e.ShouldReload {
+		if e.ShouldReload {
+			e.Loaded = false
+		}
+		e.Mutex.Unlock()
+		return true
+	}
+	e.Mutex.Unlock()
+	return false
 }

@@ -12,9 +12,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/aymerick/raymond"
 	core "github.com/gofiber/template"
 	"github.com/gofiber/utils"
+	"github.com/mailgun/raymond/v2"
 )
 
 // Engine struct
@@ -59,6 +59,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 	var err error
+
 	// Set template settings
 	e.Templates = make(map[string]*raymond.Template)
 	e.registerHelpersOnce.Do(func() {
@@ -106,7 +107,6 @@ func (e *Engine) Load() error {
 		// raymond.RegisterPartialTemplate(name, tmpl)
 		e.Templates[name] = tmpl
 
-		// Debugging
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
@@ -123,6 +123,7 @@ func (e *Engine) Load() error {
 			e.Templates[j].RegisterPartialTemplate(n, template)
 		}
 	}
+
 	// notify Engine that we parsed all templates
 	e.Loaded = true
 	return err
@@ -130,22 +131,27 @@ func (e *Engine) Load() error {
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
-	if !e.Loaded || e.ShouldReload {
-		if e.ShouldReload {
-			e.Loaded = false
-		}
+	// Check if templates need to be loaded/reloaded
+	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
+
+	// Lock while executing layout
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
 	tmpl := e.Templates[name]
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
+
 	parsed, err := tmpl.Exec(binding)
 	if err != nil {
 		return fmt.Errorf("render: %w", err)
 	}
+
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates[layout[0]]
 		if lay == nil {

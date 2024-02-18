@@ -2,12 +2,13 @@ package jet
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func trim(str string) string {
@@ -168,34 +169,127 @@ func Benchmark_Jet(b *testing.B) {
 	engine.AddFunc("isAdmin", func(user string) bool {
 		return user == "admin"
 	})
-	var buf bytes.Buffer
-	var err error
+	require.NoError(b, engine.Load())
 
 	b.Run("simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
+		var buf bytes.Buffer
 		for i := 0; i < bb.N; i++ {
 			buf.Reset()
-			err = engine.Render(&buf, "simple", map[string]interface{}{
+			//nolint:gosec,errcheck // Return value not needed for benchmark
+			_ = engine.Render(&buf, "simple", map[string]interface{}{
 				"Title": "Hello, World!",
 			})
 		}
-
-		require.NoError(b, err)
-		require.Equal(b, expectSimple, trim(buf.String()))
 	})
 
 	b.Run("extended", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
+		var buf bytes.Buffer
 		for i := 0; i < bb.N; i++ {
 			buf.Reset()
-			err = engine.Render(&buf, "extended", map[string]interface{}{
+			//nolint:gosec,errcheck // Return value not needed for benchmark
+			_ = engine.Render(&buf, "extended", map[string]interface{}{
 				"User": "admin",
 			}, "layouts/main")
 		}
+	})
 
-		require.NoError(b, err)
-		require.Equal(b, expectExtended, trim(buf.String()))
+	b.Run("simple_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		var buf bytes.Buffer
+		for i := 0; i < bb.N; i++ {
+			buf.Reset()
+			err := engine.Render(&buf, "simple", map[string]interface{}{
+				"Title": "Hello, World!",
+			})
+			require.NoError(bb, err)
+			require.Equal(bb, expectSimple, trim(buf.String()))
+		}
+	})
+
+	b.Run("extended_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		var buf bytes.Buffer
+		for i := 0; i < bb.N; i++ {
+			buf.Reset()
+			err := engine.Render(&buf, "extended", map[string]interface{}{
+				"User": "admin",
+			}, "layouts/main")
+			require.NoError(bb, err)
+			require.Equal(bb, expectExtended, trim(buf.String()))
+		}
+	})
+}
+
+func Benchmark_Jet_Parallel(b *testing.B) {
+	expectSimple := `<h1>Hello, Parallel!</h1>`
+	expectExtended := `<!DOCTYPE html><html><head><title>Title</title></head><body><h2>Header</h2><h1>Hello, Admin!</h1><h2>Footer</h2></body></html>`
+	engine := New("./views", ".jet")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == "admin"
+	})
+	require.NoError(b, engine.Load())
+
+	b.Run("parallel_simple", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				//nolint:gosec,errcheck // Return value not needed for benchmark
+				_ = engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Parallel!",
+				})
+			}
+		})
+	})
+
+	b.Run("parallel_extended", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				//nolint:gosec,errcheck // Return value not needed for benchmark
+				_ = engine.Render(&buf, "extended", map[string]interface{}{
+					"User": "admin",
+				}, "layouts/main")
+			}
+		})
+	})
+
+	b.Run("parallel_simple_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				err := engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Parallel!",
+				})
+				require.NoError(bb, err)
+				require.Equal(bb, expectSimple, trim(buf.String()))
+			}
+		})
+	})
+
+	b.Run("parallel_extended_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				err := engine.Render(&buf, "extended", map[string]interface{}{
+					"User": "admin",
+				}, "layouts/main")
+				require.NoError(bb, err)
+				require.Equal(bb, expectExtended, trim(buf.String()))
+			}
+		})
 	})
 }

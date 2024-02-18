@@ -2,12 +2,13 @@ package slim
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattn/go-slim"
 )
@@ -182,20 +183,68 @@ func Benchmark_Slim(b *testing.B) {
 	engine.AddFunc("isAdmin", func(s ...slim.Value) (slim.Value, error) {
 		return s[0].(string) == "admin", nil
 	})
-	var buf bytes.Buffer
-	var err error
+	require.NoError(b, engine.Load())
 
 	b.Run("simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		for i := 0; i < bb.N; i++ {
-			buf.Reset()
-			err = engine.Render(&buf, "simple", map[string]interface{}{
+			var buf bytes.Buffer
+			//nolint:gosec,errcheck // Return value not needed for benchmark
+			_ = engine.Render(&buf, "simple", map[string]interface{}{
 				"Title": "Hello, World!",
 			})
 		}
+	})
 
-		require.NoError(b, err)
-		require.Equal(b, expectSimple, trim(buf.String()))
+	b.Run("simple_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		for i := 0; i < bb.N; i++ {
+			var buf bytes.Buffer
+			err := engine.Render(&buf, "simple", map[string]interface{}{
+				"Title": "Hello, World!",
+			})
+			require.NoError(b, err)
+			require.Equal(b, expectSimple, trim(buf.String()))
+		}
+	})
+}
+
+func Benchmark_Slim_Parallel(b *testing.B) {
+	expectSimple := `<h1>Hello, Parallel!</h1>`
+	engine := New("./views", ".slim")
+	engine.AddFunc("isAdmin", func(s ...slim.Value) (slim.Value, error) {
+		return s[0].(string) == "admin", nil
+	})
+	require.NoError(b, engine.Load())
+
+	b.Run("parallel_simple", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				//nolint:gosec,errcheck // Return value not needed for benchmark
+				_ = engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Parallel!",
+				})
+			}
+		})
+	})
+
+	b.Run("parallel_simple_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				err := engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Parallel!",
+				})
+				require.NoError(bb, err)
+				require.Equal(bb, expectSimple, trim(buf.String()))
+			}
+		})
 	})
 }

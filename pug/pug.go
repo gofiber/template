@@ -25,35 +25,29 @@ type Engine struct {
 
 // New returns a Pug render engine for Fiber
 func New(directory, extension string) *Engine {
+	return newEngine(directory, extension, nil)
+}
+
+// NewFileSystem returns a Pug render engine for Fiber with file system
+func NewFileSystem(fs http.FileSystem, extension string) *Engine {
+	return newEngine("/", extension, fs)
+}
+
+// newEngine creates a new Engine instance with common initialization logic.
+func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 	engine := &Engine{
 		Engine: core.Engine{
 			Left:       "{{",
 			Right:      "}}",
 			Directory:  directory,
-			Extension:  extension,
-			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
-		},
-	}
-	engine.AddFunc(engine.LayoutName, func() error {
-		return fmt.Errorf("layoutName called unexpectedly")
-	})
-	return engine
-}
-
-// NewFileSystem returns a Pug render engine for Fiber with file system
-func NewFileSystem(fs http.FileSystem, extension string) *Engine {
-	engine := &Engine{
-		Engine: core.Engine{
-			Left:       "{{",
-			Right:      "}}",
-			Directory:  "/",
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
 			Funcmap:    make(map[string]interface{}),
 		},
 	}
+	// Add a default function that throws an error if called unexpectedly.
+	// This can be useful for debugging or ensuring certain functions are used correctly.
 	engine.AddFunc(engine.LayoutName, func() error {
 		return fmt.Errorf("layoutName called unexpectedly")
 	})
@@ -98,13 +92,14 @@ func (e *Engine) Load() error {
 		name := filepath.ToSlash(rel)
 		// Remove ext from name 'index.tmpl' -> 'index'
 		name = strings.TrimSuffix(name, e.Extension)
-		// name = strings.Replace(name, e.extension, "", -1)
+
 		// Read the file
 		// #gosec G304
 		buf, err := utils.ReadFile(path, e.FileSystem)
 		if err != nil {
 			return err
 		}
+
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
 		var pug string
@@ -120,39 +115,53 @@ func (e *Engine) Load() error {
 		if err != nil {
 			return err
 		}
-		// Debugging
+
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
 		return err
 	}
+
 	// notify Engine that we parsed all templates
 	e.Loaded = true
+
 	if e.FileSystem != nil {
 		return utils.Walk(e.FileSystem, e.Directory, walkFn)
 	}
+
 	return filepath.Walk(e.Directory, walkFn)
 }
 
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
-	if !e.Loaded || e.ShouldReload {
-		if e.ShouldReload {
-			e.Loaded = false
-		}
+	// Check if templates need to be loaded/reloaded
+	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
 			return err
 		}
 	}
+
+	// Acquire read lock for accessing the template
+	e.Mutex.RLock()
 	tmpl := e.Templates.Lookup(name)
+	e.Mutex.RUnlock()
+
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
+
+	// Lock while executing layout
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
+	// Handle layout if specified
 	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates.Lookup(layout[0])
+
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
+
 		lay.Funcs(map[string]interface{}{
 			e.LayoutName: func() error {
 				return tmpl.Execute(out, binding)
@@ -160,5 +169,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		})
 		return lay.Execute(out, binding)
 	}
+
 	return tmpl.Execute(out, binding)
 }
