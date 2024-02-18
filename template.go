@@ -113,6 +113,7 @@ func (e *Engine) Reload(enabled bool) IEngineCore {
 }
 
 // Check if the engine should reload the templates before rendering
+// Explicit Mute Unlock vs defer offers better performance
 func (e *Engine) PreRenderCheck() bool {
 	e.Mutex.Lock()
 
