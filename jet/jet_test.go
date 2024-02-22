@@ -235,7 +235,7 @@ func Benchmark_Jet_Parallel(b *testing.B) {
 	})
 	require.NoError(b, engine.Load())
 
-	b.Run("parallel_simple", func(bb *testing.B) {
+	b.Run("simple", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
@@ -249,7 +249,7 @@ func Benchmark_Jet_Parallel(b *testing.B) {
 		})
 	})
 
-	b.Run("parallel_extended", func(bb *testing.B) {
+	b.Run("extended", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
@@ -263,7 +263,7 @@ func Benchmark_Jet_Parallel(b *testing.B) {
 		})
 	})
 
-	b.Run("parallel_simple_asserted", func(bb *testing.B) {
+	b.Run("simple_asserted", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {
@@ -278,7 +278,7 @@ func Benchmark_Jet_Parallel(b *testing.B) {
 		})
 	})
 
-	b.Run("parallel_extended_asserted", func(bb *testing.B) {
+	b.Run("extended_asserted", func(bb *testing.B) {
 		bb.ReportAllocs()
 		bb.ResetTimer()
 		bb.RunParallel(func(pb *testing.PB) {

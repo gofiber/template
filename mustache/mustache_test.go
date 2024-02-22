@@ -151,3 +151,38 @@ func Benchmark_Mustache(b *testing.B) {
 		}
 	})
 }
+
+func Benchmark_Mustache_Parallel(b *testing.B) {
+	expectSimple := `<h1>Hello, Parallel!</h1>`
+	engine := New("./views", ".mustache")
+	require.NoError(b, engine.Load())
+
+	b.Run("simple", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				//nolint:gosec,errcheck // Return value not needed for benchmark
+				_ = engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Parallel!",
+				})
+			}
+		})
+	})
+
+	b.Run("simple_asserted", func(bb *testing.B) {
+		bb.ReportAllocs()
+		bb.ResetTimer()
+		bb.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				var buf bytes.Buffer
+				err := engine.Render(&buf, "simple", map[string]interface{}{
+					"Title": "Hello, Parallel!",
+				})
+				require.NoError(bb, err)
+				require.Equal(bb, expectSimple, trim(buf.String()))
+			}
+		})
+	})
+}
