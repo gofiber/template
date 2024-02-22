@@ -54,10 +54,17 @@ jobs:
       - name: Save Benchmark Results
         uses: benchmark-action/github-action-benchmark@v1.19.3
         with:
-          tool: "go"
+          # What benchmark tool the output.txt came from
+          tool: 'go'
+          # Where the output from the benchmark tool is stored
           output-file-path: output.txt
+          # Where the previous data file is stored
+          external-data-json-path: ./cache/benchmark-data.json
+          # Secret for Github
           github-token: ${{ secrets.BENCHMARK_TOKEN }}
+          # Directory that contains benchmark files on the GitHub pages branch
           benchmark-data-dir-path: "benchmarks"
+          # Workflow will fail when an alert happens
           fail-on-alert: true
           comment-on-alert: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
           #summary-always: ${{ github.event_name != 'push' && github.event_name != 'workflow_dispatch' }}
