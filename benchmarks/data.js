@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708570126910,
+  "lastUpdate": 1708571212104,
   "repoUrl": "https://github.com/gofiber/template",
   "entries": {
     "Benchmark": [
@@ -17372,6 +17372,1710 @@ window.BENCHMARK_DATA = {
             "value": 42,
             "unit": "allocs/op",
             "extra": "186477 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "rene@gofiber.io",
+            "name": "RW",
+            "username": "ReneWerner87"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9fa0d56586646c8de82a5cda55d196622884d656",
+          "message": "Merge pull request #344 from gofiber/dependabot/go_modules/handlebars/github.com/gofiber/fiber/v2-2.52.1\n\nBump github.com/gofiber/fiber/v2 from 2.52.0 to 2.52.1 in /handlebars",
+          "timestamp": "2024-02-22T04:04:43+01:00",
+          "tree_id": "783e88d5f35911ceab4c6a054f3ce74277cc0f04",
+          "url": "https://github.com/gofiber/template/commit/9fa0d56586646c8de82a5cda55d196622884d656"
+        },
+        "date": 1708571211510,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "Benchmark_Ace/simple",
+            "value": 1553,
+            "unit": "ns/op\t     688 B/op\t      14 allocs/op",
+            "extra": "766105 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple - ns/op",
+            "value": 1553,
+            "unit": "ns/op",
+            "extra": "766105 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple - B/op",
+            "value": 688,
+            "unit": "B/op",
+            "extra": "766105 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "766105 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended",
+            "value": 3173,
+            "unit": "ns/op\t    1097 B/op\t      24 allocs/op",
+            "extra": "357579 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended - ns/op",
+            "value": 3173,
+            "unit": "ns/op",
+            "extra": "357579 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended - B/op",
+            "value": 1097,
+            "unit": "B/op",
+            "extra": "357579 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended - allocs/op",
+            "value": 24,
+            "unit": "allocs/op",
+            "extra": "357579 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple_asserted",
+            "value": 4878,
+            "unit": "ns/op\t    1765 B/op\t      33 allocs/op",
+            "extra": "234717 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple_asserted - ns/op",
+            "value": 4878,
+            "unit": "ns/op",
+            "extra": "234717 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple_asserted - B/op",
+            "value": 1765,
+            "unit": "B/op",
+            "extra": "234717 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple_asserted - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "234717 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended_asserted",
+            "value": 8906,
+            "unit": "ns/op\t    2650 B/op\t      44 allocs/op",
+            "extra": "133408 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended_asserted - ns/op",
+            "value": 8906,
+            "unit": "ns/op",
+            "extra": "133408 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended_asserted - B/op",
+            "value": 2650,
+            "unit": "B/op",
+            "extra": "133408 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended_asserted - allocs/op",
+            "value": 44,
+            "unit": "allocs/op",
+            "extra": "133408 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_simple",
+            "value": 1932,
+            "unit": "ns/op\t     688 B/op\t      14 allocs/op",
+            "extra": "570216 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_simple - ns/op",
+            "value": 1932,
+            "unit": "ns/op",
+            "extra": "570216 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_simple - B/op",
+            "value": 688,
+            "unit": "B/op",
+            "extra": "570216 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_simple - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "570216 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_extended",
+            "value": 4079,
+            "unit": "ns/op\t    1097 B/op\t      24 allocs/op",
+            "extra": "291002 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_extended - ns/op",
+            "value": 4079,
+            "unit": "ns/op",
+            "extra": "291002 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_extended - B/op",
+            "value": 1097,
+            "unit": "B/op",
+            "extra": "291002 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_extended - allocs/op",
+            "value": 24,
+            "unit": "allocs/op",
+            "extra": "291002 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_simple_asserted",
+            "value": 5083,
+            "unit": "ns/op\t    1777 B/op\t      33 allocs/op",
+            "extra": "226724 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_simple_asserted - ns/op",
+            "value": 5083,
+            "unit": "ns/op",
+            "extra": "226724 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_simple_asserted - B/op",
+            "value": 1777,
+            "unit": "B/op",
+            "extra": "226724 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_simple_asserted - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "226724 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_extended_asserted",
+            "value": 9846,
+            "unit": "ns/op\t    2647 B/op\t      44 allocs/op",
+            "extra": "120273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_extended_asserted - ns/op",
+            "value": 9846,
+            "unit": "ns/op",
+            "extra": "120273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_extended_asserted - B/op",
+            "value": 2647,
+            "unit": "B/op",
+            "extra": "120273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/parallel_extended_asserted - allocs/op",
+            "value": 44,
+            "unit": "allocs/op",
+            "extra": "120273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple",
+            "value": 1460,
+            "unit": "ns/op\t     576 B/op\t      12 allocs/op",
+            "extra": "815718 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple - ns/op",
+            "value": 1460,
+            "unit": "ns/op",
+            "extra": "815718 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "815718 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "815718 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended",
+            "value": 2940,
+            "unit": "ns/op\t     921 B/op\t      21 allocs/op",
+            "extra": "382558 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended - ns/op",
+            "value": 2940,
+            "unit": "ns/op",
+            "extra": "382558 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended - B/op",
+            "value": 921,
+            "unit": "B/op",
+            "extra": "382558 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "382558 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple_asserted",
+            "value": 4918,
+            "unit": "ns/op\t    1655 B/op\t      31 allocs/op",
+            "extra": "232821 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple_asserted - ns/op",
+            "value": 4918,
+            "unit": "ns/op",
+            "extra": "232821 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple_asserted - B/op",
+            "value": 1655,
+            "unit": "B/op",
+            "extra": "232821 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple_asserted - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "232821 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended_asserted",
+            "value": 10689,
+            "unit": "ns/op\t    2827 B/op\t      44 allocs/op",
+            "extra": "111247 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended_asserted - ns/op",
+            "value": 10689,
+            "unit": "ns/op",
+            "extra": "111247 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended_asserted - B/op",
+            "value": 2827,
+            "unit": "B/op",
+            "extra": "111247 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended_asserted - allocs/op",
+            "value": 44,
+            "unit": "allocs/op",
+            "extra": "111247 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_simple",
+            "value": 1934,
+            "unit": "ns/op\t     688 B/op\t      14 allocs/op",
+            "extra": "585117 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_simple - ns/op",
+            "value": 1934,
+            "unit": "ns/op",
+            "extra": "585117 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_simple - B/op",
+            "value": 688,
+            "unit": "B/op",
+            "extra": "585117 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_simple - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "585117 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_extended",
+            "value": 4026,
+            "unit": "ns/op\t    1209 B/op\t      24 allocs/op",
+            "extra": "287734 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_extended - ns/op",
+            "value": 4026,
+            "unit": "ns/op",
+            "extra": "287734 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_extended - B/op",
+            "value": 1209,
+            "unit": "B/op",
+            "extra": "287734 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_extended - allocs/op",
+            "value": 24,
+            "unit": "allocs/op",
+            "extra": "287734 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_simple_asserted",
+            "value": 5231,
+            "unit": "ns/op\t    1779 B/op\t      33 allocs/op",
+            "extra": "222958 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_simple_asserted - ns/op",
+            "value": 5231,
+            "unit": "ns/op",
+            "extra": "222958 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_simple_asserted - B/op",
+            "value": 1779,
+            "unit": "B/op",
+            "extra": "222958 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_simple_asserted - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "222958 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_extended_asserted",
+            "value": 11060,
+            "unit": "ns/op\t    3124 B/op\t      47 allocs/op",
+            "extra": "105109 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_extended_asserted - ns/op",
+            "value": 11060,
+            "unit": "ns/op",
+            "extra": "105109 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_extended_asserted - B/op",
+            "value": 3124,
+            "unit": "B/op",
+            "extra": "105109 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/parallel_extended_asserted - allocs/op",
+            "value": 47,
+            "unit": "allocs/op",
+            "extra": "105109 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple",
+            "value": 1477,
+            "unit": "ns/op\t     928 B/op\t      12 allocs/op",
+            "extra": "824185 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple - ns/op",
+            "value": 1477,
+            "unit": "ns/op",
+            "extra": "824185 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple - B/op",
+            "value": 928,
+            "unit": "B/op",
+            "extra": "824185 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "824185 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended",
+            "value": 6210,
+            "unit": "ns/op\t    3985 B/op\t      38 allocs/op",
+            "extra": "168825 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended - ns/op",
+            "value": 6210,
+            "unit": "ns/op",
+            "extra": "168825 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended - B/op",
+            "value": 3985,
+            "unit": "B/op",
+            "extra": "168825 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended - allocs/op",
+            "value": 38,
+            "unit": "allocs/op",
+            "extra": "168825 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys",
+            "value": 1777,
+            "unit": "ns/op\t     928 B/op\t      12 allocs/op",
+            "extra": "614199 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys - ns/op",
+            "value": 1777,
+            "unit": "ns/op",
+            "extra": "614199 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys - B/op",
+            "value": 928,
+            "unit": "B/op",
+            "extra": "614199 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "614199 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys",
+            "value": 7650,
+            "unit": "ns/op\t    3985 B/op\t      38 allocs/op",
+            "extra": "156525 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys - ns/op",
+            "value": 7650,
+            "unit": "ns/op",
+            "extra": "156525 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys - B/op",
+            "value": 3985,
+            "unit": "B/op",
+            "extra": "156525 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys - allocs/op",
+            "value": 38,
+            "unit": "allocs/op",
+            "extra": "156525 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_asserted",
+            "value": 4865,
+            "unit": "ns/op\t    2012 B/op\t      31 allocs/op",
+            "extra": "238417 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_asserted - ns/op",
+            "value": 4865,
+            "unit": "ns/op",
+            "extra": "238417 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_asserted - B/op",
+            "value": 2012,
+            "unit": "B/op",
+            "extra": "238417 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_asserted - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "238417 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_asserted",
+            "value": 14212,
+            "unit": "ns/op\t    5942 B/op\t      61 allocs/op",
+            "extra": "82812 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_asserted - ns/op",
+            "value": 14212,
+            "unit": "ns/op",
+            "extra": "82812 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_asserted - B/op",
+            "value": 5942,
+            "unit": "B/op",
+            "extra": "82812 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_asserted - allocs/op",
+            "value": 61,
+            "unit": "allocs/op",
+            "extra": "82812 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys_asserted",
+            "value": 5233,
+            "unit": "ns/op\t    2014 B/op\t      31 allocs/op",
+            "extra": "223592 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys_asserted - ns/op",
+            "value": 5233,
+            "unit": "ns/op",
+            "extra": "223592 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys_asserted - B/op",
+            "value": 2014,
+            "unit": "B/op",
+            "extra": "223592 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys_asserted - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "223592 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys_asserted",
+            "value": 15535,
+            "unit": "ns/op\t    5955 B/op\t      61 allocs/op",
+            "extra": "76333 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys_asserted - ns/op",
+            "value": 15535,
+            "unit": "ns/op",
+            "extra": "76333 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys_asserted - B/op",
+            "value": 5955,
+            "unit": "B/op",
+            "extra": "76333 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys_asserted - allocs/op",
+            "value": 61,
+            "unit": "allocs/op",
+            "extra": "76333 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple",
+            "value": 1788,
+            "unit": "ns/op\t     944 B/op\t      12 allocs/op",
+            "extra": "631983 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple - ns/op",
+            "value": 1788,
+            "unit": "ns/op",
+            "extra": "631983 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple - B/op",
+            "value": 944,
+            "unit": "B/op",
+            "extra": "631983 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "631983 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended",
+            "value": 7695,
+            "unit": "ns/op\t    3985 B/op\t      38 allocs/op",
+            "extra": "152796 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended - ns/op",
+            "value": 7695,
+            "unit": "ns/op",
+            "extra": "152796 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended - B/op",
+            "value": 3985,
+            "unit": "B/op",
+            "extra": "152796 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended - allocs/op",
+            "value": 38,
+            "unit": "allocs/op",
+            "extra": "152796 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys",
+            "value": 2186,
+            "unit": "ns/op\t     944 B/op\t      12 allocs/op",
+            "extra": "526371 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys - ns/op",
+            "value": 2186,
+            "unit": "ns/op",
+            "extra": "526371 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys - B/op",
+            "value": 944,
+            "unit": "B/op",
+            "extra": "526371 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "526371 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys",
+            "value": 9240,
+            "unit": "ns/op\t    3985 B/op\t      38 allocs/op",
+            "extra": "131355 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys - ns/op",
+            "value": 9240,
+            "unit": "ns/op",
+            "extra": "131355 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys - B/op",
+            "value": 3985,
+            "unit": "B/op",
+            "extra": "131355 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys - allocs/op",
+            "value": 38,
+            "unit": "allocs/op",
+            "extra": "131355 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_asserted",
+            "value": 5240,
+            "unit": "ns/op\t    2147 B/op\t      33 allocs/op",
+            "extra": "220246 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_asserted - ns/op",
+            "value": 5240,
+            "unit": "ns/op",
+            "extra": "220246 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_asserted - B/op",
+            "value": 2147,
+            "unit": "B/op",
+            "extra": "220246 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_asserted - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "220246 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_asserted",
+            "value": 16759,
+            "unit": "ns/op\t    6151 B/op\t      63 allocs/op",
+            "extra": "70750 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_asserted - ns/op",
+            "value": 16759,
+            "unit": "ns/op",
+            "extra": "70750 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_asserted - B/op",
+            "value": 6151,
+            "unit": "B/op",
+            "extra": "70750 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_asserted - allocs/op",
+            "value": 63,
+            "unit": "allocs/op",
+            "extra": "70750 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys_asserted",
+            "value": 5855,
+            "unit": "ns/op\t    2145 B/op\t      33 allocs/op",
+            "extra": "200046 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys_asserted - ns/op",
+            "value": 5855,
+            "unit": "ns/op",
+            "extra": "200046 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys_asserted - B/op",
+            "value": 2145,
+            "unit": "B/op",
+            "extra": "200046 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys_asserted - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "200046 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys_asserted",
+            "value": 18283,
+            "unit": "ns/op\t    6134 B/op\t      63 allocs/op",
+            "extra": "65077 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys_asserted - ns/op",
+            "value": 18283,
+            "unit": "ns/op",
+            "extra": "65077 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys_asserted - B/op",
+            "value": 6134,
+            "unit": "B/op",
+            "extra": "65077 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys_asserted - allocs/op",
+            "value": 63,
+            "unit": "allocs/op",
+            "extra": "65077 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple",
+            "value": 1561,
+            "unit": "ns/op\t     880 B/op\t      21 allocs/op",
+            "extra": "656968 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple - ns/op",
+            "value": 1561,
+            "unit": "ns/op",
+            "extra": "656968 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple - B/op",
+            "value": 880,
+            "unit": "B/op",
+            "extra": "656968 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "656968 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended",
+            "value": 6974,
+            "unit": "ns/op\t    3280 B/op\t      80 allocs/op",
+            "extra": "165470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended - ns/op",
+            "value": 6974,
+            "unit": "ns/op",
+            "extra": "165470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended - B/op",
+            "value": 3280,
+            "unit": "B/op",
+            "extra": "165470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended - allocs/op",
+            "value": 80,
+            "unit": "allocs/op",
+            "extra": "165470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple_asserted",
+            "value": 5052,
+            "unit": "ns/op\t    1964 B/op\t      40 allocs/op",
+            "extra": "232227 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple_asserted - ns/op",
+            "value": 5052,
+            "unit": "ns/op",
+            "extra": "232227 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple_asserted - B/op",
+            "value": 1964,
+            "unit": "B/op",
+            "extra": "232227 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple_asserted - allocs/op",
+            "value": 40,
+            "unit": "allocs/op",
+            "extra": "232227 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended_asserted",
+            "value": 14963,
+            "unit": "ns/op\t    5227 B/op\t     103 allocs/op",
+            "extra": "79465 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended_asserted - ns/op",
+            "value": 14963,
+            "unit": "ns/op",
+            "extra": "79465 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended_asserted - B/op",
+            "value": 5227,
+            "unit": "B/op",
+            "extra": "79465 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended_asserted - allocs/op",
+            "value": 103,
+            "unit": "allocs/op",
+            "extra": "79465 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_simple",
+            "value": 2015,
+            "unit": "ns/op\t    1008 B/op\t      23 allocs/op",
+            "extra": "548948 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_simple - ns/op",
+            "value": 2015,
+            "unit": "ns/op",
+            "extra": "548948 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_simple - B/op",
+            "value": 1008,
+            "unit": "B/op",
+            "extra": "548948 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_simple - allocs/op",
+            "value": 23,
+            "unit": "allocs/op",
+            "extra": "548948 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_extended",
+            "value": 9116,
+            "unit": "ns/op\t    3488 B/op\t      82 allocs/op",
+            "extra": "131103 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_extended - ns/op",
+            "value": 9116,
+            "unit": "ns/op",
+            "extra": "131103 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_extended - B/op",
+            "value": 3488,
+            "unit": "B/op",
+            "extra": "131103 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_extended - allocs/op",
+            "value": 82,
+            "unit": "allocs/op",
+            "extra": "131103 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_simple_asserted",
+            "value": 5353,
+            "unit": "ns/op\t    2100 B/op\t      42 allocs/op",
+            "extra": "220552 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_simple_asserted - ns/op",
+            "value": 5353,
+            "unit": "ns/op",
+            "extra": "220552 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_simple_asserted - B/op",
+            "value": 2100,
+            "unit": "B/op",
+            "extra": "220552 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_simple_asserted - allocs/op",
+            "value": 42,
+            "unit": "allocs/op",
+            "extra": "220552 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_extended_asserted",
+            "value": 17594,
+            "unit": "ns/op\t    5447 B/op\t     105 allocs/op",
+            "extra": "67442 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_extended_asserted - ns/op",
+            "value": 17594,
+            "unit": "ns/op",
+            "extra": "67442 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_extended_asserted - B/op",
+            "value": 5447,
+            "unit": "B/op",
+            "extra": "67442 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/parallel_extended_asserted - allocs/op",
+            "value": 105,
+            "unit": "allocs/op",
+            "extra": "67442 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple",
+            "value": 1778,
+            "unit": "ns/op\t     688 B/op\t      14 allocs/op",
+            "extra": "604543 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple - ns/op",
+            "value": 1778,
+            "unit": "ns/op",
+            "extra": "604543 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple - B/op",
+            "value": 688,
+            "unit": "B/op",
+            "extra": "604543 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "604543 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended",
+            "value": 3367,
+            "unit": "ns/op\t    1033 B/op\t      24 allocs/op",
+            "extra": "341454 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended - ns/op",
+            "value": 3367,
+            "unit": "ns/op",
+            "extra": "341454 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended - B/op",
+            "value": 1033,
+            "unit": "B/op",
+            "extra": "341454 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended - allocs/op",
+            "value": 24,
+            "unit": "allocs/op",
+            "extra": "341454 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple_asserted",
+            "value": 5229,
+            "unit": "ns/op\t    1769 B/op\t      33 allocs/op",
+            "extra": "223785 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple_asserted - ns/op",
+            "value": 5229,
+            "unit": "ns/op",
+            "extra": "223785 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple_asserted - B/op",
+            "value": 1769,
+            "unit": "B/op",
+            "extra": "223785 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple_asserted - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "223785 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended_asserted",
+            "value": 11072,
+            "unit": "ns/op\t    2952 B/op\t      47 allocs/op",
+            "extra": "106770 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended_asserted - ns/op",
+            "value": 11072,
+            "unit": "ns/op",
+            "extra": "106770 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended_asserted - B/op",
+            "value": 2952,
+            "unit": "B/op",
+            "extra": "106770 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended_asserted - allocs/op",
+            "value": 47,
+            "unit": "allocs/op",
+            "extra": "106770 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_simple",
+            "value": 2141,
+            "unit": "ns/op\t     800 B/op\t      16 allocs/op",
+            "extra": "522513 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_simple - ns/op",
+            "value": 2141,
+            "unit": "ns/op",
+            "extra": "522513 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_simple - B/op",
+            "value": 800,
+            "unit": "B/op",
+            "extra": "522513 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_simple - allocs/op",
+            "value": 16,
+            "unit": "allocs/op",
+            "extra": "522513 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_extended",
+            "value": 4462,
+            "unit": "ns/op\t    1321 B/op\t      27 allocs/op",
+            "extra": "254920 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_extended - ns/op",
+            "value": 4462,
+            "unit": "ns/op",
+            "extra": "254920 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_extended - B/op",
+            "value": 1321,
+            "unit": "B/op",
+            "extra": "254920 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_extended - allocs/op",
+            "value": 27,
+            "unit": "allocs/op",
+            "extra": "254920 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_simple_asserted",
+            "value": 4709,
+            "unit": "ns/op\t    1891 B/op\t      35 allocs/op",
+            "extra": "246109 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_simple_asserted - ns/op",
+            "value": 4709,
+            "unit": "ns/op",
+            "extra": "246109 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_simple_asserted - B/op",
+            "value": 1891,
+            "unit": "B/op",
+            "extra": "246109 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_simple_asserted - allocs/op",
+            "value": 35,
+            "unit": "allocs/op",
+            "extra": "246109 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_extended_asserted",
+            "value": 11657,
+            "unit": "ns/op\t    3247 B/op\t      50 allocs/op",
+            "extra": "102444 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_extended_asserted - ns/op",
+            "value": 11657,
+            "unit": "ns/op",
+            "extra": "102444 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_extended_asserted - B/op",
+            "value": 3247,
+            "unit": "B/op",
+            "extra": "102444 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/parallel_extended_asserted - allocs/op",
+            "value": 50,
+            "unit": "allocs/op",
+            "extra": "102444 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple",
+            "value": 760.3,
+            "unit": "ns/op\t     793 B/op\t       9 allocs/op",
+            "extra": "1577414 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple - ns/op",
+            "value": 760.3,
+            "unit": "ns/op",
+            "extra": "1577414 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple - B/op",
+            "value": 793,
+            "unit": "B/op",
+            "extra": "1577414 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple - allocs/op",
+            "value": 9,
+            "unit": "allocs/op",
+            "extra": "1577414 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended",
+            "value": 2663,
+            "unit": "ns/op\t    1344 B/op\t      31 allocs/op",
+            "extra": "430382 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended - ns/op",
+            "value": 2663,
+            "unit": "ns/op",
+            "extra": "430382 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended - B/op",
+            "value": 1344,
+            "unit": "B/op",
+            "extra": "430382 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "430382 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple_asserted",
+            "value": 4240,
+            "unit": "ns/op\t    1878 B/op\t      28 allocs/op",
+            "extra": "274825 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple_asserted - ns/op",
+            "value": 4240,
+            "unit": "ns/op",
+            "extra": "274825 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple_asserted - B/op",
+            "value": 1878,
+            "unit": "B/op",
+            "extra": "274825 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple_asserted - allocs/op",
+            "value": 28,
+            "unit": "allocs/op",
+            "extra": "274825 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended_asserted",
+            "value": 10531,
+            "unit": "ns/op\t    3270 B/op\t      54 allocs/op",
+            "extra": "112470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended_asserted - ns/op",
+            "value": 10531,
+            "unit": "ns/op",
+            "extra": "112470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended_asserted - B/op",
+            "value": 3270,
+            "unit": "B/op",
+            "extra": "112470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended_asserted - allocs/op",
+            "value": 54,
+            "unit": "allocs/op",
+            "extra": "112470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_simple",
+            "value": 1082,
+            "unit": "ns/op\t     904 B/op\t      11 allocs/op",
+            "extra": "979177 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_simple - ns/op",
+            "value": 1082,
+            "unit": "ns/op",
+            "extra": "979177 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_simple - B/op",
+            "value": 904,
+            "unit": "B/op",
+            "extra": "979177 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_simple - allocs/op",
+            "value": 11,
+            "unit": "allocs/op",
+            "extra": "979177 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_extended",
+            "value": 3596,
+            "unit": "ns/op\t    1632 B/op\t      34 allocs/op",
+            "extra": "313200 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_extended - ns/op",
+            "value": 3596,
+            "unit": "ns/op",
+            "extra": "313200 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_extended - B/op",
+            "value": 1632,
+            "unit": "B/op",
+            "extra": "313200 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_extended - allocs/op",
+            "value": 34,
+            "unit": "allocs/op",
+            "extra": "313200 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_simple_asserted",
+            "value": 4366,
+            "unit": "ns/op\t    1999 B/op\t      30 allocs/op",
+            "extra": "271171 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_simple_asserted - ns/op",
+            "value": 4366,
+            "unit": "ns/op",
+            "extra": "271171 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_simple_asserted - B/op",
+            "value": 1999,
+            "unit": "B/op",
+            "extra": "271171 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_simple_asserted - allocs/op",
+            "value": 30,
+            "unit": "allocs/op",
+            "extra": "271171 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_extended_asserted",
+            "value": 11042,
+            "unit": "ns/op\t    3570 B/op\t      57 allocs/op",
+            "extra": "108055 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_extended_asserted - ns/op",
+            "value": 11042,
+            "unit": "ns/op",
+            "extra": "108055 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_extended_asserted - B/op",
+            "value": 3570,
+            "unit": "B/op",
+            "extra": "108055 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/parallel_extended_asserted - allocs/op",
+            "value": 57,
+            "unit": "allocs/op",
+            "extra": "108055 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple",
+            "value": 683.3,
+            "unit": "ns/op\t     552 B/op\t      10 allocs/op",
+            "extra": "1756231 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple - ns/op",
+            "value": 683.3,
+            "unit": "ns/op",
+            "extra": "1756231 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple - B/op",
+            "value": 552,
+            "unit": "B/op",
+            "extra": "1756231 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple - allocs/op",
+            "value": 10,
+            "unit": "allocs/op",
+            "extra": "1756231 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple_asserted",
+            "value": 3998,
+            "unit": "ns/op\t    1631 B/op\t      29 allocs/op",
+            "extra": "290748 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple_asserted - ns/op",
+            "value": 3998,
+            "unit": "ns/op",
+            "extra": "290748 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple_asserted - B/op",
+            "value": 1631,
+            "unit": "B/op",
+            "extra": "290748 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple_asserted - allocs/op",
+            "value": 29,
+            "unit": "allocs/op",
+            "extra": "290748 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple",
+            "value": 1473,
+            "unit": "ns/op\t     576 B/op\t      12 allocs/op",
+            "extra": "764707 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple - ns/op",
+            "value": 1473,
+            "unit": "ns/op",
+            "extra": "764707 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple - B/op",
+            "value": 576,
+            "unit": "B/op",
+            "extra": "764707 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple - allocs/op",
+            "value": 12,
+            "unit": "allocs/op",
+            "extra": "764707 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended",
+            "value": 2699,
+            "unit": "ns/op\t     761 B/op\t      19 allocs/op",
+            "extra": "413628 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended - ns/op",
+            "value": 2699,
+            "unit": "ns/op",
+            "extra": "413628 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended - B/op",
+            "value": 761,
+            "unit": "B/op",
+            "extra": "413628 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended - allocs/op",
+            "value": 19,
+            "unit": "allocs/op",
+            "extra": "413628 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple_asserted",
+            "value": 4884,
+            "unit": "ns/op\t    1657 B/op\t      31 allocs/op",
+            "extra": "238909 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple_asserted - ns/op",
+            "value": 4884,
+            "unit": "ns/op",
+            "extra": "238909 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple_asserted - B/op",
+            "value": 1657,
+            "unit": "B/op",
+            "extra": "238909 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple_asserted - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "238909 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended_asserted",
+            "value": 13537,
+            "unit": "ns/op\t    2961 B/op\t      42 allocs/op",
+            "extra": "90069 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended_asserted - ns/op",
+            "value": 13537,
+            "unit": "ns/op",
+            "extra": "90069 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended_asserted - B/op",
+            "value": 2961,
+            "unit": "B/op",
+            "extra": "90069 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended_asserted - allocs/op",
+            "value": 42,
+            "unit": "allocs/op",
+            "extra": "90069 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_simple",
+            "value": 1891,
+            "unit": "ns/op\t     688 B/op\t      14 allocs/op",
+            "extra": "574810 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_simple - ns/op",
+            "value": 1891,
+            "unit": "ns/op",
+            "extra": "574810 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_simple - B/op",
+            "value": 688,
+            "unit": "B/op",
+            "extra": "574810 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_simple - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "574810 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_extended",
+            "value": 3714,
+            "unit": "ns/op\t    1385 B/op\t      22 allocs/op",
+            "extra": "297636 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_extended - ns/op",
+            "value": 3714,
+            "unit": "ns/op",
+            "extra": "297636 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_extended - B/op",
+            "value": 1385,
+            "unit": "B/op",
+            "extra": "297636 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_extended - allocs/op",
+            "value": 22,
+            "unit": "allocs/op",
+            "extra": "297636 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_simple_asserted",
+            "value": 5140,
+            "unit": "ns/op\t    1779 B/op\t      33 allocs/op",
+            "extra": "224534 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_simple_asserted - ns/op",
+            "value": 5140,
+            "unit": "ns/op",
+            "extra": "224534 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_simple_asserted - B/op",
+            "value": 1779,
+            "unit": "B/op",
+            "extra": "224534 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_simple_asserted - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "224534 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_extended_asserted",
+            "value": 11287,
+            "unit": "ns/op\t    3600 B/op\t      45 allocs/op",
+            "extra": "109820 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_extended_asserted - ns/op",
+            "value": 11287,
+            "unit": "ns/op",
+            "extra": "109820 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_extended_asserted - B/op",
+            "value": 3600,
+            "unit": "B/op",
+            "extra": "109820 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/parallel_extended_asserted - allocs/op",
+            "value": 45,
+            "unit": "allocs/op",
+            "extra": "109820 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple",
+            "value": 2114,
+            "unit": "ns/op\t    3808 B/op\t      23 allocs/op",
+            "extra": "526470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple - ns/op",
+            "value": 2114,
+            "unit": "ns/op",
+            "extra": "526470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple - B/op",
+            "value": 3808,
+            "unit": "B/op",
+            "extra": "526470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple - allocs/op",
+            "value": 23,
+            "unit": "allocs/op",
+            "extra": "526470 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple_asserted",
+            "value": 5735,
+            "unit": "ns/op\t    4921 B/op\t      42 allocs/op",
+            "extra": "204223 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple_asserted - ns/op",
+            "value": 5735,
+            "unit": "ns/op",
+            "extra": "204223 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple_asserted - B/op",
+            "value": 4921,
+            "unit": "B/op",
+            "extra": "204223 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple_asserted - allocs/op",
+            "value": 42,
+            "unit": "allocs/op",
+            "extra": "204223 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/parallel_simple",
+            "value": 2818,
+            "unit": "ns/op\t    3808 B/op\t      23 allocs/op",
+            "extra": "408426 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/parallel_simple - ns/op",
+            "value": 2818,
+            "unit": "ns/op",
+            "extra": "408426 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/parallel_simple - B/op",
+            "value": 3808,
+            "unit": "B/op",
+            "extra": "408426 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/parallel_simple - allocs/op",
+            "value": 23,
+            "unit": "allocs/op",
+            "extra": "408426 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/parallel_simple_asserted",
+            "value": 6660,
+            "unit": "ns/op\t    4913 B/op\t      42 allocs/op",
+            "extra": "176049 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/parallel_simple_asserted - ns/op",
+            "value": 6660,
+            "unit": "ns/op",
+            "extra": "176049 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/parallel_simple_asserted - B/op",
+            "value": 4913,
+            "unit": "B/op",
+            "extra": "176049 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/parallel_simple_asserted - allocs/op",
+            "value": 42,
+            "unit": "allocs/op",
+            "extra": "176049 times\n4 procs"
           }
         ]
       }
