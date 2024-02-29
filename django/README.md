@@ -195,6 +195,7 @@ c.Render("index", fiber.Map{
     "Fiber": "Hello, World!\n\nGreetings from Fiber Team",
     "MyKey": c.Locals("my-key"),
 })
+```
 
 ### AutoEscape is enabled by default
 
