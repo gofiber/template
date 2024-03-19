@@ -178,12 +178,21 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if err != nil {
 			return err
 		}
+		var err2 error
 		bind.Set(e.LayoutName, func() {
-			err = tmpl.Execute(out, bind, nil)
+			err2 = tmpl.Execute(out, bind, nil)
 		})
-		return lay.Execute(out, bind, nil)
+		err3 := lay.Execute(out, bind, nil)
+		if err2 != nil {
+			return err2
+		}
+		if err3 != nil {
+			return err3
+		}
+		return nil
+	} else {
+		return tmpl.Execute(out, bind, nil)
 	}
-	return tmpl.Execute(out, bind, nil)
 }
 
 func jetVarMap(binding interface{}) jet.VarMap {

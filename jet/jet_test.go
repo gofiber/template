@@ -62,6 +62,20 @@ func Test_Layout(t *testing.T) {
 	require.Equal(t, expect, result)
 }
 
+
+func Test_Layout_Error(t *testing.T) {
+	t.Parallel()
+	engine := New("./views", ".jet")
+
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "index", map[string]interface{}{
+		// "Title": "Hello, World!",
+	}, "layouts/main")
+	require.NotNil(t, err)
+}
+
 func Test_Empty_Layout(t *testing.T) {
 	t.Parallel()
 	engine := New("./views", ".jet")
