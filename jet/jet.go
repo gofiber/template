@@ -179,13 +179,13 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return err
 		}
         var renderingError error
-        bind.Set(e.LayoutName, func() {
+		bind.Set(e.LayoutName, func() {
             renderingError = tmpl.Execute(out, bind, nil)
-        })
-        err = lay.Execute(out, bind, nil)
-        if renderingError != nil {
+		})
+		err = lay.Execute(out, bind, nil)
+		if renderingError != nil {
             return renderingError
-        }
+		}
         return err
 	}
 	return tmpl.Execute(out, bind, nil)
