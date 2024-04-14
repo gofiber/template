@@ -116,7 +116,7 @@ var viewsAsssets embed.FS
 
 func main() {
 	// Create a new engine
-	engine := NewPathForwardingFileSystem(http.FS(viewsAsssets), "/views", ".django")
+	engine := django.NewPathForwardingFileSystem(http.FS(viewsAsssets), "/views", ".django")
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
