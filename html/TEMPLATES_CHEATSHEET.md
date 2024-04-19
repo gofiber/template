@@ -296,12 +296,12 @@ The not function returns the boolean negation of the argument.
 
 The `html/template` package provides a variety of functions to do comparisons between operators. The operators may only be basic types or named basic types such as `type Temp float32` Remember that template functions take the form `{{ function arg1 arg2 }}`.
 
-- `eq` Returns the result of arg1 == arg2
-- `ne` Returns the result of arg1 != arg2
-- `lt` Returns the result of arg1 < arg2
-- `le` Returns the result of arg1 <= arg2
-- `gt` Returns the result of arg1 > arg2
-- `ge` Returns the result of arg1 >= arg2
+- `eq` Returns the result of `arg1 == arg2`
+- `ne` Returns the result of `arg1 != arg2`
+- `lt` Returns the result of `arg1 < arg2`
+- `le` Returns the result of `arg1 <= arg2`
+- `gt` Returns the result of `arg1 > arg2`
+- `ge` Returns the result of `arg1 >= arg2`
 
 Of special note `eq` can be used with two or more arguments by comparing all arguments to the first. `{{ eq arg1 arg2 arg3 arg4}}` will result in the following logical expression:
 
@@ -358,7 +358,7 @@ We use the same range to loop through Items as before but we pass the name to th
 
 Glob patterns specify sets of filenames with wildcard characters. The `template.ParseGlob(pattern string)` function will parse all templates that match the string pattern. `template.ParseFiles(files...)` can also be used with a list of file names.
 
-The templates are named by default based on the base names of the argument files. This mean `views/layouts/hello.gohtml` will have the name `hello.gohtml` . If the template has a ``{{define “templateName”}}` within it then that name will be usable.
+The templates are named by default based on the base names of the argument files. This mean `views/layouts/hello.gohtml` will have the name `hello.gohtml` . If the template has a `{{define “templateName”}}` within it then that name will be usable.
 
 A specific template can be executed using `t.ExecuteTemplate(w, "templateName", nil)` . `t` is an object of type Template, `w` is type io.Writer such as an `http.ResponseWriter`, Then there is the name of the template to execute, and finally passing any data to the template, in this case a nil value.
 
