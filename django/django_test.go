@@ -13,7 +13,7 @@ import (
 	"unicode"
 
 	"github.com/flosch/pongo2/v6"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
