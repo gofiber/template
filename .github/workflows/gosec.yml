@@ -44,6 +44,7 @@ jobs:
   gosec-scan:
     runs-on: ubuntu-latest
     needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.matrix != '' }}
     env:
       GO111MODULE: on
     strategy:
