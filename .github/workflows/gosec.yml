@@ -40,7 +40,10 @@ jobs:
           dir_names: true
           dir_names_max_depth: '1'
           dir_names_exclude_current_dir: true
-
+      - name: Output matrix content
+        env:
+          ABC: ${{ toJson(steps.changed-files.outputs.matrix) }}
+        run: echo "Matrix content $ABC"
   gosec-scan:
     runs-on: ubuntu-latest
     needs: detect-changes
