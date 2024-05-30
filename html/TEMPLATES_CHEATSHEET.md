@@ -85,7 +85,7 @@ Go templates can also be used with javascript. Structs and maps will be expanded
 
 ```js
     // Javascript
-    var cat = {"Name":"Sam", "Age" 12}
+    var cat = {"Name":"Sam", "Age":12}
 ```
 
 ---
