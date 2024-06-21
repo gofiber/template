@@ -37,7 +37,7 @@ html
     title Main
     include ../partials/meta.slim
   body
-    | {{embed}}
+    == embed
 ```
 
 ```go
