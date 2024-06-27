@@ -1,62 +1,25 @@
+# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file#directories
+
 version: 2
 updates:
-  - package-ecosystem: "gomod"
-    directory: "/ace/"
-    labels:
-      - "🤖 Dependencies"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directory: "/amber/"
-    labels:
-      - "🤖 Dependencies"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directory: "/django/"
-    labels:
-      - "🤖 Dependencies"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directory: "/handlebars/"
-    labels:
-      - "🤖 Dependencies"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directory: "/html/"
-    labels:
-      - "🤖 Dependencies"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directory: "/jet/"
-    labels:
-      - "🤖 Dependencies"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directory: "/mustache/"
-    labels:
-      - "🤖 Dependencies"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directory: "/pug/"
-    labels:
-      - "🤖 Dependencies"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gomod"
-    directory: "/slim/"
-    labels:
-      - "🤖 Dependencies"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: daily
-    labels:
-      - "🤖 Dependencies"
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      labels:
+          - "🤖 Dependencies"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "gomod"
+      directories:
+          - "**/*"
+      labels:
+          - "🤖 Dependencies"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "npm"
+      directories:
+          - "**/*"
+      labels:
+          - "🤖 Dependencies"
+      schedule:
+          interval: "daily"
