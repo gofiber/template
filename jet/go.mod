@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/CloudyKit/jet/v6 v6.2.0
-	github.com/gofiber/fiber/v2 v2.52.4
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gofiber/template v1.8.3
 	github.com/gofiber/utils v1.1.0
 	github.com/stretchr/testify v1.9.0
