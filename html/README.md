@@ -72,7 +72,7 @@ func main() {
 
 	// Or from an embedded system
 	// See github.com/gofiber/embed for examples
-	// engine := html.NewFileSystem(http.Dir("./views", ".html"))
+	// engine := html.NewFileSystem(http.Dir("./views"), ".html")
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
