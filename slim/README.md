@@ -5,9 +5,7 @@ title: Slim
 
 ![Release](https://img.shields.io/github/v/tag/gofiber/template?filter=slim*)
 [![Discord](https://img.shields.io/discord/704680098577514527?style=flat&label=%F0%9F%92%AC%20discord&color=00ACD7)](https://gofiber.io/discord)
-![Test](https://github.com/gofiber/template/workflows/Tests/badge.svg)
-![Security](https://github.com/gofiber/template/workflows/Security/badge.svg)
-![Linter](https://github.com/gofiber/template/workflows/Linter/badge.svg)
+![Test](https://github.com/gofiber/template/workflows/Tests%20Slim/badge.svg)
 
 Slim is a template engine created by [mattn](https://github.com/mattn/go-slim), to see the original syntax documentation please [click here](https://rubydoc.info/gems/slim/frames)
 

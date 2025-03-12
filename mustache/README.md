@@ -5,9 +5,7 @@ title: Mustache
 
 ![Release](https://img.shields.io/github/v/tag/gofiber/template?filter=mustache*)
 [![Discord](https://img.shields.io/discord/704680098577514527?style=flat&label=%F0%9F%92%AC%20discord&color=00ACD7)](https://gofiber.io/discord)
-![Test](https://github.com/gofiber/template/workflows/Tests/badge.svg)
-![Security](https://github.com/gofiber/template/workflows/Security/badge.svg)
-![Linter](https://github.com/gofiber/template/workflows/Linter/badge.svg)
+![Test](https://github.com/gofiber/template/workflows/Tests%20Mustache/badge.svg)
 
 Mustache is a template engine created by [hoisie/cbroglie](https://github.com/cbroglie/mustache), to see the original syntax documentation please [click here](https://mustache.github.io/mustache.5.html)
 

@@ -5,9 +5,7 @@ title: Jet
 
 ![Release](https://img.shields.io/github/v/tag/gofiber/template?filter=jet*)
 [![Discord](https://img.shields.io/discord/704680098577514527?style=flat&label=%F0%9F%92%AC%20discord&color=00ACD7)](https://gofiber.io/discord)
-![Test](https://github.com/gofiber/template/workflows/Tests/badge.svg)
-![Security](https://github.com/gofiber/template/workflows/Security/badge.svg)
-![Linter](https://github.com/gofiber/template/workflows/Linter/badge.svg)
+![Test](https://github.com/gofiber/template/workflows/Tests%20Jet/badge.svg)
 
 Jet is a template engine create by [cloudykit](https://github.com/CloudyKit/jet), to see the original syntax documentation please [click here](https://github.com/CloudyKit/jet/wiki/3.-Jet-template-syntax)
 
