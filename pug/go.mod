@@ -1,6 +1,7 @@
 module github.com/gofiber/template/pug/v2
 
 go 1.20
+toolchain go1.24.1
 
 require (
 	github.com/Joker/hpp v1.0.0
@@ -13,7 +14,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
