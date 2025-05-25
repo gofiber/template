@@ -1,0 +1,14 @@
+go 1.20
+
+use (
+	.
+	./ace
+	./amber
+	./django
+	./handlebars
+	./html
+	./jet
+	./mustache
+	./pug
+	./slim
+)

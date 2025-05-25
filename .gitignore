@@ -31,3 +31,6 @@ vendor
 
 # test files
 */views/ShouldReload.*
+
+# Go workspace file
+go.work.sum
