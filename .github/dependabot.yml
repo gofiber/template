@@ -30,31 +30,9 @@ updates:
                   - "github.com/stretchr/*"
                   - "github.com/davecgh/*"
                   - "github.com/pmezard/*"
-          compression:
-              patterns:
-                  - "github.com/andybalholm/*"
-                  - "github.com/klauspost/*"
-          mattn:
-              patterns:
-                  - "github.com/mattn/*"
-          uuid:
-              patterns:
-                  - "github.com/google/uuid*"
-          unicode:
-              patterns:
-                  - "github.com/rivo/*"
           yaml:
               patterns:
                   - "gopkg.in/yaml.*"
           golang-x:
               patterns:
                   - "golang.org/x/*"
-          template-engines:
-              patterns:
-                  - "github.com/CloudyKit/*"
-                  - "github.com/Joker/*"
-                  - "github.com/cbroglie/*"
-                  - "github.com/eknkc/*"
-                  - "github.com/flosch/*"
-                  - "github.com/mailgun/*"
-                  - "github.com/yosssi/*"
