@@ -18,3 +18,22 @@ updates:
           - "🤖 Dependencies"
       schedule:
           interval: "daily"
+      groups:
+          gofiber:
+              patterns:
+                  - "github.com/gofiber/*"
+          valyala:
+              patterns:
+                  - "github.com/valyala/*"
+          test-libs:
+              patterns:
+                  - "github.com/stretchr/*"
+                  - "github.com/davecgh/*"
+                  - "github.com/pmezard/*"
+                  - "github.com/google/uuid*"
+                  - "github.com/andybalholm/*"
+                  - "github.com/klauspost/*"
+                  - "github.com/mattn/*"
+                  - "github.com/rivo/*"
+                  - "gopkg.in/yaml.*"
+                  - "golang.org/x/*"
