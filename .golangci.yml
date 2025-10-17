@@ -1,159 +1,10 @@
 # Created for golangci-lint v2.5.0
 # NOTE: Keep this in sync with the version in .github/workflows/golangci-lint.yml
 
-version: 2
+version: "2"
 
 run:
   modules-download-mode: readonly
-
-output:
-  sort-results: true
-
-linters-settings:
-  errcheck:
-     check-type-assertions: true
-     check-blank: true
-     disable-default-exclusions: true
-     exclude-functions:
-       - '(*bytes.Buffer).Write' # always returns nil error
-       - '(*github.com/valyala/bytebufferpool.ByteBuffer).Write' # always returns nil error
-       - '(*github.com/valyala/bytebufferpool.ByteBuffer).WriteByte' # always returns nil error
-       - '(*github.com/valyala/bytebufferpool.ByteBuffer).WriteString' # always returns nil error
-
-  errchkjson:
-    report-no-exported: true
-
-  exhaustive:
-    default-signifies-exhaustive: true
-
-  forbidigo:
-    forbid:
-      - ^(fmt\.Print(|f|ln)|print|println)$
-      - 'http\.Default(Client|Transport)'
-      # TODO: Eventually enable these patterns
-      # - 'time\.Sleep'
-      # - 'panic'
-
-  gocritic:
-    disabled-checks:
-      - ifElseChain
-
-  gosec:
-    excludes:
-      - G104 # Provided by errcheck
-    config:
-      global:
-        audit: true
-  
-  depguard:
-    rules:
-      main:
-        deny:
-          - pkg: flag
-            desc: '`flag` package is only allowed in main.go'
-          - pkg: io/ioutil
-            desc: '`io/ioutil` package is deprecated, use the `io` and `os` package instead'
-
-  govet:
-    enable-all: true
-    disable:
-      - shadow
-      - fieldalignment
-      - loopclosure
-
-  grouper:
-    import-require-single-import: true
-    import-require-grouping: true
-
-  misspell:
-    locale: US
-
-  nolintlint:
-    require-explanation: true
-    require-specific: true
-
-  nonamedreturns:
-    report-error-in-defer: true
-
-  predeclared:
-    q: true
-
-  promlinter:
-    strict: true
-
-  revive:
-    enable-all-rules: true
-    rules:
-      # Provided by gomnd linter
-      - name: add-constant
-        disabled: true
-      - name: argument-limit
-        disabled: true
-      # Provided by bidichk
-      - name: banned-characters
-        disabled: true
-      - name: cognitive-complexity
-        disabled: true
-      - name: comment-spacings
-        disabled: true # TODO https://github.com/gofiber/fiber/issues/2816
-      - name: cyclomatic
-        disabled: true
-      - name: early-return
-        severity: warning
-        disabled: true
-      - name: exported
-        disabled: true
-      - name: file-header
-        disabled: true
-      - name: function-result-limit
-        disabled: true
-      - name: function-length
-        disabled: true
-      - name: line-length-limit
-        disabled: true
-      - name: max-public-structs
-        disabled: true
-      - name: modifies-parameter
-        disabled: true
-      - name: nested-structs
-        disabled: true
-      - name: package-comments
-        disabled: true
-      - name: unchecked-type-assertion
-        disabled: true # TODO https://github.com/gofiber/fiber/issues/2816
-      # Provided by errcheck
-      - name: unhandled-error
-        disabled: true
-      - name: use-any # TODO Enable for v3 release
-        disabled: true
-
-  tagliatelle:
-    case:
-      rules:
-        json: snake
-
-  #unparam:
-  #  check-exported: true
-
-  wrapcheck:
-    ignorePackageGlobs:
-      - github.com/gofiber/fiber/*
-      - github.com/valyala/fasthttp
-
-formatters:
-  enable:
-    - gofumpt
-    - goimports
-  settings:
-    gofumpt:
-      module-path: github.com/gofiber/template
-      extra-rules: true
-
-issues:
-   exclude-use-default: false
-   exclude-dirs-use-default: false
-   exclude-dirs:
-     - internal
 
 linters:
   disable:
@@ -199,7 +50,6 @@ linters:
     - perfsprint
     - predeclared
     - promlinter
-    - reassign
     - revive
     - rowserrcheck
     - sqlclosecheck
@@ -218,3 +68,120 @@ linters:
     - whitespace
     - unqueryvet
     - wrapcheck
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      disable-default-exclusions: true
+      exclude-functions:
+        - '(*bytes.Buffer).Write'
+        - '(*github.com/valyala/bytebufferpool.ByteBuffer).Write'
+        - '(*github.com/valyala/bytebufferpool.ByteBuffer).WriteByte'
+        - '(*github.com/valyala/bytebufferpool.ByteBuffer).WriteString'
+    errchkjson:
+      report-no-exported: true
+    exhaustive:
+      default-signifies-exhaustive: true
+    forbidigo:
+      forbid:
+        - pattern: ^(fmt\.Print(|f|ln)|print|println)$
+        - pattern: 'http\.Default(Client|Transport)'
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+    gosec:
+      excludes:
+        - G104
+      config:
+        global:
+          audit: true
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: flag
+              desc: '`flag` package is only allowed in main.go'
+            - pkg: io/ioutil
+              desc: '`io/ioutil` package is deprecated, use the `io` and `os` package instead'
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+        - fieldalignment
+        - loopclosure
+    grouper:
+      import-require-single-import: true
+      import-require-grouping: true
+    misspell:
+      locale: US
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    nonamedreturns:
+      report-error-in-defer: true
+    predeclared:
+      qualified-name: true
+    promlinter:
+      strict: true
+    revive:
+      enable-all-rules: true
+      rules:
+        - name: add-constant
+          disabled: true
+        - name: argument-limit
+          disabled: true
+        - name: banned-characters
+          disabled: true
+        - name: cognitive-complexity
+          disabled: true
+        - name: comment-spacings
+          disabled: true # TODO https://github.com/gofiber/fiber/issues/2816
+        - name: cyclomatic
+          disabled: true
+        - name: early-return
+          severity: warning
+          disabled: true
+        - name: exported
+          disabled: true
+        - name: file-header
+          disabled: true
+        - name: function-result-limit
+          disabled: true
+        - name: function-length
+          disabled: true
+        - name: line-length-limit
+          disabled: true
+        - name: max-public-structs
+          disabled: true
+        - name: modifies-parameter
+          disabled: true
+        - name: nested-structs
+          disabled: true
+        - name: package-comments
+          disabled: true
+        - name: unchecked-type-assertion
+          disabled: true # TODO https://github.com/gofiber/fiber/issues/2816
+        - name: unhandled-error
+          disabled: true
+        - name: use-any
+          disabled: true
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+    wrapcheck:
+      ignore-package-globs:
+        - github.com/gofiber/fiber/*
+        - github.com/valyala/fasthttp
+  exclusions:
+    paths:
+      - internal
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      module-path: github.com/gofiber/template
+      extra-rules: true
