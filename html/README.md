@@ -77,21 +77,21 @@ func main() {
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		// Render index
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
-	app.Get("/layout", func(c *fiber.Ctx) error {
+	app.Get("/layout", func(c fiber.Ctx) error {
 		// Render index within layouts/main
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		}, "layouts/main")
 	})
 
-	app.Get("/layouts-nested", func(c *fiber.Ctx) error {
+	app.Get("/layouts-nested", func(c fiber.Ctx) error {
 		// Render index within layouts/nested/main within layouts/nested/base
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
@@ -129,7 +129,7 @@ func main() {
     })
 
 
-    app.Get("/", func(c *fiber.Ctx) error {
+    app.Get("/", func(c fiber.Ctx) error {
         // Render index - start with views directory
         return c.Render("views/index", fiber.Map{
             "Title": "Hello, World!",
@@ -182,7 +182,7 @@ func main() {
     // Pass the engine to the Views
     app := fiber.New(fiber.Config{Views: engine})
 
-    app.Get("/", func(c *fiber.Ctx) error {
+    app.Get("/", func(c fiber.Ctx) error {
         // Render index
         return c.Render("views/index", fiber.Map{
             "Title": "Hello, <b>World</b>!",
