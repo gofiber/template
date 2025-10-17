@@ -49,8 +49,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/django/v3"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/django/v4"
 )
 
 func main() {
@@ -105,8 +105,8 @@ import (
 	"embed"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/django/v3"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/django/v4"
 )
 
 //go:embed views

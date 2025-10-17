@@ -60,8 +60,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/html/v3"
 )
 
 func main() {
@@ -113,8 +113,8 @@ import (
     "net/http"
     "embed"
 
-    "github.com/gofiber/fiber/v2"
-    "github.com/gofiber/template/html/v2"
+    "github.com/gofiber/fiber/v3"
+    "github.com/gofiber/template/html/v3"
 )
 
 //go:embed views/*
@@ -163,8 +163,8 @@ import (
     "log"
     "net/http"
 
-    "github.com/gofiber/fiber/v2"
-    "github.com/gofiber/template/html/v2"
+    "github.com/gofiber/fiber/v3"
+    "github.com/gofiber/template/html/v3"
 )
 
 //go:embed views/*

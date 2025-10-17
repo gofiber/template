@@ -44,8 +44,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/pug/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/pug/v3"
 
 	// "net/http" // embedded system
 )

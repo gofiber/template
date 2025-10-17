@@ -10,9 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gofiber/fiber/v2"
-
-	core "github.com/gofiber/template"
+	core "github.com/gofiber/template/v2"
 	"github.com/gofiber/utils"
 	"github.com/mailgun/raymond/v2"
 )
@@ -157,15 +155,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if lay == nil {
 			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
 		}
-		var bind map[string]interface{}
-		switch binds := binding.(type) {
-		case fiber.Map:
-			bind = binds
-		case map[string]interface{}:
-			bind = binds
-		default:
-			bind = make(map[string]interface{}, 1)
-		}
+		bind := core.AcquireViewContext(binding)
 		bind[e.LayoutName] = raymond.SafeString(parsed)
 		parsed, err := lay.Exec(bind)
 		if err != nil {

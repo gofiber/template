@@ -43,8 +43,8 @@ package main
 import (
 	"log"
 	
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/amber/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/amber/v3"
 )
 
 func main() {

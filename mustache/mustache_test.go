@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/gofiber/fiber/v2"
 )
+
+type customMap map[string]interface{}
 
 func trim(str string) string {
 	trimmed := strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllString(str, " "))
@@ -27,7 +27,7 @@ func Test_Render(t *testing.T) {
 
 	// Partials
 	var buf bytes.Buffer
-	err := engine.Render(&buf, "index", fiber.Map{
+	err := engine.Render(&buf, "index", customMap{
 		"Title": "Hello, World!",
 	})
 	require.NoError(t, err)
@@ -38,7 +38,7 @@ func Test_Render(t *testing.T) {
 
 	// Single
 	buf.Reset()
-	err = engine.Render(&buf, "errors/404", fiber.Map{
+	err = engine.Render(&buf, "errors/404", customMap{
 		"Title": "Hello, World!",
 	})
 	require.NoError(t, err)
@@ -54,7 +54,7 @@ func Test_Layout(t *testing.T) {
 	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
-	err := engine.Render(&buf, "index", fiber.Map{
+	err := engine.Render(&buf, "index", customMap{
 		"Title": "Hello, World!",
 	}, "layouts/main")
 	require.NoError(t, err)
@@ -70,7 +70,7 @@ func Test_Empty_Layout(t *testing.T) {
 	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
-	err := engine.Render(&buf, "index", fiber.Map{
+	err := engine.Render(&buf, "index", customMap{
 		"Title": "Hello, World!",
 	}, "")
 	require.NoError(t, err)
@@ -86,7 +86,7 @@ func Test_FileSystem(t *testing.T) {
 	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
-	err := engine.Render(&buf, "index", fiber.Map{
+	err := engine.Render(&buf, "index", customMap{
 		"Title": "Hello, World!",
 	}, "layouts/main")
 	require.NoError(t, err)
