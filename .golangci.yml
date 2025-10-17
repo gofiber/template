@@ -1,5 +1,5 @@
-# Created based on v1.56.1
-# NOTE: Keep this in sync with the version in .github/workflows/linter.yml
+# Created for golangci-lint v2.5.0
+# NOTE: Keep this in sync with the version in .github/workflows/golangci-lint.yml
 
 version: 2
 
@@ -37,10 +37,6 @@ linters-settings:
   gocritic:
     disabled-checks:
       - ifElseChain
-
-  gofumpt:
-    module-path: github.com/gofiber/template
-    extra-rules: true
 
   gosec:
     excludes:
@@ -131,21 +127,10 @@ linters-settings:
       - name: use-any # TODO Enable for v3 release
         disabled: true
 
-  stylecheck:
-    checks:
-      - all
-      - -ST1000
-      - -ST1020
-      - -ST1021
-      - -ST1022
-
   tagliatelle:
     case:
       rules:
         json: snake
-
-  tenv:
-    all: true
 
   #unparam:
   #  check-exported: true
@@ -154,6 +139,15 @@ linters-settings:
     ignorePackageGlobs:
       - github.com/gofiber/fiber/*
       - github.com/valyala/fasthttp
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      module-path: github.com/gofiber/template
+      extra-rules: true
 
 issues:
    exclude-use-default: false
@@ -185,13 +179,9 @@ linters:
     - gochecksumtype
     - goconst
     - gocritic
-    - gofmt
-    - gofumpt
-    - goimports
     - gomoddirectives
     - goprintffuncname
     - gosec
-    - gosimple
     - gosmopolitan
     - govet
     - grouper
@@ -214,7 +204,6 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - stylecheck
     - tagalign
     - tagliatelle
     - testifylint
@@ -227,5 +216,5 @@ linters:
     - usestdlibvars
     - wastedassign
     - whitespace
+    - unqueryvet
     - wrapcheck
-    - tenv

@@ -1,3 +1,4 @@
+// Package template provides shared rendering primitives for Fiber template engines.
 package template
 
 import (
@@ -113,8 +114,8 @@ func (e *Engine) Reload(enabled bool) IEngineCore {
 	return e
 }
 
-// Check if the engine should reload the templates before rendering
-// Explicit Mute Unlock vs defer offers better performance
+// PreRenderCheck determines if the engine should reload the templates before rendering.
+// Explicit mutex unlock vs defer offers better performance.
 func (e *Engine) PreRenderCheck() bool {
 	e.Mutex.Lock()
 

@@ -38,6 +38,8 @@ jobs:
           cache: false
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
+        env:
+          GOLANGCI_LINT_SKIP_GOVERSION_CHECK: "1"
         with:
           # NOTE: Keep this in sync with the version from .golangci.yml
-          version: 'v1.56.2'
+          version: 'v2.5.0'
