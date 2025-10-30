@@ -35,7 +35,7 @@ This package provides universal methods to use multiple template engines with th
 - [slim](./slim/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Slim%22"> <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-slim.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
 
 ### Installation
-> Go version `1.25` or higher is required.
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
 
 ```
 go get -u github.com/gofiber/fiber/v3

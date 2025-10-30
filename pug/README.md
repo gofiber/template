@@ -9,7 +9,15 @@ title: Pug
 
 Pug is a template engine create by [joker](https://github.com/Joker/jade), to see the original syntax documentation please [click here](https://pugjs.org/language/tags.html)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/pug/v3
+```
+
+## Basic Example
 
 _**./views/index.pug**_
 ```html

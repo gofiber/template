@@ -9,7 +9,15 @@ title: Ace
 
 Ace is a template engine create by [yossi](https://github.com/yosssi/ace), to see the original syntax documentation please [click here](https://github.com/yosssi/ace/blob/master/documentation/syntax.md)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/ace/v3
+```
+
+## Basic Example
 
 _**./views/index.ace**_
 ```html

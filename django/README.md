@@ -9,7 +9,15 @@ title: Django
 
 Django is a template engine create by [flosch](https://github.com/flosch/pongo2), to see the original syntax documentation please [click here](https://docs.djangoproject.com/en/dev/topics/templates/)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/django/v4
+```
+
+## Basic Example
 
 _**./views/index.django**_
 ```html

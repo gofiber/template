@@ -9,7 +9,15 @@ title: Slim
 
 Slim is a template engine created by [mattn](https://github.com/mattn/go-slim), to see the original syntax documentation please [click here](https://rubydoc.info/gems/slim/frames)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/slim/v3
+```
+
+## Basic Example
 
 _**./views/index.slim**_
 ```html
