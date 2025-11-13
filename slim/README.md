@@ -9,7 +9,15 @@ title: Slim
 
 Slim is a template engine created by [mattn](https://github.com/mattn/go-slim), to see the original syntax documentation please [click here](https://rubydoc.info/gems/slim/frames)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/slim/v3
+```
+
+## Basic Example
 
 _**./views/index.slim**_
 ```html
@@ -44,8 +52,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/slim/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/slim/v3"
 
 	// "net/http" // embedded system
 )
@@ -63,14 +71,14 @@ func main() {
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		// Render index
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
-	app.Get("/layout", func(c *fiber.Ctx) error {
+	app.Get("/layout", func(c fiber.Ctx) error {
 		// Render index within layouts/main
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",

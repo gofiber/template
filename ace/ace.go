@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	core "github.com/gofiber/template"
+	core "github.com/gofiber/template/v2"
 	"github.com/gofiber/utils"
 	"github.com/yosssi/ace"
 )

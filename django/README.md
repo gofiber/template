@@ -9,7 +9,15 @@ title: Django
 
 Django is a template engine create by [flosch](https://github.com/flosch/pongo2), to see the original syntax documentation please [click here](https://docs.djangoproject.com/en/dev/topics/templates/)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/django/v4
+```
+
+## Basic Example
 
 _**./views/index.django**_
 ```html
@@ -49,8 +57,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/django/v3"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/django/v4"
 )
 
 func main() {
@@ -66,14 +74,14 @@ func main() {
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		// Render index
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
-	app.Get("/layout", func(c *fiber.Ctx) error {
+	app.Get("/layout", func(c fiber.Ctx) error {
 		// Render index within layouts/main
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
@@ -105,8 +113,8 @@ import (
 	"embed"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/django/v3"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/django/v4"
 )
 
 //go:embed views
@@ -121,7 +129,7 @@ func main() {
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		// Render descendant
 		return c.Render("descendant", fiber.Map{
 			"greeting": "World",

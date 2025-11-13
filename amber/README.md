@@ -9,7 +9,15 @@ title: Amber
 
 Amber is a template engine create by [eknkc](https://github.com/eknkc/amber), to see the original syntax documentation please [click here](https://github.com/eknkc/amber#tags)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/amber/v3
+```
+
+## Basic Example
 
 _**./views/index.amber**_
 ```html
@@ -43,8 +51,8 @@ package main
 import (
 	"log"
 	
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/amber/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/amber/v3"
 )
 
 func main() {
@@ -60,14 +68,14 @@ func main() {
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		// Render index
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
-	app.Get("/layout", func(c *fiber.Ctx) error {
+	app.Get("/layout", func(c fiber.Ctx) error {
 		// Render index within layouts/main
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",

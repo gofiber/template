@@ -9,10 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-
 	"github.com/cbroglie/mustache"
-	core "github.com/gofiber/template"
+	core "github.com/gofiber/template/v2"
 	"github.com/gofiber/utils"
 	"github.com/valyala/bytebufferpool"
 )
@@ -173,17 +171,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return err
 		}
 
-		var bind map[string]interface{}
-
-		switch binds := binding.(type) {
-		case fiber.Map:
-			bind = binds
-		case map[string]interface{}:
-			bind = binds
-		default:
-			bind = make(map[string]interface{}, 1)
-		}
-
+		bind := core.AcquireViewContext(binding)
 		bind[e.LayoutName] = buf.String()
 		lay := e.Templates[layout[0]]
 		if lay == nil {

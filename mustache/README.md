@@ -9,7 +9,15 @@ title: Mustache
 
 Mustache is a template engine created by [hoisie/cbroglie](https://github.com/cbroglie/mustache), to see the original syntax documentation please [click here](https://mustache.github.io/mustache.5.html)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/mustache/v4
+```
+
+## Basic Example
 
 _**./views/index.mustache**_
 ```html
@@ -49,8 +57,8 @@ package main
 import (
 	"log"
 	
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/mustache/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/mustache/v3"
 )
 
 func main() {
@@ -67,14 +75,14 @@ func main() {
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		// Render index
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
-	app.Get("/layout", func(c *fiber.Ctx) error {
+	app.Get("/layout", func(c fiber.Ctx) error {
 		// Render index within layouts/main
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",

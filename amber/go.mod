@@ -1,10 +1,10 @@
-module github.com/gofiber/template/amber/v2
+module github.com/gofiber/template/amber/v3
 
-go 1.20
+go 1.25
 
 require (
 	github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385
-	github.com/gofiber/template v1.8.3
+	github.com/gofiber/template/v2 v2.0.0
 	github.com/gofiber/utils v1.1.0
 	github.com/stretchr/testify v1.11.1
 )
@@ -15,4 +15,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/gofiber/template => ../.
+replace github.com/gofiber/template/v2 => ../.

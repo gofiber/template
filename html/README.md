@@ -9,13 +9,21 @@ title: HTML
 
 HTML is the official Go template engine [html/template](https://golang.org/pkg/html/template/), to see the original syntax documentation please [click here](TEMPLATES_CHEATSHEET.md)
 
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/html/v3
+```
+
 **Info:**
 
 All templates within the specified view directory are analyzed and compiled at the beginning to increase the performance when using them.
 Thus it should be noted that no `definition` with the same name should exist, otherwise they will overwrite each other.
 For templating the `{{embed}}` tag should be used
 
-### Basic Example
+## Basic Example
 
 _**./views/index.html**_
 
@@ -60,8 +68,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/html/v3"
 )
 
 func main() {
@@ -77,21 +85,21 @@ func main() {
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		// Render index
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
-	app.Get("/layout", func(c *fiber.Ctx) error {
+	app.Get("/layout", func(c fiber.Ctx) error {
 		// Render index within layouts/main
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		}, "layouts/main")
 	})
 
-	app.Get("/layouts-nested", func(c *fiber.Ctx) error {
+	app.Get("/layouts-nested", func(c fiber.Ctx) error {
 		// Render index within layouts/nested/main within layouts/nested/base
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
@@ -113,8 +121,8 @@ import (
     "net/http"
     "embed"
 
-    "github.com/gofiber/fiber/v2"
-    "github.com/gofiber/template/html/v2"
+    "github.com/gofiber/fiber/v3"
+    "github.com/gofiber/template/html/v3"
 )
 
 //go:embed views/*
@@ -129,7 +137,7 @@ func main() {
     })
 
 
-    app.Get("/", func(c *fiber.Ctx) error {
+    app.Get("/", func(c fiber.Ctx) error {
         // Render index - start with views directory
         return c.Render("views/index", fiber.Map{
             "Title": "Hello, World!",
@@ -163,8 +171,8 @@ import (
     "log"
     "net/http"
 
-    "github.com/gofiber/fiber/v2"
-    "github.com/gofiber/template/html/v2"
+    "github.com/gofiber/fiber/v3"
+    "github.com/gofiber/template/html/v3"
 )
 
 //go:embed views/*
@@ -182,7 +190,7 @@ func main() {
     // Pass the engine to the Views
     app := fiber.New(fiber.Config{Views: engine})
 
-    app.Get("/", func(c *fiber.Ctx) error {
+    app.Get("/", func(c fiber.Ctx) error {
         // Render index
         return c.Render("views/index", fiber.Map{
             "Title": "Hello, <b>World</b>!",

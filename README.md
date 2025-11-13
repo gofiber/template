@@ -10,7 +10,7 @@ sidebar_position: 1
   <img height="125" alt="Fiber" src="https://raw.githubusercontent.com/gofiber/template/master/.github/logo.svg#gh-light-mode-only" />
   <br/>
 
-  <a href="https://pkg.go.dev/github.com/gofiber/template?tab=doc">
+  <a href="https://pkg.go.dev/github.com/gofiber/template/v2?tab=doc">
     <img src="https://img.shields.io/badge/%F0%9F%93%9A%20godoc-pkg-00ACD7.svg?color=00ACD7&style=flat"/>
   </a>
   <a href="https://goreportcard.com/report/github.com/gofiber/template">
@@ -35,10 +35,10 @@ This package provides universal methods to use multiple template engines with th
 - [slim](./slim/README.md) <a href="https://github.com/gofiber/template/actions?query=workflow%3A%22Tests+Slim%22"> <img src="https://img.shields.io/github/actions/workflow/status/gofiber/template/test-slim.yml?branch=master&label=%F0%9F%A7%AA%20&style=flat&color=75C46B"/></a>
 
 ### Installation
-> Go version `1.17` or higher is required.
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
 
 ```
-go get -u github.com/gofiber/fiber/v2
+go get -u github.com/gofiber/fiber/v3
 go get -u github.com/gofiber/template/any_template_engine/vX
 ```
 
@@ -49,15 +49,15 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
+        "github.com/gofiber/fiber/v3"
 
 	// To use a specific template engine, import as shown below:
-	// "github.com/gofiber/template/pug"
-	// "github.com/gofiber/template/mustache"
+	// "github.com/gofiber/template/pug/v3"
+	// "github.com/gofiber/template/mustache/v3"
 	// etc..
 
 	// In this example we use the html template engine
-	"github.com/gofiber/template/html/v2"
+	"github.com/gofiber/template/html/v3"
 )
 
 func main() {
@@ -93,14 +93,14 @@ func main() {
 
 	// To render a template, you can call the ctx.Render function
 	// Render(tmpl string, values interface{}, layout ...string)
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
 	// Render with layout example
-	app.Get("/layout", func(c *fiber.Ctx) error {
+	app.Get("/layout", func(c fiber.Ctx) error {
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		}, "layouts/main")
@@ -138,8 +138,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html"
+        "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/html/v3"
 
 	"github.com/markbates/pkger"
 )
@@ -163,8 +163,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html"
+        "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/html/v3"
 
 	"github.com/gobuffalo/packr/v2"
 )
@@ -188,8 +188,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html"
+        "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/html/v3"
 
 	"github.com/GeertJohan/go.rice"
 )
@@ -214,8 +214,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/html/v3"
 	// your generated package
 	"github.com/<user>/<repo>/static"
 )

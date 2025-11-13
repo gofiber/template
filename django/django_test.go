@@ -13,10 +13,11 @@ import (
 	"unicode"
 
 	"github.com/flosch/pongo2/v6"
-	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type customMap map[string]interface{}
 
 const (
 	admin = "admin"
@@ -116,10 +117,10 @@ func Test_GetPongoBinding(t *testing.T) {
 	result = getPongoBinding(mapBinding)
 	assert.Equal(t, pongo2.Context(mapBinding), result, "Expected the same context")
 
-	// Test with fiber.Map
-	fiberMap := fiber.Map{"key3": "value3"}
-	result = getPongoBinding(fiberMap)
-	assert.Equal(t, pongo2.Context(fiberMap), result, "Expected the same context")
+	// Test with custom map type (fiber.Map compatible)
+	custom := customMap{"key3": "value3"}
+	result = getPongoBinding(custom)
+	assert.Equal(t, pongo2.Context{"key3": "value3"}, result, "Expected the same context")
 
 	// Test with unsupported type
 	result = getPongoBinding("unsupported")

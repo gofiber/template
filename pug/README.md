@@ -9,7 +9,15 @@ title: Pug
 
 Pug is a template engine create by [joker](https://github.com/Joker/jade), to see the original syntax documentation please [click here](https://pugjs.org/language/tags.html)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/pug/v3
+```
+
+## Basic Example
 
 _**./views/index.pug**_
 ```html
@@ -44,8 +52,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/pug/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/pug/v3"
 
 	// "net/http" // embedded system
 )
@@ -63,14 +71,14 @@ func main() {
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		// Render index
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
-	app.Get("/layout", func(c *fiber.Ctx) error {
+	app.Get("/layout", func(c fiber.Ctx) error {
 		// Render index within layouts/main
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",

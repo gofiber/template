@@ -9,11 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-
 	"github.com/CloudyKit/jet/v6"
 	"github.com/CloudyKit/jet/v6/loaders/httpfs"
-	core "github.com/gofiber/template"
+	core "github.com/gofiber/template/v2"
 	"github.com/gofiber/utils"
 )
 
@@ -192,23 +190,18 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 }
 
 func jetVarMap(binding interface{}) jet.VarMap {
-	var bind jet.VarMap
 	if binding == nil {
+		return make(jet.VarMap)
+	}
+
+	if bind, ok := binding.(jet.VarMap); ok {
 		return bind
 	}
-	switch binds := binding.(type) {
-	case map[string]interface{}:
-		bind = make(jet.VarMap)
-		for key, value := range binds {
-			bind.Set(key, value)
-		}
-	case fiber.Map:
-		bind = make(jet.VarMap)
-		for key, value := range binds {
-			bind.Set(key, value)
-		}
-	case jet.VarMap:
-		bind = binds
+
+	data := core.AcquireViewContext(binding)
+	bind := make(jet.VarMap, len(data))
+	for key, value := range data {
+		bind.Set(key, value)
 	}
 	return bind
 }

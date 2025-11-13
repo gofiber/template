@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/eknkc/amber"
-	core "github.com/gofiber/template"
+	core "github.com/gofiber/template/v2"
 	"github.com/gofiber/utils"
 )
 

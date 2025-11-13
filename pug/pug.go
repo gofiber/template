@@ -12,7 +12,7 @@ import (
 
 	"github.com/Joker/hpp"
 	"github.com/Joker/jade"
-	core "github.com/gofiber/template"
+	core "github.com/gofiber/template/v2"
 	"github.com/gofiber/utils"
 )
 

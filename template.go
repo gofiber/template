@@ -1,8 +1,10 @@
+// Package template provides shared rendering primitives for Fiber template engines.
 package template
 
 import (
 	"io"
 	"net/http"
+	"reflect"
 	"sync"
 )
 
@@ -112,8 +114,8 @@ func (e *Engine) Reload(enabled bool) IEngineCore {
 	return e
 }
 
-// Check if the engine should reload the templates before rendering
-// Explicit Mute Unlock vs defer offers better performance
+// PreRenderCheck determines if the engine should reload the templates before rendering.
+// Explicit mutex unlock vs defer offers better performance.
 func (e *Engine) PreRenderCheck() bool {
 	e.Mutex.Lock()
 
@@ -126,4 +128,41 @@ func (e *Engine) PreRenderCheck() bool {
 	}
 	e.Mutex.Unlock()
 	return false
+}
+
+// AcquireViewContext ensures the binding value is represented as a map[string]interface{}
+// so template engines can safely inject layout specific data while preserving the
+// original values. It supports native map[string]interface{} values as well as
+// user-defined map types (for example fiber.Map) with string keys.
+func AcquireViewContext(binding interface{}) map[string]interface{} {
+	if binds, ok := binding.(map[string]interface{}); ok {
+		return binds
+	}
+
+	if binding == nil {
+		return make(map[string]interface{})
+	}
+
+	val := reflect.ValueOf(binding)
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return make(map[string]interface{})
+		}
+		val = val.Elem()
+	}
+
+	if val.Kind() != reflect.Map || val.IsNil() {
+		return make(map[string]interface{})
+	}
+
+	if val.Type().Key().Kind() != reflect.String {
+		return make(map[string]interface{})
+	}
+
+	result := make(map[string]interface{}, val.Len())
+	iter := val.MapRange()
+	for iter.Next() {
+		result[iter.Key().String()] = iter.Value().Interface()
+	}
+	return result
 }

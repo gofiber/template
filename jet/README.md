@@ -9,7 +9,15 @@ title: Jet
 
 Jet is a template engine create by [cloudykit](https://github.com/CloudyKit/jet), to see the original syntax documentation please [click here](https://github.com/CloudyKit/jet/wiki/3.-Jet-template-syntax)
 
-### Basic Example
+## Installation
+
+Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
+
+```
+go get github.com/gofiber/template/jet/v4
+```
+
+## Basic Example
 
 _**./views/index.jet**_
 ```html
@@ -49,8 +57,8 @@ package main
 import (
 	"log"
 	
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/jet/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/template/jet/v3"
 )
 
 func main() {
@@ -66,14 +74,14 @@ func main() {
 		Views: engine,
 	})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c fiber.Ctx) error {
 		// Render index
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",
 		})
 	})
 
-	app.Get("/layout", func(c *fiber.Ctx) error {
+	app.Get("/layout", func(c fiber.Ctx) error {
 		// Render index within layouts/main
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, World!",

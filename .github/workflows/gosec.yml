@@ -55,7 +55,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: '^1.21.x'
+          go-version: '1.25.x'
           check-latest: true
           cache: false
       - name: Install gosec

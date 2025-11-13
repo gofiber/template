@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-
 	"github.com/flosch/pongo2/v6"
-	core "github.com/gofiber/template"
+	core "github.com/gofiber/template/v2"
 	"github.com/gofiber/utils"
 )
 
@@ -154,38 +153,52 @@ func (e *Engine) Load() error {
 // It supports the following types:
 // - pongo2.Context
 // - map[string]interface{}
-// - fiber.Map
-//
 // It returns nil if the binding is not one of the supported types.
 func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
 	}
 
-	var bind pongo2.Context
 	switch binds := binding.(type) {
 	case pongo2.Context:
-		bind = binds
+		return sanitizePongoContext(binds)
 	case map[string]interface{}:
-		bind = binds
-	case fiber.Map:
-		bind = make(pongo2.Context)
-		for key, value := range binds {
-			// only add valid keys
-			if isValidKey(key) {
-				bind[key] = value
-			}
-		}
-		return bind
+		return sanitizePongoContext(binds)
 	}
 
-	// Remove invalid keys
-	for key := range bind {
+	value := reflect.ValueOf(binding)
+	if value.Kind() != reflect.Map || value.IsNil() {
+		return nil
+	}
+
+	if value.Type().Key().Kind() != reflect.String {
+		return nil
+	}
+
+	bind := make(pongo2.Context, value.Len())
+	for _, key := range value.MapKeys() {
+		strKey := key.String()
+		if !isValidKey(strKey) {
+			continue
+		}
+		bind[strKey] = value.MapIndex(key).Interface()
+	}
+
+	return bind
+}
+
+func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
+	if len(data) == 0 {
+		return make(pongo2.Context)
+	}
+
+	bind := make(pongo2.Context, len(data))
+	for key, value := range data {
 		if !isValidKey(key) {
-			delete(bind, key)
+			continue
 		}
+		bind[key] = value
 	}
-
 	return bind
 }
 
