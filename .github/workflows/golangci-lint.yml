@@ -42,4 +42,4 @@ jobs:
           GOLANGCI_LINT_SKIP_GOVERSION_CHECK: "1"
         with:
           # NOTE: Keep this in sync with the version from .golangci.yml
-          version: 'v2.5.0'
+          version: 'v2.6.1'

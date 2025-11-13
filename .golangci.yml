@@ -1,4 +1,4 @@
-# Created for golangci-lint v2.5.0
+# Created for golangci-lint v2.6.1
 # NOTE: Keep this in sync with the version in .github/workflows/golangci-lint.yml
 
 version: "2"
