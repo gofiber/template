@@ -144,7 +144,7 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 	}
 
 	val := reflect.ValueOf(binding)
-	if val.Kind() == reflect.Pointer {
+	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
 			return make(map[string]interface{})
 		}

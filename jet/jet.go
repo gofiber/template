@@ -191,7 +191,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 
 func jetVarMap(binding interface{}) jet.VarMap {
 	if binding == nil {
-		return nil
+		return make(jet.VarMap)
 	}
 
 	if bind, ok := binding.(jet.VarMap); ok {
@@ -199,7 +199,7 @@ func jetVarMap(binding interface{}) jet.VarMap {
 	}
 
 	data := core.AcquireViewContext(binding)
-	bind := make(jet.VarMap)
+	bind := make(jet.VarMap, len(data))
 	for key, value := range data {
 		bind.Set(key, value)
 	}
