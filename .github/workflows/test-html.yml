@@ -10,6 +10,7 @@ on:
             - '*'
         paths:
             - 'html/**'
+    workflow_dispatch:
 name: Tests Html
 jobs:
     Tests:

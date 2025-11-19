@@ -10,6 +10,7 @@ on:
             - '*'
         paths:
             - 'amber/**'
+    workflow_dispatch:
 name: Tests Amber
 jobs:
     Tests:

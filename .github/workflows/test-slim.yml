@@ -10,6 +10,7 @@ on:
             - '*'
         paths:
             - 'slim/**'
+    workflow_dispatch:
 name: Tests Slim
 jobs:
     Tests:

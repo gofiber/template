@@ -10,6 +10,7 @@ on:
             - '*'
         paths:
             - 'handlebars/**'
+    workflow_dispatch:
 name: Tests Handlebars
 jobs:
     Tests:

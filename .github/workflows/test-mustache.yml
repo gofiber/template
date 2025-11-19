@@ -10,6 +10,7 @@ on:
             - '*'
         paths:
             - 'mustache/**'
+    workflow_dispatch:
 name: Tests Mustache
 jobs:
     Tests:

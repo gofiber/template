@@ -18,6 +18,7 @@ on:
       - LICENSE
       - ".github/ISSUE_TEMPLATE/*.yml"
       - ".github/dependabot.yml"
+  workflow_dispatch:
 
 jobs:
   detect-changes:

@@ -10,6 +10,7 @@ on:
             - '*'
         paths:
             - 'jet/**'
+    workflow_dispatch:
 name: Tests Jet
 jobs:
     Tests:

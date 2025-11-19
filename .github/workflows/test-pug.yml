@@ -10,6 +10,7 @@ on:
             - '*'
         paths:
             - 'pug/**'
+    workflow_dispatch:
 name: Tests Pug
 jobs:
     Tests:
