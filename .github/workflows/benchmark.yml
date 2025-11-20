@@ -53,7 +53,7 @@ jobs:
           key: ${{ runner.os }}-benchmark
 
       - name: Save Benchmark Results
-        uses: benchmark-action/github-action-benchmark@v1.20.4
+        uses: benchmark-action/github-action-benchmark@v1.20.7
         with:
           # What benchmark tool the output.txt came from
           tool: 'go'
