@@ -30,7 +30,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Changed Files
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         id: changed-files
         with:
           files_ignore: |
