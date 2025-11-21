@@ -27,7 +27,7 @@ jobs:
       GO111MODULE: on
     steps:
     - name: Fetch Repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Install Go
       uses: actions/setup-go@v6
       with:
