@@ -26,7 +26,7 @@ jobs:
     outputs:
       matrix: ${{ steps.changed-files.outputs.all_changed_files }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Changed Files
@@ -52,7 +52,7 @@ jobs:
         modules: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
     steps:
       - name: Fetch Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Install Go
         uses: actions/setup-go@v6
         with:
