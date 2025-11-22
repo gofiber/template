@@ -38,7 +38,7 @@ jobs:
           go-version: '1.25.x'
           cache: false
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v9
         env:
           GOLANGCI_LINT_SKIP_GOVERSION_CHECK: "1"
         with:
