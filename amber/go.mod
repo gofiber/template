@@ -5,7 +5,7 @@ go 1.25
 require (
 	github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385
 	github.com/gofiber/template/v2 v2.0.0
-	github.com/gofiber/utils v1.1.0
+	github.com/gofiber/utils v1.2.0
 	github.com/stretchr/testify v1.11.1
 )
 
