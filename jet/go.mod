@@ -5,7 +5,6 @@ go 1.25
 require (
 	github.com/CloudyKit/jet/v6 v6.3.1
 	github.com/gofiber/template/v2 v2.0.0
-	github.com/gofiber/utils v1.2.0
 	github.com/stretchr/testify v1.11.1
 )
 

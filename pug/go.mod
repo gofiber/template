@@ -6,7 +6,6 @@ require (
 	github.com/Joker/hpp v1.0.0
 	github.com/Joker/jade v1.1.3
 	github.com/gofiber/template/v2 v2.0.0
-	github.com/gofiber/utils v1.2.0
 	github.com/stretchr/testify v1.11.1
 )
 
