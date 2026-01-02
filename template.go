@@ -171,16 +171,25 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 }
 
 // ReadFile reads a file from the file system or http.FileSystem.
-// This is a wrapper around utils.ReadFile to provide a unified interface
-// for template engines without direct dependency on the utils package.
+// This wrapper provides a centralized abstraction point for file operations,
+// allowing template engines to depend only on the core package while the core
+// manages the underlying utils dependency.
 func ReadFile(path string, fs http.FileSystem) ([]byte, error) {
-	return utils.ReadFile(path, fs)
+	buf, err := utils.ReadFile(path, fs)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
 }
 
 // Walk walks the file tree rooted at directory, calling walkFn for each file or
 // directory in the tree, including directory.
-// This is a wrapper around utils.Walk to provide a unified interface
-// for template engines without direct dependency on the utils package.
+// This wrapper provides a centralized abstraction point for filesystem traversal,
+// allowing template engines to depend only on the core package while the core
+// manages the underlying utils dependency.
 func Walk(fs http.FileSystem, directory string, walkFn func(path string, info os.FileInfo, err error) error) error {
-	return utils.Walk(fs, directory, walkFn)
+	if err := utils.Walk(fs, directory, walkFn); err != nil {
+		return err
+	}
+	return nil
 }
