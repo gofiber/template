@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	core "github.com/gofiber/template/v2"
-	"github.com/gofiber/utils"
 	"github.com/yosssi/ace"
 )
 
@@ -99,7 +98,7 @@ func (e *Engine) Load() error {
 		// name = strings.Replace(name, e.Extension, "", -1)
 		// Read the file
 		// #gosec G304
-		buf, err := utils.ReadFile(path, e.FileSystem)
+		buf, err := core.ReadFile(path, e.FileSystem)
 		if err != nil {
 			return err
 		}
@@ -135,7 +134,7 @@ func (e *Engine) Load() error {
 	e.Loaded = true
 
 	if e.FileSystem != nil {
-		return utils.Walk(e.FileSystem, e.Directory, walkFn)
+		return core.Walk(e.FileSystem, e.Directory, walkFn)
 	}
 	return filepath.Walk(e.Directory, walkFn)
 }

@@ -2,10 +2,14 @@
 package template
 
 import (
+	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"reflect"
 	"sync"
+
+	"github.com/gofiber/utils/v2"
 )
 
 // IEngine interface, to be implemented for any templating engine added to the repository
@@ -165,4 +169,28 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 		result[iter.Key().String()] = iter.Value().Interface()
 	}
 	return result
+}
+
+// ReadFile reads a file from the file system or http.FileSystem.
+// This wrapper provides a centralized abstraction point for file operations,
+// allowing template engines to depend only on the core package while the core
+// manages the underlying utils dependency.
+func ReadFile(path string, fs http.FileSystem) ([]byte, error) {
+	buf, err := utils.ReadFile(path, fs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+	return buf, nil
+}
+
+// Walk walks the file tree rooted at directory, calling walkFn for each file or
+// directory in the tree, including directory.
+// This wrapper provides a centralized abstraction point for filesystem traversal,
+// allowing template engines to depend only on the core package while the core
+// manages the underlying utils dependency.
+func Walk(fs http.FileSystem, directory string, walkFn func(path string, info os.FileInfo, err error) error) error {
+	if err := utils.Walk(fs, directory, walkFn); err != nil {
+		return fmt.Errorf("failed to walk directory: %w", err)
+	}
+	return nil
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/CloudyKit/jet/v6"
 	"github.com/CloudyKit/jet/v6/loaders/httpfs"
 	core "github.com/gofiber/template/v2"
-	"github.com/gofiber/utils"
 )
 
 // Engine struct
@@ -124,7 +123,7 @@ func (e *Engine) Load() error {
 		name := strings.TrimSuffix(rel, e.Extension)
 		// Read the file
 		// #gosec G304
-		buf, err := utils.ReadFile(path, e.FileSystem)
+		buf, err := core.ReadFile(path, e.FileSystem)
 		if err != nil {
 			return err
 		}

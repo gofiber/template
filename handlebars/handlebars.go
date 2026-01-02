@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	core "github.com/gofiber/template/v2"
-	"github.com/gofiber/utils"
 	"github.com/mailgun/raymond/v2"
 )
 
@@ -91,7 +90,7 @@ func (e *Engine) Load() error {
 
 		// Read the file
 		// #gosec G304
-		buf, err := utils.ReadFile(path, e.FileSystem)
+		buf, err := core.ReadFile(path, e.FileSystem)
 		if err != nil {
 			return err
 		}
@@ -111,7 +110,7 @@ func (e *Engine) Load() error {
 		return err
 	}
 	if e.FileSystem != nil {
-		err = utils.Walk(e.FileSystem, e.Directory, walkFn)
+		err = core.Walk(e.FileSystem, e.Directory, walkFn)
 	} else {
 		err = filepath.Walk(e.Directory, walkFn)
 	}
