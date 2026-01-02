@@ -234,6 +234,8 @@ func main() {
 
 ### Benchmarks
 
+See the benchmarks under https://gofiber.github.io/template/benchmarks
+
 #### Simple
 ![](https://raw.githubusercontent.com/gofiber/template/master/.github/data/Simple-TimeperOperation.png)
 
