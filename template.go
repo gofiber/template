@@ -2,6 +2,7 @@
 package template
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -177,7 +178,7 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 func ReadFile(path string, fs http.FileSystem) ([]byte, error) {
 	buf, err := utils.ReadFile(path, fs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 	return buf, nil
 }
@@ -189,7 +190,7 @@ func ReadFile(path string, fs http.FileSystem) ([]byte, error) {
 // manages the underlying utils dependency.
 func Walk(fs http.FileSystem, directory string, walkFn func(path string, info os.FileInfo, err error) error) error {
 	if err := utils.Walk(fs, directory, walkFn); err != nil {
-		return err
+		return fmt.Errorf("failed to walk directory: %w", err)
 	}
 	return nil
 }
