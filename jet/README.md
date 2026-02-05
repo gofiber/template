@@ -14,7 +14,7 @@ Jet is a template engine create by [cloudykit](https://github.com/CloudyKit/jet)
 Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
 
 ```
-go get github.com/gofiber/template/jet/v4
+go get github.com/gofiber/template/jet/v3
 ```
 
 ## Basic Example
