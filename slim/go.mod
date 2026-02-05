@@ -3,7 +3,7 @@ module github.com/gofiber/template/slim/v3
 go 1.25
 
 require (
-	github.com/gofiber/template/v2 v2.0.0
+	github.com/gofiber/template/v2 v2.1.0
 	github.com/mattn/go-slim v0.0.4
 	github.com/stretchr/testify v1.11.1
 	github.com/valyala/bytebufferpool v1.0.0

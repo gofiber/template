@@ -3,7 +3,7 @@ module github.com/gofiber/template/html/v3
 go 1.25
 
 require (
-	github.com/gofiber/template/v2 v2.0.0
+	github.com/gofiber/template/v2 v2.1.0
 	github.com/stretchr/testify v1.11.1
 )
 
