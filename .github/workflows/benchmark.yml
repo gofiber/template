@@ -64,12 +64,25 @@ jobs:
           SHA=$(git rev-parse "origin/${DEFAULT_BRANCH}")
           echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
 
+      - name: Build normalized cache key
+        id: cache-key
+        env:
+          CPU_MODEL: ${{ steps.system-info.outputs.cpu-model }}
+          BASE_SHA: ${{ steps.get-default-branch-sha.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SAFE_CPU_MODEL="$(printf '%s' "$CPU_MODEL" | tr -cs '[:alnum:]._-' '-')"
+          SAFE_CPU_MODEL="${SAFE_CPU_MODEL#-}"
+          SAFE_CPU_MODEL="${SAFE_CPU_MODEL%-}"
+          echo "key=${BASE_SHA}-${{ runner.os }}-${SAFE_CPU_MODEL}-benchmark" >> "$GITHUB_OUTPUT"
+
       - name: Get Benchmark Results from default branch
         id: cache
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ./cache
-          key: ${{ steps.get-default-branch-sha.outputs.sha }}-${{ runner.os }}-${{ steps.system-info.outputs.cpu-model }}-benchmark
+          key: ${{ steps.cache-key.outputs.key }}
 
       - name: Compare PR Benchmark Results with default branch
         if: ${{ github.event_name == 'pull_request' && steps.cache.outputs.cache-hit == 'true' }}
@@ -119,4 +132,4 @@ jobs:
         uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ./cache
-          key: ${{ steps.get-default-branch-sha.outputs.sha }}-${{ runner.os }}-${{ steps.system-info.outputs.cpu-model }}-benchmark
+          key: ${{ steps.cache-key.outputs.key }}
