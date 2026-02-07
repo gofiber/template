@@ -1,33 +1,34 @@
 name: Benchmark
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "master"
       - "main"
     paths:
-      - "**.go"
+      - "**/*.go"
       - "**/go.mod"
       - ".github/workflows/benchmark.yml"
   pull_request:
-    branches:
-      - "*"
     paths:
-      - "**.go"
+      - "**/*.go"
       - "**/go.mod"
       - ".github/workflows/benchmark.yml"
-  workflow_dispatch:
 
 permissions:
   deployments: write
   contents: write
+  pull-requests: write
 
 jobs:
-  Compare:
+  compare:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Install Go
         uses: actions/setup-go@v6
@@ -37,37 +38,85 @@ jobs:
           cache: false
 
       - name: Run Benchmarks
-        run: |
-          set -o pipefail
-          for d in */ ; do
-            cd "$d"
-            go test ./... -benchmem -run=^$ -bench . | tee -a ../output.txt
-            cd ..
-          done
         shell: bash
+        run: |
+          set -euo pipefail
+          : > output.txt
+          for d in */ ; do
+            if [[ ! -f "${d}go.mod" ]]; then
+              continue
+            fi
+            (
+              cd "$d"
+              go test ./... -benchmem -run=^$ -bench .
+            ) | tee -a output.txt
+          done
 
-      - name: Get Previous Benchmark Results
-        uses: actions/cache@v5
+      - name: Get GitHub Runner System Information
+        uses: kenchan0130/actions-system-info@v1.4.0
+        id: system-info
+
+      - name: Get Default branch SHA
+        id: get-default-branch-sha
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          SHA=$(git rev-parse "origin/${DEFAULT_BRANCH}")
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Get Benchmark Results from default branch
+        id: cache
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ./cache
-          key: ${{ runner.os }}-benchmark
+          key: ${{ steps.get-default-branch-sha.outputs.sha }}-${{ runner.os }}-${{ steps.system-info.outputs.cpu-model }}-benchmark
 
-      - name: Save Benchmark Results
+      - name: Compare PR Benchmark Results with default branch
+        if: ${{ github.event_name == 'pull_request' && steps.cache.outputs.cache-hit == 'true' }}
         uses: benchmark-action/github-action-benchmark@v1.20.7
         with:
-          # What benchmark tool the output.txt came from
-          tool: 'go'
-          # Where the output from the benchmark tool is stored
+          tool: "go"
           output-file-path: output.txt
-          # Where the previous data file is stored
           external-data-json-path: ./cache/benchmark-data.json
-          # Secret for Github
-          github-token: ${{ secrets.BENCHMARK_TOKEN }}
-          # Directory that contains benchmark files on the GitHub pages branch
-          benchmark-data-dir-path: "benchmarks"
-          # Workflow will fail when an alert happens
+          save-data-file: false
           fail-on-alert: true
-          comment-on-alert: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
-          #summary-always: ${{ github.event_name != 'push' && github.event_name != 'workflow_dispatch' }}
+          comment-on-alert: ${{ github.event.pull_request.head.repo.fork == false }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          summary-always: true
+          alert-threshold: "150%"
+
+      - name: Store Benchmark Results for default branch
+        if: ${{ github.ref_name == github.event.repository.default_branch }}
+        uses: benchmark-action/github-action-benchmark@v1.20.7
+        with:
+          tool: "go"
+          output-file-path: output.txt
+          external-data-json-path: ./cache/benchmark-data.json
+          save-data-file: true
+          fail-on-alert: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          summary-always: true
+          alert-threshold: "150%"
+          auto-push: false
+
+      - name: Publish Benchmark Results to GitHub Pages
+        if: ${{ github.ref_name == github.event.repository.default_branch }}
+        uses: benchmark-action/github-action-benchmark@v1.20.7
+        with:
+          tool: "go"
+          output-file-path: output.txt
+          benchmark-data-dir-path: "benchmarks"
+          fail-on-alert: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-on-alert: false
+          summary-always: true
+          save-data-file: true
+          alert-threshold: "150%"
           auto-push: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
-          save-data-file: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+
+      - name: Update Benchmark Results cache
+        if: ${{ github.ref_name == github.event.repository.default_branch }}
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ./cache
+          key: ${{ steps.get-default-branch-sha.outputs.sha }}-${{ runner.os }}-${{ steps.system-info.outputs.cpu-model }}-benchmark
