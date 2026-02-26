@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -26,16 +27,81 @@ type Engine struct {
 type fileSystemPartialProvider struct {
 	fileSystem http.FileSystem
 	extension  string
+	baseDir    string
+	verbose    bool
 }
 
-func (p fileSystemPartialProvider) Get(path string) (string, error) {
-	buf, err := core.ReadFile(path+p.extension, p.fileSystem)
-	return string(buf), err
+func (p fileSystemPartialProvider) Get(partial string) (string, error) {
+	candidates := p.lookupCandidates(partial)
+	var firstErr error
+	for _, candidate := range candidates {
+		buf, err := core.ReadFile(candidate, p.fileSystem)
+		if err == nil {
+			return string(buf), nil
+		}
+
+		if firstErr == nil {
+			firstErr = err
+		}
+		if p.verbose {
+			log.Printf("views: partial lookup failed: partial=%q candidate=%q err=%v", partial, candidate, err)
+		}
+	}
+
+	if p.verbose {
+		log.Printf("views: partial not found: partial=%q candidates=%v", partial, candidates)
+	}
+
+	if firstErr == nil {
+		firstErr = fmt.Errorf("no partial candidates generated")
+	}
+	return "", fmt.Errorf("render: partial %q does not exist (tried: %s): %w", partial, strings.Join(candidates, ", "), firstErr)
+}
+
+func (p fileSystemPartialProvider) lookupCandidates(partial string) []string {
+	addCandidate := func(candidates []string, candidate string) []string {
+		for _, existing := range candidates {
+			if existing == candidate {
+				return candidates
+			}
+		}
+		return append(candidates, candidate)
+	}
+
+	addExtension := func(raw string) string {
+		if strings.HasSuffix(raw, p.extension) {
+			return raw
+		}
+		return raw + p.extension
+	}
+
+	base := filepath.ToSlash(strings.TrimSpace(p.baseDir))
+	base = strings.TrimSuffix(base, "/")
+	if base == "." || base == "/" {
+		base = ""
+	}
+
+	clean := filepath.ToSlash(strings.TrimSpace(partial))
+	clean = strings.TrimPrefix(clean, "./")
+
+	candidates := make([]string, 0, 2)
+	if clean != "" {
+		candidates = addCandidate(candidates, addExtension(clean))
+		if base != "" {
+			candidates = addCandidate(candidates, addExtension(path.Join(base, clean)))
+		}
+	}
+
+	return candidates
 }
 
 // New returns a Mustache render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
+		partialsProvider: &fileSystemPartialProvider{
+			extension: extension,
+			baseDir:   directory,
+		},
 		Engine: core.Engine{
 			Directory:  directory,
 			Extension:  extension,
@@ -56,6 +122,7 @@ func NewFileSystemPartials(fs http.FileSystem, extension string, partialsFS http
 		partialsProvider: &fileSystemPartialProvider{
 			fileSystem: partialsFS,
 			extension:  extension,
+			baseDir:    "/",
 		},
 		Engine: core.Engine{
 			Directory:  "/",
@@ -75,6 +142,9 @@ func (e *Engine) Load() error {
 	defer e.Mutex.Unlock()
 
 	e.Templates = make(map[string]*mustache.Template)
+	if e.partialsProvider != nil {
+		e.partialsProvider.verbose = e.Verbose
+	}
 
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
