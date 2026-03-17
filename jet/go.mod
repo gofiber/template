@@ -3,7 +3,7 @@ module github.com/gofiber/template/jet/v3
 go 1.25
 
 require (
-	github.com/CloudyKit/jet/v6 v6.3.1
+	github.com/CloudyKit/jet/v6 v6.3.2
 	github.com/gofiber/template/v2 v2.1.0
 	github.com/stretchr/testify v1.11.1
 )
