@@ -12,14 +12,20 @@ updates:
           interval: "daily"
 
     # gomod split by alphabet ranges to reduce group PR size
-    # [a-h] ~5 modules | [i-z] ~4 modules
+    # a-h ~5 modules | i-z ~4 modules
     - package-ecosystem: "gomod"
       open-pull-requests-limit: 15
       allow:
           - dependency-type: "all"
       directories:
-          - "/[a-h]*"
-          - "/[a-h]*/**"
+          - "/a*/**"
+          - "/b*/**"
+          - "/c*/**"
+          - "/d*/**"
+          - "/e*/**"
+          - "/f*/**"
+          - "/g*/**"
+          - "/h*/**"
       labels:
           - "🤖 Dependencies"
       schedule:
@@ -48,8 +54,24 @@ updates:
       allow:
           - dependency-type: "all"
       directories:
-          - "/[i-z]*"
-          - "/[i-z]*/**"
+          - "/i*/**"
+          - "/j*/**"
+          - "/k*/**"
+          - "/l*/**"
+          - "/m*/**"
+          - "/n*/**"
+          - "/o*/**"
+          - "/p*/**"
+          - "/q*/**"
+          - "/r*/**"
+          - "/s*/**"
+          - "/t*/**"
+          - "/u*/**"
+          - "/v*/**"
+          - "/w*/**"
+          - "/x*/**"
+          - "/y*/**"
+          - "/z*/**"
       labels:
           - "🤖 Dependencies"
       schedule:
