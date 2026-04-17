@@ -10,18 +10,21 @@ updates:
           - "🤖 Dependencies"
       schedule:
           interval: "daily"
+
+    # gomod split by alphabet ranges to reduce group PR size
+    # [a-h] ~5 modules | [i-z] ~4 modules
     - package-ecosystem: "gomod"
-      open-pull-requests-limit: 30
+      open-pull-requests-limit: 15
       allow:
-          # Allow both direct and indirect updates for all packages.
           - dependency-type: "all"
       directories:
-          - "**/*"
+          - "/[a-h]*"
+          - "/[a-h]*/**"
       labels:
           - "🤖 Dependencies"
       schedule:
           interval: "daily"
-      groups:
+      groups: &gomod-groups
           gofiber:
               patterns:
                   - "github.com/gofiber/*"
@@ -39,3 +42,16 @@ updates:
           golang-x:
               patterns:
                   - "golang.org/x/*"
+
+    - package-ecosystem: "gomod"
+      open-pull-requests-limit: 15
+      allow:
+          - dependency-type: "all"
+      directories:
+          - "/[i-z]*"
+          - "/[i-z]*/**"
+      labels:
+          - "🤖 Dependencies"
+      schedule:
+          interval: "daily"
+      groups: *gomod-groups
