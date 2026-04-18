@@ -2,11 +2,11 @@
 #
 # Only modules with ordering constraints need explicit waves.
 # The final wave with `auto-discover: true` picks up all remaining
-# draft releases (the 9 template engines).
+# draft releases (the template engines).
 #
 # Constraint: every engine depends on the root "core" module.
 
-repo-type: multi
+wave-delay-minutes: 40
 
 waves:
   - name: core
