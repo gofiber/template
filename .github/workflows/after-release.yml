@@ -10,13 +10,15 @@ jobs:
     if: "!contains(github.event.release.tag_name, '/')"
     uses: gofiber/.github/.github/workflows/after-release.yml@main
     with:
-      repos: '["gofiber/template"]'
+      repos: |
+        - gofiber/template
     secrets:
       dispatch-token: ${{ secrets.DISPATCH_TOKEN }}
 
   notify-dependents:
     uses: gofiber/.github/.github/workflows/after-release.yml@main
     with:
-      repos: '["gofiber/recipes"]'
+      repos: |
+        - gofiber/recipes
     secrets:
       dispatch-token: ${{ secrets.DISPATCH_TOKEN }}
