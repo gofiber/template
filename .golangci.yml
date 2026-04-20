@@ -86,6 +86,8 @@ linters:
       forbid:
         - pattern: ^(fmt\.Print(|f|ln)|print|println)$
         - pattern: 'http\.Default(Client|Transport)'
+    gomoddirectives:
+      replace-local: true
     gocritic:
       disabled-checks:
         - ifElseChain
