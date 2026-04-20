@@ -5,6 +5,7 @@ on:
     types: [published]
   repository_dispatch:
     types: [after-release]
+  workflow_dispatch:
 
 jobs:
   # Core template releases update engine deps in same repo (manual releases only).
