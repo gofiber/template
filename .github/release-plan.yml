@@ -5,13 +5,29 @@
 # draft releases (the template engines).
 #
 # Constraint: every engine depends on the root "core" module.
+# Core's post-release hook triggers dependabot in this repo
+# immediately so engines pick up the new version before wave 2.
+#
+# After all modules are published, 'after-release' is dispatched once.
+# The after-release.yml workflow defines which repos to notify.
 
 wave-delay-minutes: 40
 
 waves:
   - name: core
     modules:
-      - { name: core, tag-prefix: "" }
+      - name: core
+        tag-prefix: ""
+        post-release:
+          - action: dispatch
+            repo: gofiber/template
+            event: dependabot-on-demand
 
   - name: engines
     auto-discover: true
+
+post-release:
+  - action: dispatch
+    event: after-release
+  - action: dispatch
+    event: sync-docs
