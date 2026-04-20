@@ -17,6 +17,7 @@ jobs:
       !contains(github.event.release.tag_name, '/')
     uses: gofiber/.github/.github/workflows/after-release.yml@main
     with:
+      skip-wait: ${{ github.event_name == 'workflow_dispatch' }}
       repos: |
         - gofiber/template
     secrets:
@@ -27,6 +28,7 @@ jobs:
     if: github.event_name != 'release' || github.actor != 'github-actions[bot]'
     uses: gofiber/.github/.github/workflows/after-release.yml@main
     with:
+      skip-wait: ${{ github.event_name == 'workflow_dispatch' }}
       repos: |
         - gofiber/recipes
     secrets:
