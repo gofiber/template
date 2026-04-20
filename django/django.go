@@ -206,7 +206,7 @@ func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
 // Valid keys match the following regex: [a-zA-Z0-9_]+
 func isValidKey(key string) bool {
 	for _, ch := range key {
-		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '_') {
+		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9') && ch != '_' {
 			return false
 		}
 	}

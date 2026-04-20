@@ -88,6 +88,10 @@ linters:
         - pattern: 'http\.Default(Client|Transport)'
     gomoddirectives:
       replace-local: true
+    staticcheck:
+      checks:
+        - "all"
+        - "-QF*"
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -190,6 +194,8 @@ linters:
         - github.com/Joker/jade
         - github.com/Joker/hpp
         - github.com/mattn/go-slim
+      ignore-interfaces:
+        - io.Writer
   exclusions:
     paths:
       - internal
