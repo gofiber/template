@@ -92,6 +92,7 @@ linters:
       checks:
         - "all"
         - "-QF*"
+        - "-ST1000"
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -195,6 +196,17 @@ linters:
         - github.com/Joker/hpp
         - github.com/mattn/go-slim
       ignore-sigs:
+        # wrapcheck defaults (must be repeated when overriding)
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+        - .WithMessage(
+        - .WithMessagef(
+        - .WithStack(
+        # additional
         - (io.Writer).Write(
   exclusions:
     paths:
