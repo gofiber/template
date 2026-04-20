@@ -194,8 +194,8 @@ linters:
         - github.com/Joker/jade
         - github.com/Joker/hpp
         - github.com/mattn/go-slim
-      ignore-interfaces:
-        - io.Writer
+      ignore-sigs:
+        - (io.Writer).Write(
   exclusions:
     paths:
       - internal
