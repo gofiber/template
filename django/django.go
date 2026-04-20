@@ -27,14 +27,14 @@ type Engine struct {
 
 // This helper function is used to avoid duplication in public constructors.
 func (e *Engine) initialize(directory, extension string, fs http.FileSystem) {
-	e.Engine.Left = "{{"
-	e.Engine.Right = "}}"
-	e.Engine.Directory = directory
-	e.Engine.Extension = extension
-	e.Engine.LayoutName = "embed"
-	e.Engine.Funcmap = make(map[string]interface{})
+	e.Left = "{{"
+	e.Right = "}}"
+	e.Directory = directory
+	e.Extension = extension
+	e.LayoutName = "embed"
+	e.Funcmap = make(map[string]interface{})
 	e.autoEscape = true
-	e.Engine.FileSystem = fs
+	e.FileSystem = fs
 }
 
 // New creates a new Engine with a directory and extension.

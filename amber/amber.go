@@ -1,6 +1,7 @@
 package amber
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -32,7 +33,7 @@ func New(directory, extension string) *Engine {
 		},
 	}
 	engine.AddFunc(engine.LayoutName, func() error {
-		return fmt.Errorf("layoutName called unexpectedly")
+		return errors.New("layoutName called unexpectedly")
 	})
 	return engine
 }
@@ -49,7 +50,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 		},
 	}
 	engine.AddFunc(engine.LayoutName, func() error {
-		return fmt.Errorf("layoutName called unexpectedly")
+		return errors.New("layoutName called unexpectedly")
 	})
 	return engine
 }

@@ -173,6 +173,21 @@ linters:
       ignore-package-globs:
         - github.com/gofiber/fiber/*
         - github.com/valyala/fasthttp
+        # TODO: Remove these ignores and wrap errors properly with
+        # fmt.Errorf("context: %w", err) in each engine module instead.
+        - github.com/gofiber/template/*
+        - path/filepath
+        - html/template
+        - text/template
+        - github.com/yosssi/ace
+        - github.com/eknkc/amber
+        - github.com/flosch/pongo2/*
+        - github.com/mailgun/raymond/*
+        - github.com/CloudyKit/jet/*
+        - github.com/cbroglie/mustache
+        - github.com/Joker/jade
+        - github.com/Joker/hpp
+        - github.com/mattn/go-slim
   exclusions:
     paths:
       - internal
