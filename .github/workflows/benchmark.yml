@@ -92,7 +92,7 @@ jobs:
 
       - name: Compare PR Benchmark Results with default branch
         if: ${{ github.event_name == 'pull_request' && steps.cache.outputs.cache-hit == 'true' }}
-        uses: benchmark-action/github-action-benchmark@v1.20.7
+        uses: benchmark-action/github-action-benchmark@v1.22.0
         with:
           tool: "go"
           output-file-path: output.txt
@@ -106,7 +106,7 @@ jobs:
 
       - name: Store Benchmark Results for default branch
         if: ${{ github.ref_name == github.event.repository.default_branch }}
-        uses: benchmark-action/github-action-benchmark@v1.20.7
+        uses: benchmark-action/github-action-benchmark@v1.22.0
         with:
           tool: "go"
           output-file-path: output.txt
@@ -120,7 +120,7 @@ jobs:
 
       - name: Publish Benchmark Results to GitHub Pages
         if: ${{ github.ref_name == github.event.repository.default_branch }}
-        uses: benchmark-action/github-action-benchmark@v1.20.7
+        uses: benchmark-action/github-action-benchmark@v1.22.0
         with:
           tool: "go"
           output-file-path: output.txt
