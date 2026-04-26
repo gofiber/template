@@ -124,11 +124,6 @@ To view more specific examples, you could visit each engine folder to learn more
 - [pug](./pug/README.md)
 - [slim](./slim/README.md)
 
-### Security
-
-See [SECURITY.md](./SECURITY.md) for the per-engine escaping matrix, raw-output primitives, and guidance for safely composing layouts and helpers.
-
-
 ### embedded Systems
 
 We support the `http.FileSystem` interface, so you can use different libraries to load the templates from embedded binaries.
