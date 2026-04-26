@@ -409,12 +409,24 @@ func (l *secureLocalTemplateLoader) Get(name string) (io.Reader, error) {
 
 func (l *secureLocalTemplateLoader) resolve(base, name string) string {
 	if filepath.IsAbs(name) {
-		return ""
+		resolved := filepath.Clean(name)
+		if !isWithinRoot(l.root, resolved) || !hasAllowedExtension(filepath.Ext(resolved), l.ext) {
+			return ""
+		}
+		return resolved
 	}
 
 	rootDir := l.root
 	if base != "" {
-		rootDir = filepath.Join(l.root, filepath.Dir(filepath.FromSlash(base)))
+		basePath := filepath.Clean(filepath.FromSlash(base))
+		if filepath.IsAbs(basePath) {
+			if !isWithinRoot(l.root, basePath) {
+				return ""
+			}
+			rootDir = filepath.Dir(basePath)
+		} else {
+			rootDir = filepath.Join(l.root, filepath.Dir(basePath))
+		}
 	}
 
 	resolved := filepath.Clean(filepath.Join(rootDir, filepath.FromSlash(name)))
@@ -448,12 +460,24 @@ func (l *secureHTTPTemplateLoader) Abs(base, name string) string {
 
 	name = strings.ReplaceAll(name, `\`, "/")
 	if path.IsAbs(name) {
-		return ""
+		var ok bool
+		name, ok = trimHTTPBase(name, l.baseDir)
+		if !ok {
+			return ""
+		}
 	}
 
 	baseDir := "."
 	if base != "" {
-		baseDir = path.Dir(strings.ReplaceAll(base, `\`, "/"))
+		basePath := strings.ReplaceAll(base, `\`, "/")
+		if path.IsAbs(basePath) {
+			var ok bool
+			basePath, ok = trimHTTPBase(basePath, l.baseDir)
+			if !ok {
+				return ""
+			}
+		}
+		baseDir = path.Dir(basePath)
 	}
 
 	resolved := path.Clean(path.Join(baseDir, name))
@@ -485,6 +509,21 @@ func normalizeHTTPBase(baseDir string) string {
 		return ""
 	}
 	return cleaned
+}
+
+func trimHTTPBase(candidate, baseDir string) (string, bool) {
+	candidate = path.Clean(candidate)
+	if baseDir == "" {
+		return strings.TrimPrefix(candidate, "/"), true
+	}
+	if candidate == baseDir {
+		return "", true
+	}
+	prefix := baseDir + "/"
+	if !strings.HasPrefix(candidate, prefix) {
+		return "", false
+	}
+	return strings.TrimPrefix(candidate, prefix), true
 }
 
 func hasAllowedExtension(ext, allowed string) bool {
