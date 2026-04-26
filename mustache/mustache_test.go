@@ -48,6 +48,22 @@ func Test_Render(t *testing.T) {
 	require.Equal(t, expect, result)
 }
 
+func Test_Render_RelativePartials(t *testing.T) {
+	t.Parallel()
+	engine := New("./views", ".mustache")
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "relative", customMap{
+		"Title": "Hello, Relative!",
+	})
+	require.NoError(t, err)
+
+	expect := `<h2>Header</h2><h1>Hello, Relative!</h1><h2>Footer</h2>`
+	result := trim(buf.String())
+	require.Equal(t, expect, result)
+}
+
 func Test_Layout(t *testing.T) {
 	t.Parallel()
 	engine := New("./views", ".mustache")
@@ -82,7 +98,7 @@ func Test_Empty_Layout(t *testing.T) {
 
 func Test_FileSystem(t *testing.T) {
 	t.Parallel()
-	engine := NewFileSystemPartials(http.Dir("./views"), ".mustache", http.Dir("."))
+	engine := NewFileSystemPartials(http.Dir("./views"), ".mustache", http.Dir("./views"))
 	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
