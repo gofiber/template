@@ -85,7 +85,14 @@ func main() {
 		}, "layouts/main")
 	})
 
-	log.Fatal(app.Listen(":3000"))
+log.Fatal(app.Listen(":3000"))
 }
 
 ```
+
+## Security
+
+- Slim escapes output when you use `=` and writes raw output when you use `==`.
+- Layout composition in this repository uses `== embed`, but only with child content that has already been rendered.
+- Treat every `==` site as a trust boundary and keep untrusted data on the escaped `=` path whenever possible.
+- Custom Slim functions are trusted code and should not emit raw markup for untrusted input.

@@ -89,7 +89,14 @@ func main() {
 		}, "layouts/main")
 	})
 
-	log.Fatal(app.Listen(":3000"))
+log.Fatal(app.Listen(":3000"))
 }
 
 ```
+
+## Security
+
+- Mustache escapes HTML output by default when you use `{{value}}`.
+- Triple-stash expressions such as `{{{value}}}` and ampersand tags disable escaping and should only be used for trusted, pre-sanitized markup.
+- Layout composition should continue to use `{{{embed}}}`, but only with child content that has already been rendered.
+- Treat any raw-output sections in templates as trust boundaries and keep untrusted data on the escaped path whenever possible.
