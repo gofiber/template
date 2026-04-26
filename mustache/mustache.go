@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -24,18 +25,51 @@ type Engine struct {
 }
 
 type fileSystemPartialProvider struct {
+	root       string
 	fileSystem http.FileSystem
 	extension  string
 }
 
-func (p fileSystemPartialProvider) Get(path string) (string, error) {
-	buf, err := core.ReadFile(path+p.extension, p.fileSystem)
+func (p fileSystemPartialProvider) Get(name string) (string, error) {
+	cleanName, err := sanitizePartialName(name)
+	if err != nil {
+		return "", err
+	}
+
+	filename := cleanName + p.extension
+	if p.fileSystem == nil {
+		filename = filepath.Join(p.root, filepath.FromSlash(filename))
+	} else if p.root != "" {
+		filename = path.Join(p.root, filename)
+	}
+
+	buf, err := core.ReadFile(filename, p.fileSystem)
 	return string(buf), err
+}
+
+func sanitizePartialName(name string) (string, error) {
+	cleanName := strings.ReplaceAll(strings.TrimSpace(name), `\`, "/")
+	cleanName = path.Clean(cleanName)
+
+	switch {
+	case cleanName == "." || cleanName == "..":
+		return "", fmt.Errorf("mustache: invalid partial path %q", name)
+	case path.IsAbs(cleanName):
+		return "", fmt.Errorf("mustache: invalid partial path %q", name)
+	case strings.HasPrefix(cleanName, "../"):
+		return "", fmt.Errorf("mustache: invalid partial path %q", name)
+	}
+
+	return cleanName, nil
 }
 
 // New returns a Mustache render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
+		partialsProvider: &fileSystemPartialProvider{
+			root:      ".",
+			extension: extension,
+		},
 		Engine: core.Engine{
 			Directory:  directory,
 			Extension:  extension,
