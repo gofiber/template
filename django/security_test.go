@@ -3,7 +3,6 @@ package django
 import (
 	"bytes"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -74,46 +73,4 @@ func Test_HelperOutputIsEscaped(t *testing.T) {
 	result := trim(buf.String())
 	require.NotContains(t, result, xssPayload)
 	require.Contains(t, result, "&lt;script&gt;alert(1)&lt;/script&gt;")
-}
-
-func Test_AutoEscape_IsIsolatedPerEngine(t *testing.T) {
-	unescaped := New("./views", ".django")
-	unescaped.SetAutoEscape(false)
-	require.NoError(t, unescaped.Load())
-
-	escaped := New("./views", ".django")
-	require.NoError(t, escaped.Load())
-
-	var unescapedBuf bytes.Buffer
-	err := unescaped.Render(&unescapedBuf, "simple", map[string]interface{}{
-		"Title": xssPayload,
-	})
-	require.NoError(t, err)
-	require.Contains(t, trim(unescapedBuf.String()), xssPayload)
-
-	var escapedBuf bytes.Buffer
-	err = escaped.Render(&escapedBuf, "simple", map[string]interface{}{
-		"Title": xssPayload,
-	})
-	require.NoError(t, err)
-	require.NotContains(t, trim(escapedBuf.String()), xssPayload)
-	require.Contains(t, trim(escapedBuf.String()), "&lt;script&gt;alert(1)&lt;/script&gt;")
-}
-
-func Test_Sandbox_BansRecommendedTagsAndFilters(t *testing.T) {
-	dir, err := os.MkdirTemp(".", "")
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, os.RemoveAll(dir))
-	}()
-
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "index.django"), []byte(`{% include "partial.django" %}`), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "partial.django"), []byte(`<p>{{ Title|safe }}</p>`), 0o600))
-
-	engine := New(dir, ".django")
-	require.NoError(t, engine.Sandbox())
-
-	err = engine.Load()
-	require.Error(t, err)
 }

@@ -243,35 +243,9 @@ Disabling auto-escape should be approached with caution. It can expose your appl
 
 It is advisable to keep auto-escape enabled unless there is a strong reason to disable it. If you do disable it, ensure all user-supplied content is thoroughly sanitized and validated to avoid XSS vulnerabilities.
 
-### Sandboxing user-generated templates
-
-If templates are user-supplied or otherwise untrusted, apply the pongo2 sandbox guidance before loading templates:
-
-```go
-engine := django.New("./views", ".django")
-
-if err := engine.Sandbox(); err != nil {
-	log.Fatal(err)
-}
-```
-
-`Sandbox()` applies the official pongo2 recommendations for untrusted templates by banning:
-
-- `include`
-- `import`
-- `ssi`
-- `extends`
-- the `safe` filter
-
-You can also apply narrower restrictions with `BanTag()` and `BanFilter()` before calling `Load()`.
-
-This sandboxing is opt-in to preserve existing template behavior. For trusted application templates, the engine continues to use pongo2's normal loader behavior.
-
 ## Security
 
 - Auto-escaping is enabled by default and should remain enabled for untrusted content.
 - `SetAutoEscape(false)`, `{% autoescape off %}`, and `safe`-style constructs disable escaping and should only be used with trusted, pre-sanitized content.
-- Auto-escape configuration is scoped to the Fiber Django engine so one engine instance does not leak its setting into another.
 - Layout composition uses `{{embed}}`, but the repository only marks embed output as safe after the child template has already been rendered.
-- pongo2's default loader behavior is preserved for compatibility; for untrusted templates, call `Sandbox()` or ban the relevant tags and filters yourself before loading templates.
 - Custom globals and helper functions are trusted code and should not manufacture safe HTML from untrusted input.
