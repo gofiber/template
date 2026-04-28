@@ -11,6 +11,8 @@ import (
 const xssPayload = `<script>alert(1)</script>`
 
 func Test_XSS_DefaultAutoEscape(t *testing.T) {
+	t.Parallel()
+
 	engine := New("./views", ".django")
 	engine.AddFunc("isAdmin", func(user string) bool {
 		return user == admin
@@ -29,6 +31,8 @@ func Test_XSS_DefaultAutoEscape(t *testing.T) {
 }
 
 func Test_Layout_DoesNotTrustUserProvidedEmbed(t *testing.T) {
+	t.Parallel()
+
 	engine := New("./views", ".django")
 	engine.AddFunc("isAdmin", func(user string) bool {
 		return user == admin
@@ -49,6 +53,8 @@ func Test_Layout_DoesNotTrustUserProvidedEmbed(t *testing.T) {
 }
 
 func Test_HelperOutputIsEscaped(t *testing.T) {
+	t.Parallel()
+
 	dir, err := os.MkdirTemp(".", "")
 	require.NoError(t, err)
 
