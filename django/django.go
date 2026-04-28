@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -77,9 +76,17 @@ func (e *Engine) Load() error {
 	defer e.Mutex.Unlock()
 
 	e.Templates = make(map[string]*pongo2.Template)
-	pongoloader, err := e.newTemplateLoader()
-	if err != nil {
-		return err
+	baseDir := e.Directory
+	var pongoloader pongo2.TemplateLoader
+
+	if e.FileSystem != nil {
+		if e.forwardPath {
+			pongoloader = pongo2.MustNewHttpFileSystemLoader(e.FileSystem, baseDir)
+		} else {
+			pongoloader = pongo2.MustNewHttpFileSystemLoader(e.FileSystem, "")
+		}
+	} else {
+		pongoloader = pongo2.MustNewLocalFileSystemLoader(baseDir)
 	}
 
 	pongoset := pongo2.NewSet("fiber-django", pongoloader)
@@ -310,17 +317,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	return nil
 }
 
-func (e *Engine) newTemplateLoader() (pongo2.TemplateLoader, error) {
-	if e.FileSystem != nil {
-		baseDir := ""
-		if e.forwardPath {
-			baseDir = e.Directory
-		}
-		return newSecureHTTPTemplateLoader(e.FileSystem, baseDir, e.Extension)
-	}
-	return newSecureLocalTemplateLoader(e.Directory, e.Extension)
-}
-
 func (e *Engine) applySandbox(set *pongo2.TemplateSet) error {
 	for _, name := range e.bannedTags {
 		if err := set.BanTag(name); err != nil {
@@ -365,175 +361,4 @@ func containsString(values []string, candidate string) bool {
 		}
 	}
 	return false
-}
-
-type secureLocalTemplateLoader struct {
-	root string
-	ext  string
-}
-
-func newSecureLocalTemplateLoader(root, ext string) (*secureLocalTemplateLoader, error) {
-	if !filepath.IsAbs(root) {
-		absRoot, err := filepath.Abs(root)
-		if err != nil {
-			return nil, err
-		}
-		root = absRoot
-	}
-
-	info, err := os.Stat(root)
-	if err != nil {
-		return nil, err
-	}
-	if !info.IsDir() {
-		return nil, fmt.Errorf("the given path %q is not a directory", root)
-	}
-
-	return &secureLocalTemplateLoader{root: filepath.Clean(root), ext: ext}, nil
-}
-
-func (l *secureLocalTemplateLoader) Abs(base, name string) string {
-	return l.resolve(base, name)
-}
-
-func (l *secureLocalTemplateLoader) Get(name string) (io.Reader, error) {
-	if name == "" {
-		return nil, fmt.Errorf("template path must stay within %q and end with %q", l.root, l.ext)
-	}
-	file, err := os.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	return file, nil
-}
-
-func (l *secureLocalTemplateLoader) resolve(base, name string) string {
-	if filepath.IsAbs(name) {
-		resolved := filepath.Clean(name)
-		if !isWithinRoot(l.root, resolved) || !hasAllowedExtension(filepath.Ext(resolved), l.ext) {
-			return ""
-		}
-		return resolved
-	}
-
-	rootDir := l.root
-	if base != "" {
-		basePath := filepath.Clean(filepath.FromSlash(base))
-		if filepath.IsAbs(basePath) {
-			if !isWithinRoot(l.root, basePath) {
-				return ""
-			}
-			rootDir = filepath.Dir(basePath)
-		} else {
-			rootDir = filepath.Join(l.root, filepath.Dir(basePath))
-		}
-	}
-
-	resolved := filepath.Clean(filepath.Join(rootDir, filepath.FromSlash(name)))
-	if !isWithinRoot(l.root, resolved) || !hasAllowedExtension(filepath.Ext(resolved), l.ext) {
-		return ""
-	}
-	return resolved
-}
-
-type secureHTTPTemplateLoader struct {
-	fs      http.FileSystem
-	baseDir string
-	ext     string
-}
-
-func newSecureHTTPTemplateLoader(fs http.FileSystem, baseDir, ext string) (*secureHTTPTemplateLoader, error) {
-	if fs == nil {
-		return nil, errors.New("http filesystem cannot be nil")
-	}
-	return &secureHTTPTemplateLoader{
-		fs:      fs,
-		baseDir: normalizeHTTPBase(baseDir),
-		ext:     ext,
-	}, nil
-}
-
-func (l *secureHTTPTemplateLoader) Abs(base, name string) string {
-	if strings.TrimSpace(name) == "" {
-		return ""
-	}
-
-	name = strings.ReplaceAll(name, `\`, "/")
-	if path.IsAbs(name) {
-		var ok bool
-		name, ok = trimHTTPBase(name, l.baseDir)
-		if !ok {
-			return ""
-		}
-	}
-
-	baseDir := "."
-	if base != "" {
-		basePath := strings.ReplaceAll(base, `\`, "/")
-		if path.IsAbs(basePath) {
-			var ok bool
-			basePath, ok = trimHTTPBase(basePath, l.baseDir)
-			if !ok {
-				return ""
-			}
-		}
-		baseDir = path.Dir(basePath)
-	}
-
-	resolved := path.Clean(path.Join(baseDir, name))
-	if resolved == "." || resolved == ".." || strings.HasPrefix(resolved, "../") || !hasAllowedExtension(path.Ext(resolved), l.ext) {
-		return ""
-	}
-	return resolved
-}
-
-func (l *secureHTTPTemplateLoader) Get(name string) (io.Reader, error) {
-	if name == "" {
-		return nil, fmt.Errorf("template path must stay within %q and end with %q", l.baseDir, l.ext)
-	}
-
-	fullPath := name
-	if l.baseDir != "" {
-		fullPath = path.Join(l.baseDir, name)
-	}
-	return l.fs.Open(fullPath)
-}
-
-func normalizeHTTPBase(baseDir string) string {
-	if strings.TrimSpace(baseDir) == "" {
-		return ""
-	}
-	baseDir = strings.ReplaceAll(baseDir, `\`, "/")
-	cleaned := path.Clean(baseDir)
-	if cleaned == "." {
-		return ""
-	}
-	return cleaned
-}
-
-func trimHTTPBase(candidate, baseDir string) (string, bool) {
-	candidate = path.Clean(candidate)
-	if baseDir == "" {
-		return strings.TrimPrefix(candidate, "/"), true
-	}
-	if candidate == baseDir {
-		return "", true
-	}
-	prefix := baseDir + "/"
-	if !strings.HasPrefix(candidate, prefix) {
-		return "", false
-	}
-	return strings.TrimPrefix(candidate, prefix), true
-}
-
-func hasAllowedExtension(ext, allowed string) bool {
-	return allowed == "" || ext == allowed
-}
-
-func isWithinRoot(root, candidate string) bool {
-	rel, err := filepath.Rel(root, candidate)
-	if err != nil {
-		return false
-	}
-	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))
 }

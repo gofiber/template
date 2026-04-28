@@ -2,7 +2,6 @@ package django
 
 import (
 	"bytes"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -99,42 +98,6 @@ func Test_AutoEscape_IsIsolatedPerEngine(t *testing.T) {
 	require.NoError(t, err)
 	require.NotContains(t, trim(escapedBuf.String()), xssPayload)
 	require.Contains(t, trim(escapedBuf.String()), "&lt;script&gt;alert(1)&lt;/script&gt;")
-}
-
-func Test_Load_RejectsTraversalOutsideTemplateRoot(t *testing.T) {
-	parentDir, err := os.MkdirTemp(".", "")
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, os.RemoveAll(parentDir))
-	}()
-
-	viewsDir := filepath.Join(parentDir, "views")
-	require.NoError(t, os.MkdirAll(viewsDir, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(parentDir, "secret.django"), []byte("secret"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(viewsDir, "index.django"), []byte(`{% include "../secret.django" %}`), 0o600))
-
-	engine := New(viewsDir, ".django")
-	err = engine.Load()
-	require.Error(t, err)
-}
-
-func Test_PathForwardingFileSystem_RejectsTraversalOutsideTemplateRoot(t *testing.T) {
-	parentDir, err := os.MkdirTemp(".", "")
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, os.RemoveAll(parentDir))
-	}()
-
-	viewsDir := filepath.Join(parentDir, "views")
-	require.NoError(t, os.MkdirAll(viewsDir, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(parentDir, "secret.django"), []byte("secret"), 0o600))
-	require.NoError(t, os.WriteFile(filepath.Join(viewsDir, "index.django"), []byte(`{% include "../secret.django" %}`), 0o600))
-
-	engine := NewPathForwardingFileSystem(http.Dir(parentDir), "/views", ".django")
-	err = engine.Load()
-	require.Error(t, err)
 }
 
 func Test_Sandbox_BansRecommendedTagsAndFilters(t *testing.T) {

@@ -265,12 +265,13 @@ if err := engine.Sandbox(); err != nil {
 
 You can also apply narrower restrictions with `BanTag()` and `BanFilter()` before calling `Load()`.
 
+This sandboxing is opt-in to preserve existing template behavior. For trusted application templates, the engine continues to use pongo2's normal loader behavior.
+
 ## Security
 
 - Auto-escaping is enabled by default and should remain enabled for untrusted content.
 - `SetAutoEscape(false)`, `{% autoescape off %}`, and `safe`-style constructs disable escaping and should only be used with trusted, pre-sanitized content.
 - Auto-escape configuration is scoped to the Fiber Django engine so one engine instance does not leak its setting into another.
 - Layout composition uses `{{embed}}`, but the repository only marks embed output as safe after the child template has already been rendered.
-- Template loading is confined to the configured template root and extension. Absolute paths and out-of-root traversals are rejected.
-- For untrusted templates, call `Sandbox()` or ban the relevant tags and filters yourself before loading templates.
+- pongo2's default loader behavior is preserved for compatibility; for untrusted templates, call `Sandbox()` or ban the relevant tags and filters yourself before loading templates.
 - Custom globals and helper functions are trusted code and should not manufacture safe HTML from untrusted input.
