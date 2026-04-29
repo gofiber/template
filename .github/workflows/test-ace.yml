@@ -12,6 +12,10 @@ on:
             - 'ace/**'
     workflow_dispatch:
 name: Tests Ace
+
+permissions:
+  contents: read
+
 jobs:
     Tests:
         strategy:

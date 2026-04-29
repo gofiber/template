@@ -12,6 +12,10 @@ on:
             - 'django/**'
     workflow_dispatch:
 name: Tests Django
+
+permissions:
+  contents: read
+
 jobs:
     Tests:
         strategy:

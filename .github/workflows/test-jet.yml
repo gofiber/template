@@ -12,6 +12,10 @@ on:
             - 'jet/**'
     workflow_dispatch:
 name: Tests Jet
+
+permissions:
+  contents: read
+
 jobs:
     Tests:
         strategy:

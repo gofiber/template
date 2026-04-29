@@ -20,6 +20,9 @@ on:
       - ".github/dependabot.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   govulncheck-check:
     runs-on: ubuntu-latest

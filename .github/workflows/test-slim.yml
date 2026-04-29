@@ -12,6 +12,10 @@ on:
             - 'slim/**'
     workflow_dispatch:
 name: Tests Slim
+
+permissions:
+  contents: read
+
 jobs:
     Tests:
         strategy:

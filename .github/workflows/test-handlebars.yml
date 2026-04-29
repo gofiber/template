@@ -12,6 +12,10 @@ on:
             - 'handlebars/**'
     workflow_dispatch:
 name: Tests Handlebars
+
+permissions:
+  contents: read
+
 jobs:
     Tests:
         strategy:

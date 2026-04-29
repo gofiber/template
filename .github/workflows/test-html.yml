@@ -12,6 +12,10 @@ on:
             - 'html/**'
     workflow_dispatch:
 name: Tests Html
+
+permissions:
+  contents: read
+
 jobs:
     Tests:
         strategy:
