@@ -71,9 +71,13 @@ func (e *Engine) Load() error {
 	funcs := template.FuncMap{}
 
 	amberFuncMapMu.Lock()
-	defer amberFuncMapMu.Unlock()
+	previousFuncMap := amber.FuncMap
+	defer func() {
+		amber.FuncMap = previousFuncMap //nolint:reassign // restore the prior compiler state after loading templates.
+		amberFuncMapMu.Unlock()
+	}()
 
-	for k, v := range amber.FuncMap { // add the amber's default funcs
+	for k, v := range previousFuncMap { // add the amber's default funcs
 		funcs[k] = v
 	}
 
@@ -81,11 +85,7 @@ func (e *Engine) Load() error {
 		funcs[k] = v
 	}
 
-	previousFuncMap := amber.FuncMap
 	amber.FuncMap = funcs //nolint:reassign // amber compiler reads from this package global during compilation.
-	defer func() {
-		amber.FuncMap = previousFuncMap //nolint:reassign // restore the prior compiler state after loading templates.
-	}()
 
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
