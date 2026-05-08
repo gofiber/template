@@ -12,6 +12,10 @@ on:
             - 'amber/**'
     workflow_dispatch:
 name: Tests Amber
+
+permissions:
+  contents: read
+
 jobs:
     Tests:
         strategy:

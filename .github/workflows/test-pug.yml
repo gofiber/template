@@ -12,6 +12,10 @@ on:
             - 'pug/**'
     workflow_dispatch:
 name: Tests Pug
+
+permissions:
+  contents: read
+
 jobs:
     Tests:
         strategy:

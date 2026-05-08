@@ -12,6 +12,10 @@ on:
             - 'mustache/**'
     workflow_dispatch:
 name: Tests Mustache
+
+permissions:
+  contents: read
+
 jobs:
     Tests:
         strategy:

@@ -7,6 +7,11 @@ on:
         types: [opened, edited, reopened, synchronize]
     workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
     auto-labeler:
         uses: gofiber/.github/.github/workflows/auto-labeler.yml@main

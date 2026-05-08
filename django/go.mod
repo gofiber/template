@@ -3,7 +3,7 @@ module github.com/gofiber/template/django/v4
 go 1.25
 
 require (
-	github.com/flosch/pongo2/v6 v6.0.0
+	github.com/flosch/pongo2/v6 v6.1.0
 	github.com/gofiber/template/v2 v2.1.0
 	github.com/stretchr/testify v1.11.1
 )

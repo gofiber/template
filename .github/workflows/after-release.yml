@@ -7,6 +7,9 @@ on:
     types: [after-release]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   # Core template releases update engine deps in same repo (manual releases only).
   # During weekly releases, the intra-wave hook in release-plan.yml handles this.
