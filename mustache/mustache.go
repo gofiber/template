@@ -111,7 +111,7 @@ func (e *Engine) Load() error {
 	e.Templates = make(map[string]*mustache.Template)
 
 	// Loop trough each directory and register template files
-	walkFn := func(path string, info os.FileInfo, err error) error {
+	walkFn := func(filePath string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
@@ -123,13 +123,13 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if len(e.Extension) >= len(filePath) || filePath[len(filePath)-len(e.Extension):] != e.Extension {
 			return nil
 		}
 
 		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		rel, err := filepath.Rel(e.Directory, filePath)
 		if err != nil {
 			return err
 		}
@@ -142,7 +142,7 @@ func (e *Engine) Load() error {
 		// name = strings.Replace(name, e.extension, "", -1)
 		// Read the file
 		// #gosec G304
-		buf, err := core.ReadFile(path, e.FileSystem)
+		buf, err := core.ReadFile(filePath, e.FileSystem)
 		if err != nil {
 			return err
 		}
