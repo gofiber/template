@@ -16,6 +16,9 @@ import (
 )
 
 var (
+	// pongo2 stores autoescape in a package-global variable with a default of true.
+	// Serialize render-time updates so separate engine instances do not race while
+	// temporarily swapping that shared setting for execution.
 	pongo2AutoescapeMu      sync.Mutex
 	pongo2CurrentAutoEscape = true
 )
