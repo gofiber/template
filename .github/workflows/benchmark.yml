@@ -26,12 +26,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
       - name: Install Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           # NOTE: Keep this in sync with the version from go.mod
           go-version: "1.25.x"
@@ -53,7 +53,7 @@ jobs:
           done
 
       - name: Get GitHub Runner System Information
-        uses: kenchan0130/actions-system-info@v1.4.0
+        uses: kenchan0130/actions-system-info@59699597e84e80085a750998045983daa49274c4 # v1.4.0
         id: system-info
 
       - name: Get Default branch SHA
@@ -92,7 +92,7 @@ jobs:
 
       - name: Compare PR Benchmark Results with default branch
         if: ${{ github.event_name == 'pull_request' && steps.cache.outputs.cache-hit == 'true' }}
-        uses: benchmark-action/github-action-benchmark@v1.22.1
+        uses: benchmark-action/github-action-benchmark@a60cea5bc7b49e15c1f58f411161f99e0df48372 # v1.22.1
         with:
           tool: "go"
           output-file-path: output.txt
@@ -106,7 +106,7 @@ jobs:
 
       - name: Store Benchmark Results for default branch
         if: ${{ github.ref_name == github.event.repository.default_branch }}
-        uses: benchmark-action/github-action-benchmark@v1.22.1
+        uses: benchmark-action/github-action-benchmark@a60cea5bc7b49e15c1f58f411161f99e0df48372 # v1.22.1
         with:
           tool: "go"
           output-file-path: output.txt
@@ -120,7 +120,7 @@ jobs:
 
       - name: Publish Benchmark Results to GitHub Pages
         if: ${{ github.ref_name == github.event.repository.default_branch }}
-        uses: benchmark-action/github-action-benchmark@v1.22.1
+        uses: benchmark-action/github-action-benchmark@a60cea5bc7b49e15c1f58f411161f99e0df48372 # v1.22.1
         with:
           tool: "go"
           output-file-path: output.txt
