@@ -243,3 +243,9 @@ See the benchmarks under https://gofiber.github.io/template/benchmarks
 ![](https://raw.githubusercontent.com/gofiber/template/master/.github/data/Extended-TimeperOperation.png)
 
 Benchmarks were ran on Apple Macbook M1. Each engine was benchmarked 20 times and the results averaged into a single xlsx file. Mustache was excluded from the extended benchmark
+
+## ☕ Supporters
+
+Fiber is an open-source project that runs on donations to pay the bills, e.g., our domain name, hosting, and serverless infrastructure. If you want to support Fiber, please become a [GitHub Sponsor](https://github.com/sponsors/gofiber).
+
+<!-- sponsors --><!-- sponsors -->
