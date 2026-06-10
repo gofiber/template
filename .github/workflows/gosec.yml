@@ -20,12 +20,17 @@ on:
       - ".github/dependabot.yml"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       matrix: ${{ steps.changed-files.outputs.all_changed_files }}
     steps:
@@ -46,6 +51,7 @@ jobs:
           dir_names_exclude_current_dir: true
   gosec-scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.matrix != 'null' }}
     env:
@@ -61,7 +67,7 @@ jobs:
         with:
           go-version: '1.25.x'
           check-latest: true
-          cache: false
+          cache-dependency-path: '**/go.sum'
       - name: Install gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest
       - name: Run gosec
