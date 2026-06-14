@@ -38,4 +38,9 @@ jobs:
                     go-version: '${{ matrix.go-version }}'
                     cache-dependency-path: django/go.sum
             -   name: Run Test
-                run: cd ./django && go test ./... -race -v
+                uses: gofiber/.github/.github/actions/gotestsum@main
+                with:
+                    working-directory: ./django
+                    packages: ./...
+                    rerun-fails: '2'
+                    args: -race -count=1

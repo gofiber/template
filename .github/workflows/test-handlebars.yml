@@ -38,4 +38,9 @@ jobs:
                     go-version: '${{ matrix.go-version }}'
                     cache-dependency-path: handlebars/go.sum
             -   name: Run Test
-                run: cd ./handlebars && go test ./... -race -v
+                uses: gofiber/.github/.github/actions/gotestsum@main
+                with:
+                    working-directory: ./handlebars
+                    packages: ./...
+                    rerun-fails: '2'
+                    args: -race -count=1

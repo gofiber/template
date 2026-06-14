@@ -38,4 +38,9 @@ jobs:
                     go-version: '${{ matrix.go-version }}'
                     cache-dependency-path: mustache/go.sum
             -   name: Run Test
-                run: cd ./mustache && go test ./... -race -v
+                uses: gofiber/.github/.github/actions/gotestsum@main
+                with:
+                    working-directory: ./mustache
+                    packages: ./...
+                    rerun-fails: '2'
+                    args: -race -count=1
