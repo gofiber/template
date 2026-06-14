@@ -21,7 +21,7 @@ waves:
         post-release:
           - action: dispatch
             repo: gofiber/template
-            event: dependabot-on-demand
+            event: trigger-dependabot
 
   - name: engines
     auto-discover: true

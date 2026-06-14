@@ -13,6 +13,10 @@ on:
     workflow_dispatch:
 name: Tests Mustache
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -24,12 +28,19 @@ jobs:
                     - 1.25.x
                 platform: [ ubuntu-latest, windows-latest ]
         runs-on: ${{ matrix.platform }}
+        timeout-minutes: 30
         steps:
             -   name: Fetch Repository
-                uses: actions/checkout@v6
+                uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
             -   name: Install Go
-                uses: actions/setup-go@v6
+                uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
                 with:
                     go-version: '${{ matrix.go-version }}'
+                    cache-dependency-path: mustache/go.sum
             -   name: Run Test
-                run: cd ./mustache && go test ./... -race -v
+                uses: gofiber/.github/.github/actions/gotestsum@main
+                with:
+                    working-directory: ./mustache
+                    packages: ./...
+                    rerun-fails: '2'
+                    args: -race -count=1
