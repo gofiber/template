@@ -10,13 +10,68 @@ updates:
           - "🤖 Dependencies"
       schedule:
           interval: "daily"
+
+    # gomod split by alphabet ranges to reduce group PR size
+    # a-h ~5 modules | i-z ~4 modules
     - package-ecosystem: "gomod"
-      open-pull-requests-limit: 30
+      open-pull-requests-limit: 15
       allow:
-          # Allow both direct and indirect updates for all packages.
           - dependency-type: "all"
       directories:
-          - "**/*"
+          - "/a*"
+          - "/b*"
+          - "/c*"
+          - "/d*"
+          - "/e*"
+          - "/f*"
+          - "/g*"
+          - "/h*"
+      labels:
+          - "🤖 Dependencies"
+      schedule:
+          interval: "daily"
+      groups:
+          gofiber:
+              patterns:
+                  - "github.com/gofiber/*"
+          valyala:
+              patterns:
+                  - "github.com/valyala/*"
+          test-libs:
+              patterns:
+                  - "github.com/stretchr/*"
+                  - "github.com/davecgh/*"
+                  - "github.com/pmezard/*"
+          yaml:
+              patterns:
+                  - "gopkg.in/yaml.*"
+          golang-x:
+              patterns:
+                  - "golang.org/x/*"
+
+    - package-ecosystem: "gomod"
+      open-pull-requests-limit: 15
+      allow:
+          - dependency-type: "all"
+      directories:
+          - "/i*"
+          - "/j*"
+          - "/k*"
+          - "/l*"
+          - "/m*"
+          - "/n*"
+          - "/o*"
+          - "/p*"
+          - "/q*"
+          - "/r*"
+          - "/s*"
+          - "/t*"
+          - "/u*"
+          - "/v*"
+          - "/w*"
+          - "/x*"
+          - "/y*"
+          - "/z*"
       labels:
           - "🤖 Dependencies"
       schedule:

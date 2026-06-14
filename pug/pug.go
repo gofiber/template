@@ -1,6 +1,7 @@
 package pug
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -48,7 +49,7 @@ func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 	// Add a default function that throws an error if called unexpectedly.
 	// This can be useful for debugging or ensuring certain functions are used correctly.
 	engine.AddFunc(engine.LayoutName, func() error {
-		return fmt.Errorf("layoutName called unexpectedly")
+		return errors.New("layoutName called unexpectedly")
 	})
 	return engine
 }

@@ -7,14 +7,23 @@ on:
             - main
     workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+    contents: read
+
 jobs:
     changes:
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         permissions:
+            contents: read
             pull-requests: read
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
             - name: Generate filters
               id: filter-setup
@@ -30,7 +39,7 @@ jobs:
               shell: bash
             - name: Filter changes
               id: filter
-              uses: dorny/paths-filter@v3
+              uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
               with:
                   filters: ${{ steps.filter-setup.outputs.filters }}
 
@@ -41,26 +50,27 @@ jobs:
         needs: changes
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        if: needs.changes.outputs.packages != '[]' # Ensure job runs only if there are changes
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: needs.changes.outputs.packages != '[]'
+        permissions:
+            contents: write
+            pull-requests: read
         strategy:
             matrix:
                 package: ${{ fromJSON(needs.changes.outputs.packages || '[]') }}
         steps:
-            - name: Checkout repository
-              uses: actions/checkout@v6
-
-            - name: Generate dynamic config from template
-              id: generate-config
-              run: |
-                folder="${{ matrix.package }}"
-                sed "s|{{FOLDER}}|$folder|g" .github/release-drafter-template.yml > .github/release-drafter-$folder.yml
-                echo "config<<EOF" >> $GITHUB_OUTPUT
-                cat .github/release-drafter-$folder.yml >> $GITHUB_OUTPUT
-                echo "EOF" >> $GITHUB_OUTPUT
-
-            - name: Use dynamic release-drafter configuration
-              uses: ReneWerner87/release-drafter@6dec4ceb1fb86b6514f11a2e7a39e1dedce709d0
+            - name: Checkout shared config
+              uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
               with:
-                  config: ${{ steps.generate-config.outputs.config }}
+                  repository: gofiber/.github
+                  sparse-checkout: .github/release-drafter-module.yml
+                  sparse-checkout-cone-mode: false
+
+            - name: Generate config from shared template
+              run: |
+                  sed "s|{{MODULE}}|${{ matrix.package }}|g" \
+                      .github/release-drafter-module.yml > .github/release-drafter-parsed.yml
+
+            - name: Run release drafter
+              uses: release-drafter/release-drafter@693d20e7c1ce1a81d3a41962f85914253b518449 # v7
+              with:
+                  config-name: file:release-drafter-parsed.yml

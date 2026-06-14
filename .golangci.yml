@@ -86,6 +86,13 @@ linters:
       forbid:
         - pattern: ^(fmt\.Print(|f|ln)|print|println)$
         - pattern: 'http\.Default(Client|Transport)'
+    gomoddirectives:
+      replace-local: true
+    staticcheck:
+      checks:
+        - "all"
+        - "-QF*"
+        - "-ST1000"
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -173,6 +180,34 @@ linters:
       ignore-package-globs:
         - github.com/gofiber/fiber/*
         - github.com/valyala/fasthttp
+        # TODO: Remove these ignores and wrap errors properly with
+        # fmt.Errorf("context: %w", err) in each engine module instead.
+        - github.com/gofiber/template/*
+        - path/filepath
+        - html/template
+        - text/template
+        - github.com/yosssi/ace
+        - github.com/eknkc/amber
+        - github.com/flosch/pongo2/*
+        - github.com/mailgun/raymond/*
+        - github.com/CloudyKit/jet/*
+        - github.com/cbroglie/mustache
+        - github.com/Joker/jade
+        - github.com/Joker/hpp
+        - github.com/mattn/go-slim
+      ignore-sigs:
+        # wrapcheck defaults (must be repeated when overriding)
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+        - .WithMessage(
+        - .WithMessagef(
+        - .WithStack(
+        # additional
+        - (io.Writer).Write(
   exclusions:
     paths:
       - internal

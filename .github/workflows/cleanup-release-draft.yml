@@ -1,0 +1,34 @@
+name: Cleanup Release Draft
+
+on:
+  workflow_run:
+    workflows: ["Release Drafter (All)"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag or name of a specific draft (empty = all drafts)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cleanup-release-draft-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: >-
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+    steps:
+      - uses: gofiber/.github/.github/actions/cleanup-release-draft@main
+        with:
+          tag: ${{ inputs.tag }}

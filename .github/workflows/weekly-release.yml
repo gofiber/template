@@ -1,0 +1,59 @@
+name: Weekly release
+
+on:
+  schedule:
+    - cron: '0 8 * * 3'
+  workflow_dispatch:
+    inputs:
+      draft-tags:
+        description: >
+          Tags or package names to publish, comma-separated (e.g.
+          "jet,pug" or "jet/v3.0.2"). Matched as substrings. Empty = all.
+        type: string
+        default: ''
+      dry-run:
+        description: Show diff but do not publish.
+        type: boolean
+        default: false
+      delay:
+        description: Minutes between module publishes (default 2).
+        type: string
+        default: '2'
+      low-priority-cooldown-weeks:
+        description: >
+          Override central low-priority cooldown (weeks). Empty uses
+          central default (3). Set '0' to release low-priority drafts
+          immediately.
+        type: string
+        default: ''
+      low-priority-sections:
+        description: >
+          Override central low-priority section list (comma-separated
+          keywords). Empty uses central default
+          ('Maintenance,Documentation'). Regardless of this setting,
+          Dependabot github_actions bumps are filtered out so drafts
+          made of only those never publish.
+        type: string
+        default: ''
+
+concurrency:
+  group: weekly-release-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: write
+
+jobs:
+  release:
+    uses: gofiber/.github/.github/workflows/weekly-release.yml@main
+    with:
+      repo-type: multi
+      dry-run: ${{ inputs.dry-run || false }}
+      draft-tags: ${{ inputs.draft-tags || '' }}
+      publish-delay-minutes: ${{ inputs.delay || '2' }}
+      low-priority-cooldown-weeks: ${{ inputs.low-priority-cooldown-weeks || '' }}
+      low-priority-sections: ${{ inputs.low-priority-sections || '' }}
+    secrets:
+      dispatch-token: ${{ secrets.DISPATCH_TOKEN }}
