@@ -9,9 +9,18 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/flosch/pongo2/v6"
 	core "github.com/gofiber/template/v2"
+)
+
+var (
+	// pongo2 stores autoescape in a package-global variable with a default of true.
+	// Serialize render-time updates so separate engine instances do not race while
+	// temporarily swapping that shared setting for execution.
+	pongo2AutoescapeMu      sync.Mutex
+	pongo2CurrentAutoEscape = true
 )
 
 // Engine struct
@@ -84,8 +93,6 @@ func (e *Engine) Load() error {
 	pongoset := pongo2.NewSet("default", pongoloader)
 	// Set template settings
 	pongoset.Globals.Update(e.Funcmap)
-	// Set autoescaping
-	pongo2.SetAutoescape(e.autoEscape)
 
 	// Loop trough each Directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -239,6 +246,16 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// Lock while executing layout
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
+
+	pongo2AutoescapeMu.Lock()
+	previousAutoEscape := pongo2CurrentAutoEscape
+	defer func() {
+		pongo2CurrentAutoEscape = previousAutoEscape
+		pongo2.SetAutoescape(previousAutoEscape)
+		pongo2AutoescapeMu.Unlock()
+	}()
+	pongo2CurrentAutoEscape = e.autoEscape
+	pongo2.SetAutoescape(e.autoEscape)
 
 	bind := getPongoBinding(binding)
 	parsed, err := tmpl.Execute(bind)

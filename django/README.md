@@ -242,3 +242,10 @@ engine.SetAutoEscape(false)
 Disabling auto-escape should be approached with caution. It can expose your application to XSS attacks, where malicious scripts are injected into web pages. Without auto-escaping, there is a risk of rendering harmful HTML or JavaScript from user-supplied data.
 
 It is advisable to keep auto-escape enabled unless there is a strong reason to disable it. If you do disable it, ensure all user-supplied content is thoroughly sanitized and validated to avoid XSS vulnerabilities.
+
+## Security
+
+- Auto-escaping is enabled by default and should remain enabled for untrusted content.
+- `SetAutoEscape(false)`, `{% autoescape off %}`, and `safe`-style constructs disable escaping and should only be used with trusted, pre-sanitized content.
+- Layout composition uses `{{embed}}`, but the repository only marks embed output as safe after the child template has already been rendered.
+- Custom globals and helper functions are trusted code and should not manufacture safe HTML from untrusted input.

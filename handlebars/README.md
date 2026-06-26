@@ -88,7 +88,14 @@ func main() {
 		}, "layouts/main")
 	})
 
-	log.Fatal(app.Listen(":3000"))
+log.Fatal(app.Listen(":3000"))
 }
 
 ```
+
+## Security
+
+- Handlebars escapes HTML output by default when you use `{{value}}`.
+- Triple-stash expressions such as `{{{value}}}` disable escaping and should only be used for trusted, pre-sanitized markup.
+- Layout composition should continue to use `{{embed}}`, which is populated from already-rendered child output.
+- Helpers should return plain strings by default; returning `raymond.SafeString` should be reserved for trusted markup only.
