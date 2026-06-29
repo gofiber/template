@@ -85,7 +85,14 @@ func main() {
 		}, "layouts/main")
 	})
 
-	log.Fatal(app.Listen(":3000"))
+log.Fatal(app.Listen(":3000"))
 }
 
 ```
+
+## Security
+
+- Pug templates in this repository compile down to Go's `html/template`, so output benefits from contextual escaping by default.
+- Layout composition should continue to use `{{embed}}`, which receives already-rendered child output.
+- Custom helpers become a trust boundary when they return trusted `html/template` types such as `template.HTML`, `template.JS`, `template.URL`, or `template.CSS`.
+- Do not convert user input into trusted `html/template` types unless you have already fully sanitized it for the target context.
