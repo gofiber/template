@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782787606283,
+  "lastUpdate": 1783565248374,
   "repoUrl": "https://github.com/gofiber/template",
   "entries": {
     "Benchmark": [
@@ -92612,6 +92612,1758 @@ window.BENCHMARK_DATA = {
             "value": 41,
             "unit": "allocs/op",
             "extra": "177975 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "rene@gofiber.io",
+            "name": "RW",
+            "username": "ReneWerner87"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d82bb1668db1b09eb01f0d3cb345613e26751348",
+          "message": "Merge pull request #512 from gofiber/dependabot/go_modules/handlebars/golang-x-52f2481a87\n\nchore(deps): bump golang.org/x/sys from 0.46.0 to 0.47.0 in /handlebars in the golang-x group across 1 directory",
+          "timestamp": "2026-07-09T04:45:10+02:00",
+          "tree_id": "4fd07388b3e1b16b7c246e5c7c54c1a86ecb70af",
+          "url": "https://github.com/gofiber/template/commit/d82bb1668db1b09eb01f0d3cb345613e26751348"
+        },
+        "date": 1783565247645,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "Benchmark_Ace/simple (github.com/gofiber/template/ace/v3)",
+            "value": 1397,
+            "unit": "ns/op\t     720 B/op\t      13 allocs/op",
+            "extra": "856988 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple (github.com/gofiber/template/ace/v3) - ns/op",
+            "value": 1397,
+            "unit": "ns/op",
+            "extra": "856988 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple (github.com/gofiber/template/ace/v3) - B/op",
+            "value": 720,
+            "unit": "B/op",
+            "extra": "856988 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple (github.com/gofiber/template/ace/v3) - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "856988 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended (github.com/gofiber/template/ace/v3)",
+            "value": 3138,
+            "unit": "ns/op\t    1345 B/op\t      25 allocs/op",
+            "extra": "364557 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended (github.com/gofiber/template/ace/v3) - ns/op",
+            "value": 3138,
+            "unit": "ns/op",
+            "extra": "364557 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended (github.com/gofiber/template/ace/v3) - B/op",
+            "value": 1345,
+            "unit": "B/op",
+            "extra": "364557 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended (github.com/gofiber/template/ace/v3) - allocs/op",
+            "value": 25,
+            "unit": "allocs/op",
+            "extra": "364557 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple_asserted (github.com/gofiber/template/ace/v3)",
+            "value": 4358,
+            "unit": "ns/op\t    1784 B/op\t      31 allocs/op",
+            "extra": "249402 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple_asserted (github.com/gofiber/template/ace/v3) - ns/op",
+            "value": 4358,
+            "unit": "ns/op",
+            "extra": "249402 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple_asserted (github.com/gofiber/template/ace/v3) - B/op",
+            "value": 1784,
+            "unit": "B/op",
+            "extra": "249402 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/simple_asserted (github.com/gofiber/template/ace/v3) - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "249402 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended_asserted (github.com/gofiber/template/ace/v3)",
+            "value": 8328,
+            "unit": "ns/op\t    2880 B/op\t      44 allocs/op",
+            "extra": "127658 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended_asserted (github.com/gofiber/template/ace/v3) - ns/op",
+            "value": 8328,
+            "unit": "ns/op",
+            "extra": "127658 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended_asserted (github.com/gofiber/template/ace/v3) - B/op",
+            "value": 2880,
+            "unit": "B/op",
+            "extra": "127658 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace/extended_asserted (github.com/gofiber/template/ace/v3) - allocs/op",
+            "value": 44,
+            "unit": "allocs/op",
+            "extra": "127658 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/simple (github.com/gofiber/template/ace/v3)",
+            "value": 1795,
+            "unit": "ns/op\t     720 B/op\t      13 allocs/op",
+            "extra": "607933 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/simple (github.com/gofiber/template/ace/v3) - ns/op",
+            "value": 1795,
+            "unit": "ns/op",
+            "extra": "607933 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/simple (github.com/gofiber/template/ace/v3) - B/op",
+            "value": 720,
+            "unit": "B/op",
+            "extra": "607933 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/simple (github.com/gofiber/template/ace/v3) - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "607933 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/extended (github.com/gofiber/template/ace/v3)",
+            "value": 3937,
+            "unit": "ns/op\t    1345 B/op\t      25 allocs/op",
+            "extra": "285273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/extended (github.com/gofiber/template/ace/v3) - ns/op",
+            "value": 3937,
+            "unit": "ns/op",
+            "extra": "285273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/extended (github.com/gofiber/template/ace/v3) - B/op",
+            "value": 1345,
+            "unit": "B/op",
+            "extra": "285273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/extended (github.com/gofiber/template/ace/v3) - allocs/op",
+            "value": 25,
+            "unit": "allocs/op",
+            "extra": "285273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/simple_asserted (github.com/gofiber/template/ace/v3)",
+            "value": 5061,
+            "unit": "ns/op\t    1796 B/op\t      31 allocs/op",
+            "extra": "228002 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/simple_asserted (github.com/gofiber/template/ace/v3) - ns/op",
+            "value": 5061,
+            "unit": "ns/op",
+            "extra": "228002 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/simple_asserted (github.com/gofiber/template/ace/v3) - B/op",
+            "value": 1796,
+            "unit": "B/op",
+            "extra": "228002 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/simple_asserted (github.com/gofiber/template/ace/v3) - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "228002 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/extended_asserted (github.com/gofiber/template/ace/v3)",
+            "value": 10071,
+            "unit": "ns/op\t    2891 B/op\t      44 allocs/op",
+            "extra": "119673 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/extended_asserted (github.com/gofiber/template/ace/v3) - ns/op",
+            "value": 10071,
+            "unit": "ns/op",
+            "extra": "119673 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/extended_asserted (github.com/gofiber/template/ace/v3) - B/op",
+            "value": 2891,
+            "unit": "B/op",
+            "extra": "119673 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Ace_Parallel/extended_asserted (github.com/gofiber/template/ace/v3) - allocs/op",
+            "value": 44,
+            "unit": "allocs/op",
+            "extra": "119673 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple (github.com/gofiber/template/amber/v3)",
+            "value": 1344,
+            "unit": "ns/op\t     608 B/op\t      11 allocs/op",
+            "extra": "833438 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple (github.com/gofiber/template/amber/v3) - ns/op",
+            "value": 1344,
+            "unit": "ns/op",
+            "extra": "833438 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple (github.com/gofiber/template/amber/v3) - B/op",
+            "value": 608,
+            "unit": "B/op",
+            "extra": "833438 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple (github.com/gofiber/template/amber/v3) - allocs/op",
+            "value": 11,
+            "unit": "allocs/op",
+            "extra": "833438 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended (github.com/gofiber/template/amber/v3)",
+            "value": 2719,
+            "unit": "ns/op\t    1009 B/op\t      20 allocs/op",
+            "extra": "417379 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended (github.com/gofiber/template/amber/v3) - ns/op",
+            "value": 2719,
+            "unit": "ns/op",
+            "extra": "417379 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended (github.com/gofiber/template/amber/v3) - B/op",
+            "value": 1009,
+            "unit": "B/op",
+            "extra": "417379 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended (github.com/gofiber/template/amber/v3) - allocs/op",
+            "value": 20,
+            "unit": "allocs/op",
+            "extra": "417379 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple_asserted (github.com/gofiber/template/amber/v3)",
+            "value": 4307,
+            "unit": "ns/op\t    1671 B/op\t      29 allocs/op",
+            "extra": "275616 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple_asserted (github.com/gofiber/template/amber/v3) - ns/op",
+            "value": 4307,
+            "unit": "ns/op",
+            "extra": "275616 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple_asserted (github.com/gofiber/template/amber/v3) - B/op",
+            "value": 1671,
+            "unit": "B/op",
+            "extra": "275616 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/simple_asserted (github.com/gofiber/template/amber/v3) - allocs/op",
+            "value": 29,
+            "unit": "allocs/op",
+            "extra": "275616 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended_asserted (github.com/gofiber/template/amber/v3)",
+            "value": 9558,
+            "unit": "ns/op\t    2897 B/op\t      42 allocs/op",
+            "extra": "121338 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended_asserted (github.com/gofiber/template/amber/v3) - ns/op",
+            "value": 9558,
+            "unit": "ns/op",
+            "extra": "121338 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended_asserted (github.com/gofiber/template/amber/v3) - B/op",
+            "value": 2897,
+            "unit": "B/op",
+            "extra": "121338 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber/extended_asserted (github.com/gofiber/template/amber/v3) - allocs/op",
+            "value": 42,
+            "unit": "allocs/op",
+            "extra": "121338 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/simple (github.com/gofiber/template/amber/v3)",
+            "value": 1811,
+            "unit": "ns/op\t     720 B/op\t      13 allocs/op",
+            "extra": "621475 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/simple (github.com/gofiber/template/amber/v3) - ns/op",
+            "value": 1811,
+            "unit": "ns/op",
+            "extra": "621475 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/simple (github.com/gofiber/template/amber/v3) - B/op",
+            "value": 720,
+            "unit": "B/op",
+            "extra": "621475 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/simple (github.com/gofiber/template/amber/v3) - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "621475 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/extended (github.com/gofiber/template/amber/v3)",
+            "value": 3744,
+            "unit": "ns/op\t    1297 B/op\t      23 allocs/op",
+            "extra": "302288 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/extended (github.com/gofiber/template/amber/v3) - ns/op",
+            "value": 3744,
+            "unit": "ns/op",
+            "extra": "302288 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/extended (github.com/gofiber/template/amber/v3) - B/op",
+            "value": 1297,
+            "unit": "B/op",
+            "extra": "302288 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/extended (github.com/gofiber/template/amber/v3) - allocs/op",
+            "value": 23,
+            "unit": "allocs/op",
+            "extra": "302288 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/simple_asserted (github.com/gofiber/template/amber/v3)",
+            "value": 5199,
+            "unit": "ns/op\t    1799 B/op\t      31 allocs/op",
+            "extra": "218696 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/simple_asserted (github.com/gofiber/template/amber/v3) - ns/op",
+            "value": 5199,
+            "unit": "ns/op",
+            "extra": "218696 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/simple_asserted (github.com/gofiber/template/amber/v3) - B/op",
+            "value": 1799,
+            "unit": "B/op",
+            "extra": "218696 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/simple_asserted (github.com/gofiber/template/amber/v3) - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "218696 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/extended_asserted (github.com/gofiber/template/amber/v3)",
+            "value": 11489,
+            "unit": "ns/op\t    3207 B/op\t      45 allocs/op",
+            "extra": "102088 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/extended_asserted (github.com/gofiber/template/amber/v3) - ns/op",
+            "value": 11489,
+            "unit": "ns/op",
+            "extra": "102088 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/extended_asserted (github.com/gofiber/template/amber/v3) - B/op",
+            "value": 3207,
+            "unit": "B/op",
+            "extra": "102088 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Amber_Parallel/extended_asserted (github.com/gofiber/template/amber/v3) - allocs/op",
+            "value": 45,
+            "unit": "allocs/op",
+            "extra": "102088 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple (github.com/gofiber/template/django/v4)",
+            "value": 1643,
+            "unit": "ns/op\t    1312 B/op\t      15 allocs/op",
+            "extra": "689206 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 1643,
+            "unit": "ns/op",
+            "extra": "689206 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple (github.com/gofiber/template/django/v4) - B/op",
+            "value": 1312,
+            "unit": "B/op",
+            "extra": "689206 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 15,
+            "unit": "allocs/op",
+            "extra": "689206 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended (github.com/gofiber/template/django/v4)",
+            "value": 6687,
+            "unit": "ns/op\t    4513 B/op\t      44 allocs/op",
+            "extra": "175740 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 6687,
+            "unit": "ns/op",
+            "extra": "175740 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended (github.com/gofiber/template/django/v4) - B/op",
+            "value": 4513,
+            "unit": "B/op",
+            "extra": "175740 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 44,
+            "unit": "allocs/op",
+            "extra": "175740 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys (github.com/gofiber/template/django/v4)",
+            "value": 2023,
+            "unit": "ns/op\t    1312 B/op\t      15 allocs/op",
+            "extra": "577356 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 2023,
+            "unit": "ns/op",
+            "extra": "577356 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - B/op",
+            "value": 1312,
+            "unit": "B/op",
+            "extra": "577356 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 15,
+            "unit": "allocs/op",
+            "extra": "577356 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys (github.com/gofiber/template/django/v4)",
+            "value": 8047,
+            "unit": "ns/op\t    4513 B/op\t      44 allocs/op",
+            "extra": "144903 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 8047,
+            "unit": "ns/op",
+            "extra": "144903 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - B/op",
+            "value": 4513,
+            "unit": "B/op",
+            "extra": "144903 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 44,
+            "unit": "allocs/op",
+            "extra": "144903 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_asserted (github.com/gofiber/template/django/v4)",
+            "value": 4565,
+            "unit": "ns/op\t    2381 B/op\t      33 allocs/op",
+            "extra": "258121 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_asserted (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 4565,
+            "unit": "ns/op",
+            "extra": "258121 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_asserted (github.com/gofiber/template/django/v4) - B/op",
+            "value": 2381,
+            "unit": "B/op",
+            "extra": "258121 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_asserted (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "258121 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_asserted (github.com/gofiber/template/django/v4)",
+            "value": 13952,
+            "unit": "ns/op\t    6447 B/op\t      66 allocs/op",
+            "extra": "85724 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_asserted (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 13952,
+            "unit": "ns/op",
+            "extra": "85724 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_asserted (github.com/gofiber/template/django/v4) - B/op",
+            "value": 6447,
+            "unit": "B/op",
+            "extra": "85724 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_asserted (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 66,
+            "unit": "allocs/op",
+            "extra": "85724 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4)",
+            "value": 4890,
+            "unit": "ns/op\t    2382 B/op\t      33 allocs/op",
+            "extra": "241885 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 4890,
+            "unit": "ns/op",
+            "extra": "241885 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - B/op",
+            "value": 2382,
+            "unit": "B/op",
+            "extra": "241885 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/simple_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "241885 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4)",
+            "value": 15526,
+            "unit": "ns/op\t    6449 B/op\t      66 allocs/op",
+            "extra": "76303 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 15526,
+            "unit": "ns/op",
+            "extra": "76303 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - B/op",
+            "value": 6449,
+            "unit": "B/op",
+            "extra": "76303 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django/extended_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 66,
+            "unit": "allocs/op",
+            "extra": "76303 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple (github.com/gofiber/template/django/v4)",
+            "value": 2089,
+            "unit": "ns/op\t    1328 B/op\t      15 allocs/op",
+            "extra": "493876 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 2089,
+            "unit": "ns/op",
+            "extra": "493876 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple (github.com/gofiber/template/django/v4) - B/op",
+            "value": 1328,
+            "unit": "B/op",
+            "extra": "493876 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 15,
+            "unit": "allocs/op",
+            "extra": "493876 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended (github.com/gofiber/template/django/v4)",
+            "value": 8144,
+            "unit": "ns/op\t    4513 B/op\t      44 allocs/op",
+            "extra": "144620 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 8144,
+            "unit": "ns/op",
+            "extra": "144620 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended (github.com/gofiber/template/django/v4) - B/op",
+            "value": 4513,
+            "unit": "B/op",
+            "extra": "144620 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 44,
+            "unit": "allocs/op",
+            "extra": "144620 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys (github.com/gofiber/template/django/v4)",
+            "value": 2500,
+            "unit": "ns/op\t    1328 B/op\t      15 allocs/op",
+            "extra": "473516 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 2500,
+            "unit": "ns/op",
+            "extra": "473516 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - B/op",
+            "value": 1328,
+            "unit": "B/op",
+            "extra": "473516 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 15,
+            "unit": "allocs/op",
+            "extra": "473516 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys (github.com/gofiber/template/django/v4)",
+            "value": 9797,
+            "unit": "ns/op\t    4514 B/op\t      44 allocs/op",
+            "extra": "117273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 9797,
+            "unit": "ns/op",
+            "extra": "117273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - B/op",
+            "value": 4514,
+            "unit": "B/op",
+            "extra": "117273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 44,
+            "unit": "allocs/op",
+            "extra": "117273 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_asserted (github.com/gofiber/template/django/v4)",
+            "value": 5630,
+            "unit": "ns/op\t    2526 B/op\t      35 allocs/op",
+            "extra": "202503 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_asserted (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 5630,
+            "unit": "ns/op",
+            "extra": "202503 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_asserted (github.com/gofiber/template/django/v4) - B/op",
+            "value": 2526,
+            "unit": "B/op",
+            "extra": "202503 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_asserted (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 35,
+            "unit": "allocs/op",
+            "extra": "202503 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_asserted (github.com/gofiber/template/django/v4)",
+            "value": 17649,
+            "unit": "ns/op\t    6681 B/op\t      68 allocs/op",
+            "extra": "67699 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_asserted (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 17649,
+            "unit": "ns/op",
+            "extra": "67699 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_asserted (github.com/gofiber/template/django/v4) - B/op",
+            "value": 6681,
+            "unit": "B/op",
+            "extra": "67699 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_asserted (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 68,
+            "unit": "allocs/op",
+            "extra": "67699 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4)",
+            "value": 6239,
+            "unit": "ns/op\t    2526 B/op\t      35 allocs/op",
+            "extra": "185122 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 6239,
+            "unit": "ns/op",
+            "extra": "185122 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - B/op",
+            "value": 2526,
+            "unit": "B/op",
+            "extra": "185122 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/simple_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 35,
+            "unit": "allocs/op",
+            "extra": "185122 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4)",
+            "value": 19656,
+            "unit": "ns/op\t    6678 B/op\t      68 allocs/op",
+            "extra": "61806 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - ns/op",
+            "value": 19656,
+            "unit": "ns/op",
+            "extra": "61806 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - B/op",
+            "value": 6678,
+            "unit": "B/op",
+            "extra": "61806 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Django_Parallel/extended_with_invalid_binding_keys_asserted (github.com/gofiber/template/django/v4) - allocs/op",
+            "value": 68,
+            "unit": "allocs/op",
+            "extra": "61806 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple (github.com/gofiber/template/handlebars/v3)",
+            "value": 1506,
+            "unit": "ns/op\t     880 B/op\t      21 allocs/op",
+            "extra": "744735 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple (github.com/gofiber/template/handlebars/v3) - ns/op",
+            "value": 1506,
+            "unit": "ns/op",
+            "extra": "744735 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple (github.com/gofiber/template/handlebars/v3) - B/op",
+            "value": 880,
+            "unit": "B/op",
+            "extra": "744735 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple (github.com/gofiber/template/handlebars/v3) - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "744735 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended (github.com/gofiber/template/handlebars/v3)",
+            "value": 6481,
+            "unit": "ns/op\t    3147 B/op\t      77 allocs/op",
+            "extra": "176517 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended (github.com/gofiber/template/handlebars/v3) - ns/op",
+            "value": 6481,
+            "unit": "ns/op",
+            "extra": "176517 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended (github.com/gofiber/template/handlebars/v3) - B/op",
+            "value": 3147,
+            "unit": "B/op",
+            "extra": "176517 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended (github.com/gofiber/template/handlebars/v3) - allocs/op",
+            "value": 77,
+            "unit": "allocs/op",
+            "extra": "176517 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple_asserted (github.com/gofiber/template/handlebars/v3)",
+            "value": 4373,
+            "unit": "ns/op\t    1947 B/op\t      39 allocs/op",
+            "extra": "268521 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple_asserted (github.com/gofiber/template/handlebars/v3) - ns/op",
+            "value": 4373,
+            "unit": "ns/op",
+            "extra": "268521 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple_asserted (github.com/gofiber/template/handlebars/v3) - B/op",
+            "value": 1947,
+            "unit": "B/op",
+            "extra": "268521 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/simple_asserted (github.com/gofiber/template/handlebars/v3) - allocs/op",
+            "value": 39,
+            "unit": "allocs/op",
+            "extra": "268521 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended_asserted (github.com/gofiber/template/handlebars/v3)",
+            "value": 13853,
+            "unit": "ns/op\t    5068 B/op\t      99 allocs/op",
+            "extra": "83649 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended_asserted (github.com/gofiber/template/handlebars/v3) - ns/op",
+            "value": 13853,
+            "unit": "ns/op",
+            "extra": "83649 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended_asserted (github.com/gofiber/template/handlebars/v3) - B/op",
+            "value": 5068,
+            "unit": "B/op",
+            "extra": "83649 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars/extended_asserted (github.com/gofiber/template/handlebars/v3) - allocs/op",
+            "value": 99,
+            "unit": "allocs/op",
+            "extra": "83649 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/simple (github.com/gofiber/template/handlebars/v3)",
+            "value": 1966,
+            "unit": "ns/op\t    1008 B/op\t      23 allocs/op",
+            "extra": "552350 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/simple (github.com/gofiber/template/handlebars/v3) - ns/op",
+            "value": 1966,
+            "unit": "ns/op",
+            "extra": "552350 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/simple (github.com/gofiber/template/handlebars/v3) - B/op",
+            "value": 1008,
+            "unit": "B/op",
+            "extra": "552350 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/simple (github.com/gofiber/template/handlebars/v3) - allocs/op",
+            "value": 23,
+            "unit": "allocs/op",
+            "extra": "552350 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/extended (github.com/gofiber/template/handlebars/v3)",
+            "value": 8271,
+            "unit": "ns/op\t    3355 B/op\t      79 allocs/op",
+            "extra": "138082 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/extended (github.com/gofiber/template/handlebars/v3) - ns/op",
+            "value": 8271,
+            "unit": "ns/op",
+            "extra": "138082 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/extended (github.com/gofiber/template/handlebars/v3) - B/op",
+            "value": 3355,
+            "unit": "B/op",
+            "extra": "138082 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/extended (github.com/gofiber/template/handlebars/v3) - allocs/op",
+            "value": 79,
+            "unit": "allocs/op",
+            "extra": "138082 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/simple_asserted (github.com/gofiber/template/handlebars/v3)",
+            "value": 5265,
+            "unit": "ns/op\t    2087 B/op\t      41 allocs/op",
+            "extra": "223616 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/simple_asserted (github.com/gofiber/template/handlebars/v3) - ns/op",
+            "value": 5265,
+            "unit": "ns/op",
+            "extra": "223616 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/simple_asserted (github.com/gofiber/template/handlebars/v3) - B/op",
+            "value": 2087,
+            "unit": "B/op",
+            "extra": "223616 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/simple_asserted (github.com/gofiber/template/handlebars/v3) - allocs/op",
+            "value": 41,
+            "unit": "allocs/op",
+            "extra": "223616 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/extended_asserted (github.com/gofiber/template/handlebars/v3)",
+            "value": 17521,
+            "unit": "ns/op\t    5297 B/op\t     101 allocs/op",
+            "extra": "68366 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/extended_asserted (github.com/gofiber/template/handlebars/v3) - ns/op",
+            "value": 17521,
+            "unit": "ns/op",
+            "extra": "68366 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/extended_asserted (github.com/gofiber/template/handlebars/v3) - B/op",
+            "value": 5297,
+            "unit": "B/op",
+            "extra": "68366 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Handlebars_Parallel/extended_asserted (github.com/gofiber/template/handlebars/v3) - allocs/op",
+            "value": 101,
+            "unit": "allocs/op",
+            "extra": "68366 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple (github.com/gofiber/template/html/v3)",
+            "value": 1628,
+            "unit": "ns/op\t     720 B/op\t      13 allocs/op",
+            "extra": "705890 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple (github.com/gofiber/template/html/v3) - ns/op",
+            "value": 1628,
+            "unit": "ns/op",
+            "extra": "705890 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple (github.com/gofiber/template/html/v3) - B/op",
+            "value": 720,
+            "unit": "B/op",
+            "extra": "705890 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple (github.com/gofiber/template/html/v3) - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "705890 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended (github.com/gofiber/template/html/v3)",
+            "value": 3351,
+            "unit": "ns/op\t    1281 B/op\t      25 allocs/op",
+            "extra": "349849 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended (github.com/gofiber/template/html/v3) - ns/op",
+            "value": 3351,
+            "unit": "ns/op",
+            "extra": "349849 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended (github.com/gofiber/template/html/v3) - B/op",
+            "value": 1281,
+            "unit": "B/op",
+            "extra": "349849 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended (github.com/gofiber/template/html/v3) - allocs/op",
+            "value": 25,
+            "unit": "allocs/op",
+            "extra": "349849 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple_asserted (github.com/gofiber/template/html/v3)",
+            "value": 4608,
+            "unit": "ns/op\t    1784 B/op\t      31 allocs/op",
+            "extra": "251874 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple_asserted (github.com/gofiber/template/html/v3) - ns/op",
+            "value": 4608,
+            "unit": "ns/op",
+            "extra": "251874 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple_asserted (github.com/gofiber/template/html/v3) - B/op",
+            "value": 1784,
+            "unit": "B/op",
+            "extra": "251874 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/simple_asserted (github.com/gofiber/template/html/v3) - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "251874 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended_asserted (github.com/gofiber/template/html/v3)",
+            "value": 10574,
+            "unit": "ns/op\t    3185 B/op\t      47 allocs/op",
+            "extra": "112822 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended_asserted (github.com/gofiber/template/html/v3) - ns/op",
+            "value": 10574,
+            "unit": "ns/op",
+            "extra": "112822 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended_asserted (github.com/gofiber/template/html/v3) - B/op",
+            "value": 3185,
+            "unit": "B/op",
+            "extra": "112822 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html/extended_asserted (github.com/gofiber/template/html/v3) - allocs/op",
+            "value": 47,
+            "unit": "allocs/op",
+            "extra": "112822 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/simple (github.com/gofiber/template/html/v3)",
+            "value": 2142,
+            "unit": "ns/op\t     832 B/op\t      15 allocs/op",
+            "extra": "497529 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/simple (github.com/gofiber/template/html/v3) - ns/op",
+            "value": 2142,
+            "unit": "ns/op",
+            "extra": "497529 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/simple (github.com/gofiber/template/html/v3) - B/op",
+            "value": 832,
+            "unit": "B/op",
+            "extra": "497529 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/simple (github.com/gofiber/template/html/v3) - allocs/op",
+            "value": 15,
+            "unit": "allocs/op",
+            "extra": "497529 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/extended (github.com/gofiber/template/html/v3)",
+            "value": 4525,
+            "unit": "ns/op\t    1569 B/op\t      28 allocs/op",
+            "extra": "255262 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/extended (github.com/gofiber/template/html/v3) - ns/op",
+            "value": 4525,
+            "unit": "ns/op",
+            "extra": "255262 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/extended (github.com/gofiber/template/html/v3) - B/op",
+            "value": 1569,
+            "unit": "B/op",
+            "extra": "255262 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/extended (github.com/gofiber/template/html/v3) - allocs/op",
+            "value": 28,
+            "unit": "allocs/op",
+            "extra": "255262 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/simple_asserted (github.com/gofiber/template/html/v3)",
+            "value": 5100,
+            "unit": "ns/op\t    1910 B/op\t      33 allocs/op",
+            "extra": "229022 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/simple_asserted (github.com/gofiber/template/html/v3) - ns/op",
+            "value": 5100,
+            "unit": "ns/op",
+            "extra": "229022 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/simple_asserted (github.com/gofiber/template/html/v3) - B/op",
+            "value": 1910,
+            "unit": "B/op",
+            "extra": "229022 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/simple_asserted (github.com/gofiber/template/html/v3) - allocs/op",
+            "value": 33,
+            "unit": "allocs/op",
+            "extra": "229022 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/extended_asserted (github.com/gofiber/template/html/v3)",
+            "value": 12796,
+            "unit": "ns/op\t    3498 B/op\t      50 allocs/op",
+            "extra": "92040 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/extended_asserted (github.com/gofiber/template/html/v3) - ns/op",
+            "value": 12796,
+            "unit": "ns/op",
+            "extra": "92040 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/extended_asserted (github.com/gofiber/template/html/v3) - B/op",
+            "value": 3498,
+            "unit": "B/op",
+            "extra": "92040 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Html_Parallel/extended_asserted (github.com/gofiber/template/html/v3) - allocs/op",
+            "value": 50,
+            "unit": "allocs/op",
+            "extra": "92040 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple (github.com/gofiber/template/jet/v3)",
+            "value": 780.6,
+            "unit": "ns/op\t     784 B/op\t       8 allocs/op",
+            "extra": "1536229 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple (github.com/gofiber/template/jet/v3) - ns/op",
+            "value": 780.6,
+            "unit": "ns/op",
+            "extra": "1536229 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple (github.com/gofiber/template/jet/v3) - B/op",
+            "value": 784,
+            "unit": "B/op",
+            "extra": "1536229 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple (github.com/gofiber/template/jet/v3) - allocs/op",
+            "value": 8,
+            "unit": "allocs/op",
+            "extra": "1536229 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended (github.com/gofiber/template/jet/v3)",
+            "value": 2565,
+            "unit": "ns/op\t    1264 B/op\t      27 allocs/op",
+            "extra": "440755 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended (github.com/gofiber/template/jet/v3) - ns/op",
+            "value": 2565,
+            "unit": "ns/op",
+            "extra": "440755 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended (github.com/gofiber/template/jet/v3) - B/op",
+            "value": 1264,
+            "unit": "B/op",
+            "extra": "440755 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended (github.com/gofiber/template/jet/v3) - allocs/op",
+            "value": 27,
+            "unit": "allocs/op",
+            "extra": "440755 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple_asserted (github.com/gofiber/template/jet/v3)",
+            "value": 3622,
+            "unit": "ns/op\t    1849 B/op\t      26 allocs/op",
+            "extra": "311182 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple_asserted (github.com/gofiber/template/jet/v3) - ns/op",
+            "value": 3622,
+            "unit": "ns/op",
+            "extra": "311182 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple_asserted (github.com/gofiber/template/jet/v3) - B/op",
+            "value": 1849,
+            "unit": "B/op",
+            "extra": "311182 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/simple_asserted (github.com/gofiber/template/jet/v3) - allocs/op",
+            "value": 26,
+            "unit": "allocs/op",
+            "extra": "311182 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended_asserted (github.com/gofiber/template/jet/v3)",
+            "value": 10026,
+            "unit": "ns/op\t    3164 B/op\t      49 allocs/op",
+            "extra": "116012 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended_asserted (github.com/gofiber/template/jet/v3) - ns/op",
+            "value": 10026,
+            "unit": "ns/op",
+            "extra": "116012 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended_asserted (github.com/gofiber/template/jet/v3) - B/op",
+            "value": 3164,
+            "unit": "B/op",
+            "extra": "116012 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet/extended_asserted (github.com/gofiber/template/jet/v3) - allocs/op",
+            "value": 49,
+            "unit": "allocs/op",
+            "extra": "116012 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/simple (github.com/gofiber/template/jet/v3)",
+            "value": 1147,
+            "unit": "ns/op\t     897 B/op\t      10 allocs/op",
+            "extra": "889950 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/simple (github.com/gofiber/template/jet/v3) - ns/op",
+            "value": 1147,
+            "unit": "ns/op",
+            "extra": "889950 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/simple (github.com/gofiber/template/jet/v3) - B/op",
+            "value": 897,
+            "unit": "B/op",
+            "extra": "889950 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/simple (github.com/gofiber/template/jet/v3) - allocs/op",
+            "value": 10,
+            "unit": "allocs/op",
+            "extra": "889950 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/extended (github.com/gofiber/template/jet/v3)",
+            "value": 3515,
+            "unit": "ns/op\t    1552 B/op\t      30 allocs/op",
+            "extra": "326587 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/extended (github.com/gofiber/template/jet/v3) - ns/op",
+            "value": 3515,
+            "unit": "ns/op",
+            "extra": "326587 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/extended (github.com/gofiber/template/jet/v3) - B/op",
+            "value": 1552,
+            "unit": "B/op",
+            "extra": "326587 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/extended (github.com/gofiber/template/jet/v3) - allocs/op",
+            "value": 30,
+            "unit": "allocs/op",
+            "extra": "326587 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/simple_asserted (github.com/gofiber/template/jet/v3)",
+            "value": 3961,
+            "unit": "ns/op\t    1977 B/op\t      28 allocs/op",
+            "extra": "292761 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/simple_asserted (github.com/gofiber/template/jet/v3) - ns/op",
+            "value": 3961,
+            "unit": "ns/op",
+            "extra": "292761 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/simple_asserted (github.com/gofiber/template/jet/v3) - B/op",
+            "value": 1977,
+            "unit": "B/op",
+            "extra": "292761 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/simple_asserted (github.com/gofiber/template/jet/v3) - allocs/op",
+            "value": 28,
+            "unit": "allocs/op",
+            "extra": "292761 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/extended_asserted (github.com/gofiber/template/jet/v3)",
+            "value": 11894,
+            "unit": "ns/op\t    3488 B/op\t      52 allocs/op",
+            "extra": "100792 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/extended_asserted (github.com/gofiber/template/jet/v3) - ns/op",
+            "value": 11894,
+            "unit": "ns/op",
+            "extra": "100792 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/extended_asserted (github.com/gofiber/template/jet/v3) - B/op",
+            "value": 3488,
+            "unit": "B/op",
+            "extra": "100792 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Jet_Parallel/extended_asserted (github.com/gofiber/template/jet/v3) - allocs/op",
+            "value": 52,
+            "unit": "allocs/op",
+            "extra": "100792 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple (github.com/gofiber/template/mustache/v3)",
+            "value": 613.7,
+            "unit": "ns/op\t     552 B/op\t      10 allocs/op",
+            "extra": "1973250 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple (github.com/gofiber/template/mustache/v3) - ns/op",
+            "value": 613.7,
+            "unit": "ns/op",
+            "extra": "1973250 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple (github.com/gofiber/template/mustache/v3) - B/op",
+            "value": 552,
+            "unit": "B/op",
+            "extra": "1973250 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple (github.com/gofiber/template/mustache/v3) - allocs/op",
+            "value": 10,
+            "unit": "allocs/op",
+            "extra": "1973250 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple_asserted (github.com/gofiber/template/mustache/v3)",
+            "value": 3355,
+            "unit": "ns/op\t    1614 B/op\t      28 allocs/op",
+            "extra": "340440 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple_asserted (github.com/gofiber/template/mustache/v3) - ns/op",
+            "value": 3355,
+            "unit": "ns/op",
+            "extra": "340440 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple_asserted (github.com/gofiber/template/mustache/v3) - B/op",
+            "value": 1614,
+            "unit": "B/op",
+            "extra": "340440 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache/simple_asserted (github.com/gofiber/template/mustache/v3) - allocs/op",
+            "value": 28,
+            "unit": "allocs/op",
+            "extra": "340440 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache_Parallel/simple (github.com/gofiber/template/mustache/v3)",
+            "value": 786.2,
+            "unit": "ns/op\t     552 B/op\t      10 allocs/op",
+            "extra": "1512314 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache_Parallel/simple (github.com/gofiber/template/mustache/v3) - ns/op",
+            "value": 786.2,
+            "unit": "ns/op",
+            "extra": "1512314 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache_Parallel/simple (github.com/gofiber/template/mustache/v3) - B/op",
+            "value": 552,
+            "unit": "B/op",
+            "extra": "1512314 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache_Parallel/simple (github.com/gofiber/template/mustache/v3) - allocs/op",
+            "value": 10,
+            "unit": "allocs/op",
+            "extra": "1512314 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache_Parallel/simple_asserted (github.com/gofiber/template/mustache/v3)",
+            "value": 2987,
+            "unit": "ns/op\t    1630 B/op\t      28 allocs/op",
+            "extra": "391099 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache_Parallel/simple_asserted (github.com/gofiber/template/mustache/v3) - ns/op",
+            "value": 2987,
+            "unit": "ns/op",
+            "extra": "391099 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache_Parallel/simple_asserted (github.com/gofiber/template/mustache/v3) - B/op",
+            "value": 1630,
+            "unit": "B/op",
+            "extra": "391099 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Mustache_Parallel/simple_asserted (github.com/gofiber/template/mustache/v3) - allocs/op",
+            "value": 28,
+            "unit": "allocs/op",
+            "extra": "391099 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple (github.com/gofiber/template/pug/v3)",
+            "value": 1356,
+            "unit": "ns/op\t     608 B/op\t      11 allocs/op",
+            "extra": "893526 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple (github.com/gofiber/template/pug/v3) - ns/op",
+            "value": 1356,
+            "unit": "ns/op",
+            "extra": "893526 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple (github.com/gofiber/template/pug/v3) - B/op",
+            "value": 608,
+            "unit": "B/op",
+            "extra": "893526 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple (github.com/gofiber/template/pug/v3) - allocs/op",
+            "value": 11,
+            "unit": "allocs/op",
+            "extra": "893526 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended (github.com/gofiber/template/pug/v3)",
+            "value": 2706,
+            "unit": "ns/op\t     849 B/op\t      18 allocs/op",
+            "extra": "439698 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended (github.com/gofiber/template/pug/v3) - ns/op",
+            "value": 2706,
+            "unit": "ns/op",
+            "extra": "439698 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended (github.com/gofiber/template/pug/v3) - B/op",
+            "value": 849,
+            "unit": "B/op",
+            "extra": "439698 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended (github.com/gofiber/template/pug/v3) - allocs/op",
+            "value": 18,
+            "unit": "allocs/op",
+            "extra": "439698 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple_asserted (github.com/gofiber/template/pug/v3)",
+            "value": 4321,
+            "unit": "ns/op\t    1672 B/op\t      29 allocs/op",
+            "extra": "265000 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple_asserted (github.com/gofiber/template/pug/v3) - ns/op",
+            "value": 4321,
+            "unit": "ns/op",
+            "extra": "265000 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple_asserted (github.com/gofiber/template/pug/v3) - B/op",
+            "value": 1672,
+            "unit": "B/op",
+            "extra": "265000 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/simple_asserted (github.com/gofiber/template/pug/v3) - allocs/op",
+            "value": 29,
+            "unit": "allocs/op",
+            "extra": "265000 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended_asserted (github.com/gofiber/template/pug/v3)",
+            "value": 12640,
+            "unit": "ns/op\t    3026 B/op\t      40 allocs/op",
+            "extra": "94599 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended_asserted (github.com/gofiber/template/pug/v3) - ns/op",
+            "value": 12640,
+            "unit": "ns/op",
+            "extra": "94599 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended_asserted (github.com/gofiber/template/pug/v3) - B/op",
+            "value": 3026,
+            "unit": "B/op",
+            "extra": "94599 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug/extended_asserted (github.com/gofiber/template/pug/v3) - allocs/op",
+            "value": 40,
+            "unit": "allocs/op",
+            "extra": "94599 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/simple (github.com/gofiber/template/pug/v3)",
+            "value": 1845,
+            "unit": "ns/op\t     720 B/op\t      13 allocs/op",
+            "extra": "582009 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/simple (github.com/gofiber/template/pug/v3) - ns/op",
+            "value": 1845,
+            "unit": "ns/op",
+            "extra": "582009 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/simple (github.com/gofiber/template/pug/v3) - B/op",
+            "value": 720,
+            "unit": "B/op",
+            "extra": "582009 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/simple (github.com/gofiber/template/pug/v3) - allocs/op",
+            "value": 13,
+            "unit": "allocs/op",
+            "extra": "582009 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/extended (github.com/gofiber/template/pug/v3)",
+            "value": 3667,
+            "unit": "ns/op\t    1473 B/op\t      21 allocs/op",
+            "extra": "316740 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/extended (github.com/gofiber/template/pug/v3) - ns/op",
+            "value": 3667,
+            "unit": "ns/op",
+            "extra": "316740 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/extended (github.com/gofiber/template/pug/v3) - B/op",
+            "value": 1473,
+            "unit": "B/op",
+            "extra": "316740 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/extended (github.com/gofiber/template/pug/v3) - allocs/op",
+            "value": 21,
+            "unit": "allocs/op",
+            "extra": "316740 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/simple_asserted (github.com/gofiber/template/pug/v3)",
+            "value": 5314,
+            "unit": "ns/op\t    1798 B/op\t      31 allocs/op",
+            "extra": "217770 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/simple_asserted (github.com/gofiber/template/pug/v3) - ns/op",
+            "value": 5314,
+            "unit": "ns/op",
+            "extra": "217770 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/simple_asserted (github.com/gofiber/template/pug/v3) - B/op",
+            "value": 1798,
+            "unit": "B/op",
+            "extra": "217770 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/simple_asserted (github.com/gofiber/template/pug/v3) - allocs/op",
+            "value": 31,
+            "unit": "allocs/op",
+            "extra": "217770 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/extended_asserted (github.com/gofiber/template/pug/v3)",
+            "value": 13150,
+            "unit": "ns/op\t    3688 B/op\t      43 allocs/op",
+            "extra": "89422 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/extended_asserted (github.com/gofiber/template/pug/v3) - ns/op",
+            "value": 13150,
+            "unit": "ns/op",
+            "extra": "89422 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/extended_asserted (github.com/gofiber/template/pug/v3) - B/op",
+            "value": 3688,
+            "unit": "B/op",
+            "extra": "89422 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Pug_Parallel/extended_asserted (github.com/gofiber/template/pug/v3) - allocs/op",
+            "value": 43,
+            "unit": "allocs/op",
+            "extra": "89422 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple (github.com/gofiber/template/slim/v3)",
+            "value": 2131,
+            "unit": "ns/op\t    3808 B/op\t      23 allocs/op",
+            "extra": "532939 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple (github.com/gofiber/template/slim/v3) - ns/op",
+            "value": 2131,
+            "unit": "ns/op",
+            "extra": "532939 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple (github.com/gofiber/template/slim/v3) - B/op",
+            "value": 3808,
+            "unit": "B/op",
+            "extra": "532939 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple (github.com/gofiber/template/slim/v3) - allocs/op",
+            "value": 23,
+            "unit": "allocs/op",
+            "extra": "532939 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple_asserted (github.com/gofiber/template/slim/v3)",
+            "value": 5386,
+            "unit": "ns/op\t    4904 B/op\t      41 allocs/op",
+            "extra": "226798 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple_asserted (github.com/gofiber/template/slim/v3) - ns/op",
+            "value": 5386,
+            "unit": "ns/op",
+            "extra": "226798 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple_asserted (github.com/gofiber/template/slim/v3) - B/op",
+            "value": 4904,
+            "unit": "B/op",
+            "extra": "226798 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim/simple_asserted (github.com/gofiber/template/slim/v3) - allocs/op",
+            "value": 41,
+            "unit": "allocs/op",
+            "extra": "226798 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/simple (github.com/gofiber/template/slim/v3)",
+            "value": 3071,
+            "unit": "ns/op\t    3808 B/op\t      23 allocs/op",
+            "extra": "382454 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/simple (github.com/gofiber/template/slim/v3) - ns/op",
+            "value": 3071,
+            "unit": "ns/op",
+            "extra": "382454 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/simple (github.com/gofiber/template/slim/v3) - B/op",
+            "value": 3808,
+            "unit": "B/op",
+            "extra": "382454 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/simple (github.com/gofiber/template/slim/v3) - allocs/op",
+            "value": 23,
+            "unit": "allocs/op",
+            "extra": "382454 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/simple_asserted (github.com/gofiber/template/slim/v3)",
+            "value": 6863,
+            "unit": "ns/op\t    4924 B/op\t      41 allocs/op",
+            "extra": "163687 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/simple_asserted (github.com/gofiber/template/slim/v3) - ns/op",
+            "value": 6863,
+            "unit": "ns/op",
+            "extra": "163687 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/simple_asserted (github.com/gofiber/template/slim/v3) - B/op",
+            "value": 4924,
+            "unit": "B/op",
+            "extra": "163687 times\n4 procs"
+          },
+          {
+            "name": "Benchmark_Slim_Parallel/simple_asserted (github.com/gofiber/template/slim/v3) - allocs/op",
+            "value": 41,
+            "unit": "allocs/op",
+            "extra": "163687 times\n4 procs"
           }
         ]
       }
