@@ -16,6 +16,9 @@ sidebar_position: 1
   <a href="https://goreportcard.com/report/github.com/gofiber/template">
     <img src="https://img.shields.io/badge/%F0%9F%93%9D%20goreport-A%2B-75C46B"/>
   </a>
+  <a href="https://gofiber.github.io/template/benchmarks/">
+    <img src="https://img.shields.io/badge/%F0%9F%93%8A%20benchmarks-charts-00ACD7?style=flat"/>
+  </a>
   <a href="https://gofiber.io/discord">
     <img src="https://img.shields.io/discord/704680098577514527?style=flat&label=%F0%9F%92%AC%20discord&color=00ACD7"/>
   </a>
