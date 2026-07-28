@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   detect-changes:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 15
     outputs:
       matrix: ${{ steps.changed-files.outputs.all_changed_files }}
@@ -50,7 +50,7 @@ jobs:
           dir_names_max_depth: '1'
           dir_names_exclude_current_dir: true
   gosec-scan:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 15
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.matrix != 'null' && needs.detect-changes.outputs.matrix != '[]' && needs.detect-changes.outputs.matrix != '' }}
