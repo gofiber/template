@@ -30,5 +30,5 @@ jobs:
     uses: gofiber/.github/.github/workflows/benchmark.yml@main
     with:
       multi-module: true
-      # ~3 months of default-branch pushes (32 in the last 90 days)
-      max-items-in-chart: 35
+      # ~9 months of default-branch pushes (32 in the 90 days before 2026-07)
+      max-items-in-chart: 105
