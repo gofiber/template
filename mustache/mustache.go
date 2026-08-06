@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -24,18 +25,51 @@ type Engine struct {
 }
 
 type fileSystemPartialProvider struct {
+	root       string
 	fileSystem http.FileSystem
 	extension  string
 }
 
-func (p fileSystemPartialProvider) Get(path string) (string, error) {
-	buf, err := core.ReadFile(path+p.extension, p.fileSystem)
+func (p fileSystemPartialProvider) Get(name string) (string, error) {
+	cleanName, err := sanitizePartialName(name)
+	if err != nil {
+		return "", err
+	}
+
+	filename := cleanName + p.extension
+	if p.fileSystem == nil {
+		filename = filepath.Join(p.root, filepath.FromSlash(filename))
+	} else if p.root != "" {
+		filename = path.Join(p.root, filename)
+	}
+
+	buf, err := core.ReadFile(filename, p.fileSystem)
 	return string(buf), err
+}
+
+func sanitizePartialName(name string) (string, error) {
+	cleanName := strings.ReplaceAll(strings.TrimSpace(name), `\`, "/")
+	cleanName = path.Clean(cleanName)
+
+	switch {
+	case cleanName == "." || cleanName == "..":
+		return "", fmt.Errorf("mustache: invalid partial path %q", name)
+	case path.IsAbs(cleanName):
+		return "", fmt.Errorf("mustache: invalid partial path %q", name)
+	case strings.HasPrefix(cleanName, "../"):
+		return "", fmt.Errorf("mustache: invalid partial path %q", name)
+	}
+
+	return cleanName, nil
 }
 
 // New returns a Mustache render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
+		partialsProvider: &fileSystemPartialProvider{
+			root:      ".",
+			extension: extension,
+		},
 		Engine: core.Engine{
 			Directory:  directory,
 			Extension:  extension,
@@ -77,7 +111,7 @@ func (e *Engine) Load() error {
 	e.Templates = make(map[string]*mustache.Template)
 
 	// Loop trough each directory and register template files
-	walkFn := func(path string, info os.FileInfo, err error) error {
+	walkFn := func(filePath string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
@@ -89,13 +123,13 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if len(e.Extension) >= len(filePath) || filePath[len(filePath)-len(e.Extension):] != e.Extension {
 			return nil
 		}
 
 		// Get the relative file path
 		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		rel, err := filepath.Rel(e.Directory, filePath)
 		if err != nil {
 			return err
 		}
@@ -108,7 +142,7 @@ func (e *Engine) Load() error {
 		// name = strings.Replace(name, e.extension, "", -1)
 		// Read the file
 		// #gosec G304
-		buf, err := core.ReadFile(path, e.FileSystem)
+		buf, err := core.ReadFile(filePath, e.FileSystem)
 		if err != nil {
 			return err
 		}
