@@ -21,11 +21,11 @@ go get github.com/gofiber/template/mustache/v4
 
 _**./views/index.mustache**_
 ```html
-{{> views/partials/header }}
+{{> partials/header }}
 
 <h1>{{Title}}</h1>
 
-{{> views/partials/footer }}
+{{> partials/footer }}
 ```
 _**./views/partials/header.mustache**_
 ```html
@@ -66,9 +66,9 @@ func main() {
 	engine := mustache.New("./views", ".mustache")
 
   // Or from an embedded system
-  //   Note that with an embedded system the partials included from template files must be
-  //   specified relative to the filesystem's root, not the current working directory
-  // engine := mustache.NewFileSystem(http.Dir("./views", ".mustache"), ".mustache")
+  //   Partials are resolved relative to the engine directory / filesystem root.
+  //   For compatibility, full paths also work when present in your templates.
+  // engine := mustache.NewFileSystem(http.Dir("./views"), ".mustache")
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
