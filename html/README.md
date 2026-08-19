@@ -106,10 +106,17 @@ func main() {
 		}, "layouts/nested/main", "layouts/nested/base")
 	})
 
-	log.Fatal(app.Listen(":3000"))
+log.Fatal(app.Listen(":3000"))
 }
 
 ```
+
+## Security
+
+- Escaping is provided by Go's `html/template`, including contextual escaping for HTML, attributes, URLs, and JavaScript-adjacent output.
+- Layout composition should continue to use `{{embed}}`, which receives already-rendered child output.
+- Custom helpers become a trust boundary when they return trusted `html/template` types such as `template.HTML`, `template.JS`, `template.URL`, or `template.CSS`.
+- Do not convert user input into trusted `html/template` types unless you have already fully sanitized it for the target context.
 
 ### Example with embed.FS
 

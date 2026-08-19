@@ -10,10 +10,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/eknkc/amber"
 	core "github.com/gofiber/template/v2"
 )
+
+var amberFuncMapMu sync.Mutex
 
 // Engine struct
 type Engine struct {
@@ -67,7 +70,14 @@ func (e *Engine) Load() error {
 	// prepare the global amber funcs
 	funcs := template.FuncMap{}
 
-	for k, v := range amber.FuncMap { // add the amber's default funcs
+	amberFuncMapMu.Lock()
+	previousFuncMap := amber.FuncMap
+	defer func() {
+		amber.FuncMap = previousFuncMap //nolint:reassign // restore the prior compiler state after loading templates.
+		amberFuncMapMu.Unlock()
+	}()
+
+	for k, v := range previousFuncMap { // add the amber's default funcs
 		funcs[k] = v
 	}
 
@@ -75,7 +85,7 @@ func (e *Engine) Load() error {
 		funcs[k] = v
 	}
 
-	amber.FuncMap = funcs //nolint:reassign // this is fine, as long as it's not run in parallel in a test.
+	amber.FuncMap = funcs //nolint:reassign // amber compiler reads from this package global during compilation.
 
 	// Loop trough each directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {

@@ -61,6 +61,9 @@ type Engine struct {
 // It is legal to overwrite elements of the default actions
 func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
 	e.Mutex.Lock()
+	if e.Funcmap == nil {
+		e.Funcmap = make(map[string]interface{})
+	}
 	e.Funcmap[name] = fn
 	e.Mutex.Unlock()
 	return e
@@ -70,6 +73,9 @@ func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
 // It is legal to overwrite elements of the default actions
 func (e *Engine) AddFuncMap(m map[string]interface{}) IEngineCore {
 	e.Mutex.Lock()
+	if e.Funcmap == nil {
+		e.Funcmap = make(map[string]interface{}, len(m))
+	}
 	for name, fn := range m {
 		e.Funcmap[name] = fn
 	}

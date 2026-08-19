@@ -88,7 +88,14 @@ func main() {
 		}, "layouts/main")
 	})
 
-	log.Fatal(app.Listen(":3000"))
+log.Fatal(app.Listen(":3000"))
 }
 
 ```
+
+## Security
+
+- Jet escapes HTML output by default and should be the default path for untrusted data.
+- Layout composition should continue to use `embed()`, which receives already-rendered child output.
+- Custom globals and helper functions are trusted code and should not emit raw HTML for untrusted input.
+- Review any helper or library feature that returns trusted markup before using it with user-controlled data.
