@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	core "github.com/gofiber/template/v2"
 	"github.com/mattn/go-slim"
@@ -69,20 +68,15 @@ func (e *Engine) Load() error {
 			return nil
 		}
 		// Skip file if it does not equal the given template Extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// Derive the template name from the path
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.ReplaceAll(name, e.Extension, "")
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -131,18 +125,19 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
-	e.Mutex.RLock()
-	tmpl := e.Templates[name]
-	e.Mutex.RUnlock()
+	// Lock while executing. go-slim's Execute registers a `render` helper that
+	// writes into the template's own map of nested templates, so renders of
+	// the same template cannot overlap. The lookups ride along inside that
+	// same critical section: taking the shared lock first only to hand it
+	// straight back makes every render alternate between reader and writer on
+	// the same mutex, which convoys hard under load.
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 
+	tmpl := e.Templates[name]
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
-
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
 
 	if len(layout) > 0 && layout[0] != "" {
 		buf := bytebufferpool.Get()

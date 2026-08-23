@@ -6,10 +6,22 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/gofiber/utils/v2"
+	"github.com/gofiber/utils/v2/simd"
+)
+
+// Reflect types the binding helpers compare against. Type identity in reflect
+// is a pointer comparison, so these keep the check to a couple of loads.
+var (
+	stringType       = reflect.TypeOf("")
+	anyType          = reflect.TypeOf((*interface{})(nil)).Elem()
+	mapStringAnyType = reflect.TypeOf(map[string]interface{}(nil))
 )
 
 // IEngine interface, to be implemented for any templating engine added to the repository
@@ -47,7 +59,7 @@ type Engine struct {
 	LayoutName string
 	// determines if the engine parsed all templates
 	Loaded bool
-	// reload on each render
+	// reload on each render, toggled through Reload
 	ShouldReload bool
 	// debug prints the parsed templates
 	Verbose bool
@@ -55,6 +67,10 @@ type Engine struct {
 	Mutex sync.RWMutex
 	// template funcmap
 	Funcmap map[string]interface{}
+	// ready mirrors "Loaded && !ShouldReload" so PreRenderCheck can answer the
+	// steady state without touching Mutex at all. It is only ever set from
+	// under Mutex, and cleared by Reload.
+	ready atomic.Bool
 }
 
 // AddFunc adds the function to the template's function map.
@@ -111,18 +127,31 @@ func (e *Engine) Layout(key string) IEngineCore {
 // Reload if set to true the templates are reloading on each render,
 // use it when you're in development and you don't want to restart
 // the application when you edit a template file.
+//
+// Toggle reloading through this method rather than by assigning ShouldReload:
+// it also invalidates the state PreRenderCheck caches for its lock-free path.
 func (e *Engine) Reload(enabled bool) IEngineCore {
 	e.Mutex.Lock()
 	e.ShouldReload = enabled
 	e.Mutex.Unlock()
+	e.ready.Store(false)
 	return e
 }
 
 // PreRenderCheck determines if the engine should reload the templates before rendering.
 // Explicit mutex unlock vs defer offers better performance.
+//
+// A loaded engine with reloading disabled - the steady state every render
+// passes through - is answered from an atomic flag instead of the mutex.
+// Taking even the shared lock here would make each render alternate between
+// reader and writer on the mutex the layout paths need exclusively, which
+// convoys badly once several goroutines render at once.
 func (e *Engine) PreRenderCheck() bool {
-	e.Mutex.Lock()
+	if e.ready.Load() {
+		return false
+	}
 
+	e.Mutex.Lock()
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -130,6 +159,9 @@ func (e *Engine) PreRenderCheck() bool {
 		e.Mutex.Unlock()
 		return true
 	}
+	// Loaded with reloading off: the answer cannot change again until Reload
+	// clears the flag, so let every later render skip the mutex.
+	e.ready.Store(true)
 	e.Mutex.Unlock()
 	return false
 }
@@ -143,32 +175,151 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 		return binds
 	}
 
-	if binding == nil {
+	val, ok := bindingMap(binding)
+	if !ok {
 		return make(map[string]interface{})
+	}
+
+	result := make(map[string]interface{}, val.Len())
+	rangeMap(val, func(key string, value interface{}) {
+		result[key] = value
+	})
+	return result
+}
+
+// ViewContextLen reports how many key/value pairs RangeViewContext yields for
+// binding. Engines use it to size their own context type in a single
+// allocation before filling it.
+func ViewContextLen(binding interface{}) int {
+	if binds, ok := binding.(map[string]interface{}); ok {
+		return len(binds)
+	}
+
+	val, ok := bindingMap(binding)
+	if !ok {
+		return 0
+	}
+	return val.Len()
+}
+
+// RangeViewContext resolves binding exactly like AcquireViewContext and passes
+// every key/value pair to fn. Engines that keep bindings in their own context
+// type use it to fill that type directly, instead of building a
+// map[string]interface{} only to copy out of it again.
+func RangeViewContext(binding interface{}, fn func(key string, value interface{})) {
+	if binds, ok := binding.(map[string]interface{}); ok {
+		for key, value := range binds {
+			fn(key, value)
+		}
+		return
+	}
+
+	val, ok := bindingMap(binding)
+	if !ok {
+		return
+	}
+	rangeMap(val, fn)
+}
+
+// directMap returns val as a plain map[string]interface{} when its type converts
+// to one without copying - a named map[string]interface{} such as fiber.Map,
+// which is what bindings overwhelmingly are. The second return value is false
+// for any other map type, which has to go through reflect.
+func directMap(val reflect.Value) (map[string]interface{}, bool) {
+	typ := val.Type()
+	if typ.Kind() != reflect.Map || typ.Key() != stringType || typ.Elem() != anyType {
+		return nil, false
+	}
+	binds, ok := val.Convert(mapStringAnyType).Interface().(map[string]interface{})
+	return binds, ok
+}
+
+// rangeMap hands every entry of the string-keyed map value val to fn. Where the
+// map's type allows it, the entries are ranged over directly instead of through
+// reflect's map iterator, which heap-allocates on every call.
+func rangeMap(val reflect.Value, fn func(key string, value interface{})) {
+	if binds, ok := directMap(val); ok {
+		for key, value := range binds {
+			fn(key, value)
+		}
+		return
+	}
+
+	iter := val.MapRange()
+	for iter.Next() {
+		fn(iter.Key().String(), iter.Value().Interface())
+	}
+}
+
+// bindingMap resolves binding to the non-nil, string-keyed map value it wraps,
+// dereferencing a pointer on the way. The second return value is false when
+// binding holds no such map.
+func bindingMap(binding interface{}) (reflect.Value, bool) {
+	if binding == nil {
+		return reflect.Value{}, false
 	}
 
 	val := reflect.ValueOf(binding)
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
-			return make(map[string]interface{})
+			return reflect.Value{}, false
 		}
 		val = val.Elem()
 	}
 
 	if val.Kind() != reflect.Map || val.IsNil() {
-		return make(map[string]interface{})
+		return reflect.Value{}, false
 	}
 
 	if val.Type().Key().Kind() != reflect.String {
-		return make(map[string]interface{})
+		return reflect.Value{}, false
 	}
+	return val, true
+}
 
-	result := make(map[string]interface{}, val.Len())
-	iter := val.MapRange()
-	for iter.Next() {
-		result[iter.Key().String()] = iter.Value().Interface()
+// HasExtension reports whether path is a template file for extension: it has
+// to end in extension and carry a name in front of it. This is the check every
+// engine applies to the files handed to it while walking the views directory.
+func HasExtension(path, extension string) bool {
+	return len(path) > len(extension) && strings.HasSuffix(path, extension)
+}
+
+// TemplateName derives the name a template file is registered under: its path
+// relative to directory, with OS separators normalised to '/' and the
+// extension trimmed. ./views/partials/footer.html becomes partials/footer.
+func TemplateName(directory, path, extension string) (string, error) {
+	rel, err := filepath.Rel(directory, path)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve template path: %w", err)
 	}
-	return result
+	return strings.TrimSuffix(filepath.ToSlash(rel), extension), nil
+}
+
+// IsWord reports whether s consists solely of word characters, the regular
+// expression \w class of [A-Za-z0-9_]. The empty string qualifies. Engines use
+// it to reject binding keys that cannot be addressed as template identifiers.
+//
+// The scan runs on the SIMD kernels of gofiber/utils, which cover a 32-byte
+// vector per step on amd64 and a machine word per step elsewhere, rather than
+// decoding s one rune at a time.
+func IsWord(s string) bool {
+	return simd.MemchrNotWord(utils.UnsafeBytes(s)) < 0
+}
+
+// UnsafeString returns a string sharing the backing array of b, without the
+// copy a string(b) conversion makes. It is only safe when b is never written
+// to again, which holds for the freshly read template sources engines hand to
+// their parsers.
+func UnsafeString(b []byte) string {
+	return utils.UnsafeString(b)
+}
+
+// UnsafeBytes returns a byte slice sharing the backing array of s, without the
+// copy a []byte(s) conversion makes. The result must only ever be read, which
+// holds for handing rendered output to an io.Writer: Write is not allowed to
+// modify or retain the slice it is given.
+func UnsafeBytes(s string) []byte {
+	return utils.UnsafeBytes(s)
 }
 
 // ReadFile reads a file from the file system or http.FileSystem.

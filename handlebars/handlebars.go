@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	core "github.com/gofiber/template/v2"
@@ -73,20 +72,15 @@ func (e *Engine) Load() error {
 			return nil
 		}
 		// Skip file if it does not equal the given template Extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// Derive the template name from the path
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.Extension)
 
 		// Read the file
 		// #gosec G304
@@ -96,7 +90,9 @@ func (e *Engine) Load() error {
 		}
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		tmpl, err := raymond.Parse(string(buf))
+		// The parser keeps the source around, and buf is never written to
+		// again, so hand it over without copying it into a string.
+		tmpl, err := raymond.Parse(core.UnsafeString(buf))
 		if err != nil {
 			return err
 		}
@@ -135,9 +131,20 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
+	hasLayout := len(layout) > 0 && layout[0] != ""
+
+	// Rendering only reads the template map, and raymond guards a template's
+	// own state internally, so a plain render takes the shared lock and runs
+	// alongside others. The layout branch writes the embed key into the view
+	// context, which AcquireViewContext may hand straight back from the
+	// caller, so it keeps the exclusive lock.
+	if hasLayout {
+		e.Mutex.Lock()
+		defer e.Mutex.Unlock()
+	} else {
+		e.Mutex.RLock()
+		defer e.Mutex.RUnlock()
+	}
 
 	tmpl := e.Templates[name]
 	if tmpl == nil {
@@ -149,7 +156,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return fmt.Errorf("render: %w", err)
 	}
 
-	if len(layout) > 0 && layout[0] != "" {
+	if hasLayout {
 		lay := e.Templates[layout[0]]
 		if lay == nil {
 			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
@@ -160,12 +167,14 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if err != nil {
 			return fmt.Errorf("render: %w", err)
 		}
-		if _, err = out.Write([]byte(parsed)); err != nil {
+		// Write neither modifies nor retains the slice it is given, so the
+		// rendered page goes out as a view over parsed instead of a copy.
+		if _, err = out.Write(core.UnsafeBytes(parsed)); err != nil {
 			return fmt.Errorf("render: %w", err)
 		}
 		return nil
 	}
-	if _, err = out.Write([]byte(parsed)); err != nil {
+	if _, err = out.Write(core.UnsafeBytes(parsed)); err != nil {
 		return fmt.Errorf("render: %w", err)
 	}
 	return err

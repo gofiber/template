@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/cbroglie/mustache"
 	core "github.com/gofiber/template/v2"
@@ -30,7 +29,9 @@ type fileSystemPartialProvider struct {
 
 func (p fileSystemPartialProvider) Get(path string) (string, error) {
 	buf, err := core.ReadFile(path+p.extension, p.fileSystem)
-	return string(buf), err
+	// The parser keeps the source around, and buf is never written to again,
+	// so hand it over without copying it into a string.
+	return core.UnsafeString(buf), err
 }
 
 // New returns a Mustache render engine for Fiber
@@ -89,23 +90,17 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
 
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// Derive the template name from the path
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
 
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.Extension)
-		// name = strings.Replace(name, e.extension, "", -1)
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -115,11 +110,14 @@ func (e *Engine) Load() error {
 
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
+		// The parser keeps the source around, and buf is never written to
+		// again, so hand it over without copying it into a string.
+		source := core.UnsafeString(buf)
 		var tmpl *mustache.Template
 		if e.partialsProvider != nil {
-			tmpl, err = mustache.ParseStringPartials(string(buf), e.partialsProvider)
+			tmpl, err = mustache.ParseStringPartials(source, e.partialsProvider)
 		} else {
-			tmpl, err = mustache.ParseString(string(buf))
+			tmpl, err = mustache.ParseString(source)
 		}
 		if err != nil {
 			return err
@@ -150,20 +148,21 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
-	e.Mutex.RLock()
-	tmpl := e.Templates[name]
-	e.Mutex.RUnlock()
-
-	if tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", name)
-	}
-
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
-
+	// The layout branch writes the embed key into the view context, which
+	// AcquireViewContext may hand straight back from the caller, so it holds
+	// the exclusive lock. The lookups ride along inside that same critical
+	// section: taking the shared lock first only to hand it straight back
+	// makes every render alternate between reader and writer on the same
+	// mutex, which convoys hard under load.
 	if len(layout) > 0 && layout[0] != "" {
+		e.Mutex.Lock()
+		defer e.Mutex.Unlock()
+
+		tmpl := e.Templates[name]
+		if tmpl == nil {
+			return fmt.Errorf("render: template %s does not exist", name)
+		}
+
 		buf := bytebufferpool.Get()
 		defer bytebufferpool.Put(buf)
 		if err := tmpl.FRender(buf, binding); err != nil {
@@ -177,6 +176,16 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
 		return lay.FRender(out, bind)
+	}
+
+	// A mustache template is immutable once parsed, so the shared lock only
+	// has to cover the lookup.
+	e.Mutex.RLock()
+	tmpl := e.Templates[name]
+	e.Mutex.RUnlock()
+
+	if tmpl == nil {
+		return fmt.Errorf("render: template %s does not exist", name)
 	}
 	return tmpl.FRender(out, binding)
 }

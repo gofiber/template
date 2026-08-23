@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	core "github.com/gofiber/template/v2"
 )
@@ -79,23 +78,17 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template Extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
 
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// Derive the template name from the path
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
 
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.Extension)
-		// name = strings.Replace(name, e.Extension, "", -1)
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -105,7 +98,9 @@ func (e *Engine) Load() error {
 
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		_, err = e.Templates.New(name).Parse(string(buf))
+		// The parser keeps the source around, and buf is never written to
+		// again, so hand it over without copying it into a string.
+		_, err = e.Templates.New(name).Parse(core.UnsafeString(buf))
 		if err != nil {
 			return err
 		}
@@ -135,22 +130,36 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
-	e.Mutex.RLock()
-	tmpl := e.Templates.Lookup(name)
-	e.Mutex.RUnlock()
+	// Without a layout there is nothing to embed, so skip the per-render func
+	// map and the nested render closures entirely and execute the template
+	// straight away. html/template.Execute is safe for concurrent use, so the
+	// shared lock only has to cover the lookup.
+	if len(layout) == 0 || layout[0] == "" {
+		e.Mutex.RLock()
+		tmpl := e.Templates.Lookup(name)
+		e.Mutex.RUnlock()
 
+		if tmpl == nil {
+			return fmt.Errorf("render: template %s does not exist", name)
+		}
+		return tmpl.Execute(out, binding)
+	}
+
+	// Injecting the layout function mutates the func map shared by every
+	// template in the set, so layout renders run one at a time. Look the
+	// templates up inside that same critical section: taking the shared lock
+	// first only to hand it straight back makes every render alternate between
+	// reader and writer on the same mutex, which convoys hard under load.
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
+
+	tmpl := e.Templates.Lookup(name)
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
 
-	render := renderFuncCreate(e, out, binding, *tmpl, nil)
-	if len(layout) > 0 && layout[0] != "" {
-		e.Mutex.Lock()
-		defer e.Mutex.Unlock()
-	}
-
 	// construct a nested render function to embed templates in layouts
+	render := renderFuncCreate(e, out, binding, tmpl, nil)
 	for _, layName := range layout {
 		if layName == "" {
 			break
@@ -159,12 +168,12 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if lay == nil {
 			return fmt.Errorf("render: LayoutName %s does not exist", layName)
 		}
-		render = renderFuncCreate(e, out, binding, *lay, render)
+		render = renderFuncCreate(e, out, binding, lay, render)
 	}
 	return render()
 }
 
-func renderFuncCreate(e *Engine, out io.Writer, binding interface{}, tmpl template.Template, childRenderFunc func() error) func() error {
+func renderFuncCreate(e *Engine, out io.Writer, binding interface{}, tmpl *template.Template, childRenderFunc func() error) func() error {
 	return func() error {
 		tmpl.Funcs(map[string]interface{}{
 			e.LayoutName: childRenderFunc,

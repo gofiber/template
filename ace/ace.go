@@ -82,21 +82,15 @@ func (e *Engine) Load() error {
 			return nil
 		}
 		// Skip file if it does not equal the given template extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// Derive the template name from the path
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.Extension)
-		// name = strings.Replace(name, e.Extension, "", -1)
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -150,21 +144,20 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
-	e.Mutex.RLock()
-	tmpl := e.Templates.Lookup(name)
-	e.Mutex.RUnlock()
-
-	if tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", name)
-	}
-
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
-
-	// Handle layout if specified
+	// Handle layout if specified. Injecting the layout function mutates the func map shared by every
+	// template in the set, so layout renders run one at a time. The lookups
+	// ride along inside that same critical section: taking the shared lock
+	// first only to hand it straight back makes every render alternate between
+	// reader and writer on the same mutex, which convoys hard under load.
 	if len(layout) > 0 && layout[0] != "" {
+		e.Mutex.Lock()
+		defer e.Mutex.Unlock()
+
+		tmpl := e.Templates.Lookup(name)
+		if tmpl == nil {
+			return fmt.Errorf("render: template %s does not exist", name)
+		}
+
 		lay := e.Templates.Lookup(layout[0])
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
@@ -176,6 +169,16 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			},
 		})
 		return lay.Execute(out, binding)
+	}
+
+	// A plain render only reads, and html/template.Execute is safe for
+	// concurrent use, so the shared lock only has to cover the lookup.
+	e.Mutex.RLock()
+	tmpl := e.Templates.Lookup(name)
+	e.Mutex.RUnlock()
+
+	if tmpl == nil {
+		return fmt.Errorf("render: template %s does not exist", name)
 	}
 
 	return tmpl.Execute(out, binding)

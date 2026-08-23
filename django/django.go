@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 
 	"github.com/flosch/pongo2/v6"
 	core "github.com/gofiber/template/v2"
@@ -100,23 +99,17 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template Extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
 
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// Derive the template name from the path
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
 
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.Extension)
-		// name = strings.Replace(name, e.Extension, "", -1)
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -204,13 +197,11 @@ func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
 // isValidKey checks if the key is valid
 //
 // Valid keys match the following regex: [a-zA-Z0-9_]+
+//
+// The scan is delegated to the core helper, which runs on the SIMD kernels of
+// gofiber/utils instead of walking the key one rune at a time.
 func isValidKey(key string) bool {
-	for _, ch := range key {
-		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9') && ch != '_' {
-			return false
-		}
-	}
-	return true
+	return core.IsWord(key)
 }
 
 // SetAutoEscape sets the auto-escape property of the template engine
@@ -227,47 +218,53 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
+	hasLayout := len(layout) > 0 && layout[0] != ""
+
+	// Acquire read lock for accessing the templates. Rendering only reads
+	// them - a pongo2 template is immutable once parsed - so concurrent
+	// renders share the lock instead of queueing behind an exclusive one.
 	e.Mutex.RLock()
 	tmpl, ok := e.Templates[name]
+	var lay *pongo2.Template
+	if hasLayout {
+		lay = e.Templates[layout[0]]
+	}
 	e.Mutex.RUnlock()
 
 	if !ok {
 		return fmt.Errorf("template %s does not exist", name)
 	}
 
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
-
 	bind := getPongoBinding(binding)
-	parsed, err := tmpl.Execute(bind)
+
+	if !hasLayout {
+		// pongo2 buffers the render internally and writes nothing on error, so
+		// this keeps the all-or-nothing behaviour of Execute while dropping
+		// both full-page copies it needed: one into a string, one back out
+		// into a []byte for the writer.
+		return tmpl.ExecuteWriter(bind, out)
+	}
+
+	parsed, err := tmpl.ExecuteBytes(bind)
 	if err != nil {
 		return err
 	}
 
-	if len(layout) > 0 && layout[0] != "" {
-		if bind == nil {
-			bind = make(map[string]interface{}, 1)
-		}
-
-		// Workaround for custom {{embed}} tag
-		// Mark the `embed` variable as safe
-		// it has already been escaped above
-		// e.LayoutName will be 'embed'
-		safeEmbed := pongo2.AsSafeValue(parsed)
-
-		// Add the safe value to the binding map
-		bind[e.LayoutName] = safeEmbed
-
-		lay := e.Templates[layout[0]]
-		if lay == nil {
-			return fmt.Errorf("LayoutName %s does not exist", layout[0])
-		}
-		return lay.ExecuteWriter(bind, out)
+	if lay == nil {
+		return fmt.Errorf("LayoutName %s does not exist", layout[0])
 	}
-	if _, err = out.Write([]byte(parsed)); err != nil {
-		return err
+
+	if bind == nil {
+		bind = make(pongo2.Context, 1)
 	}
-	return nil
+
+	// Workaround for custom {{embed}} tag
+	// Mark the `embed` variable as safe
+	// it has already been escaped above
+	// e.LayoutName will be 'embed'
+	// getPongoBinding always builds a map we own and the buffer behind parsed
+	// is never reused, so the rendered body goes in as a view over it.
+	bind[e.LayoutName] = pongo2.AsSafeValue(core.UnsafeString(parsed))
+
+	return lay.ExecuteWriter(bind, out)
 }

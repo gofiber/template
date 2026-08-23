@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/CloudyKit/jet/v6"
 	"github.com/CloudyKit/jet/v6/loaders/httpfs"
@@ -110,17 +109,17 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template Extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
 
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// Derive the template name from the path
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
 
-		name := strings.TrimSuffix(rel, e.Extension)
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -128,7 +127,9 @@ func (e *Engine) Load() error {
 			return err
 		}
 
-		l.Set(name, string(buf))
+		// Set copies the source into its own store, so pass a view over buf
+		// rather than allocating a second copy on the way in.
+		l.Set(name, core.UnsafeString(buf))
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
@@ -155,26 +156,27 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
-	e.Mutex.RLock()
-	tmpl, err := e.Templates.GetTemplate(name)
-	e.Mutex.RUnlock()
-
-	if err != nil || tmpl == nil {
-		return fmt.Errorf("render: template %s could not be Loaded: %w", name, err)
-	}
-
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
-
 	bind := jetVarMap(binding)
 
+	// jetVarMap hands a caller-owned VarMap back untouched, so serialise the
+	// renders that write the embed function into it. The lookups ride along
+	// inside that same critical section: taking the shared lock first only to
+	// hand it straight back makes every render alternate between reader and
+	// writer on the same mutex, which convoys hard under load.
 	if len(layout) > 0 && layout[0] != "" {
+		e.Mutex.Lock()
+		defer e.Mutex.Unlock()
+
+		tmpl, err := e.Templates.GetTemplate(name)
+		if err != nil || tmpl == nil {
+			return fmt.Errorf("render: template %s could not be Loaded: %w", name, err)
+		}
+
 		lay, err := e.Templates.GetTemplate(layout[0])
 		if err != nil {
 			return err
 		}
+
 		var renderingError error
 		bind.Set(e.LayoutName, func() {
 			renderingError = tmpl.Execute(out, bind, nil)
@@ -185,22 +187,31 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 		return err
 	}
+
+	// A plain render only reads the map, and jet.Template.Execute is safe for
+	// concurrent use, so the shared lock only has to cover the lookup.
+	e.Mutex.RLock()
+	tmpl, err := e.Templates.GetTemplate(name)
+	e.Mutex.RUnlock()
+
+	if err != nil || tmpl == nil {
+		return fmt.Errorf("render: template %s could not be Loaded: %w", name, err)
+	}
+
 	return tmpl.Execute(out, bind, nil)
 }
 
 func jetVarMap(binding interface{}) jet.VarMap {
-	if binding == nil {
-		return make(jet.VarMap)
-	}
-
 	if bind, ok := binding.(jet.VarMap); ok {
 		return bind
 	}
 
-	data := core.AcquireViewContext(binding)
-	bind := make(jet.VarMap, len(data))
-	for key, value := range data {
+	// Fill the VarMap straight from the binding: building a
+	// map[string]interface{} first only to copy out of it again costs an extra
+	// map allocation and a second pass on every render.
+	bind := make(jet.VarMap, core.ViewContextLen(binding))
+	core.RangeViewContext(binding, func(key string, value interface{}) {
 		bind.Set(key, value)
-	}
+	})
 	return bind
 }
