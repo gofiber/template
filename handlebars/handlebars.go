@@ -131,13 +131,11 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	hasLayout := len(layout) > 0 && layout[0] != ""
-
-	// Rendering only reads the template map, and raymond guards a template's
-	// own state internally, so renders take the shared lock and run alongside
-	// each other.
-	e.Mutex.RLock()
-	defer e.Mutex.RUnlock()
+	// Lock while executing. raymond parses a globally registered source partial
+	// lazily on first use, writing the parsed template into the shared partial
+	// without a lock of its own, so renders of this engine cannot overlap.
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 
 	tmpl := e.Templates[name]
 	if tmpl == nil {
@@ -149,7 +147,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return fmt.Errorf("render: %w", err)
 	}
 
-	if hasLayout {
+	if len(layout) > 0 && layout[0] != "" {
 		lay := e.Templates[layout[0]]
 		if lay == nil {
 			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
@@ -159,19 +157,15 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		// renders sharing one binding map would race on it.
 		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = raymond.SafeString(parsed)
-		parsed, err := lay.Exec(bind)
-		if err != nil {
+		if parsed, err = lay.Exec(bind); err != nil {
 			return fmt.Errorf("render: %w", err)
 		}
-		// Write neither modifies nor retains the slice it is given, so the
-		// rendered page goes out as a view over parsed instead of a copy.
-		if _, err = out.Write(core.UnsafeBytes(parsed)); err != nil {
-			return fmt.Errorf("render: %w", err)
-		}
-		return nil
 	}
+
+	// Write neither modifies nor retains the slice it is given, so the
+	// rendered page goes out as a view over parsed instead of a copy.
 	if _, err = out.Write(core.UnsafeBytes(parsed)); err != nil {
 		return fmt.Errorf("render: %w", err)
 	}
-	return err
+	return nil
 }

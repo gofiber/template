@@ -47,10 +47,17 @@ func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 	}
 	// Add a default function that throws an error if called unexpectedly.
 	// This can be useful for debugging or ensuring certain functions are used correctly.
-	engine.AddFunc(engine.LayoutName, func() error {
-		return errors.New("layoutName called unexpectedly")
-	})
+	engine.AddFunc(engine.LayoutName, layoutUnexpected)
 	return engine
+}
+
+// layoutUnexpected is the layout function the engine keeps installed outside a
+// layout render. The func map is shared by every template in the set, so the
+// closure a layout render installs has to be replaced when that render ends:
+// left in place, a later render of a template containing the layout action
+// would call it and write into a writer that render has already finished with.
+func layoutUnexpected() error {
+	return errors.New("layoutName called unexpectedly")
 }
 
 // Load parses the templates to the engine.
@@ -154,6 +161,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
 
+		defer lay.Funcs(map[string]interface{}{e.LayoutName: layoutUnexpected})
 		lay.Funcs(map[string]interface{}{
 			e.LayoutName: func() error {
 				return tmpl.Execute(out, binding)
@@ -162,12 +170,15 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return lay.Execute(out, binding)
 	}
 
-	// A plain render only reads, and html/template.Execute is safe for
-	// concurrent use, so the shared lock only has to cover the lookup.
+	// A plain render only reads, but it must not overlap a layout render: that
+	// one installs a closure into the func map every template in the set
+	// shares, and a template containing the layout action would pick it up and
+	// write into the other render's writer. The shared lock lets plain renders
+	// run together while excluding the layout path.
 	e.Mutex.RLock()
-	tmpl := e.Templates.Lookup(name)
-	e.Mutex.RUnlock()
+	defer e.Mutex.RUnlock()
 
+	tmpl := e.Templates.Lookup(name)
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}

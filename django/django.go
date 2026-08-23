@@ -217,11 +217,13 @@ func copyValidPongoKeys(data map[string]interface{}) pongo2.Context {
 // isValidKey checks if the key is valid
 //
 // Valid keys match the following regex: [a-zA-Z0-9_]+
-//
-// The scan is delegated to the core helper, which runs on the SIMD kernels of
-// gofiber/utils instead of walking the key one rune at a time.
 func isValidKey(key string) bool {
-	return core.IsWord(key)
+	for _, ch := range key {
+		if (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') && (ch < '0' || ch > '9') && ch != '_' {
+			return false
+		}
+	}
+	return true
 }
 
 // SetAutoEscape sets the auto-escape property of the template engine
@@ -240,26 +242,31 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 
 	hasLayout := len(layout) > 0 && layout[0] != ""
 
-	// Acquire read lock for accessing the templates. Rendering only reads
-	// them - a pongo2 template is immutable once parsed - so concurrent
-	// renders share the lock instead of queueing behind an exclusive one.
+	// Acquire read lock for the whole render. A pongo2 template is immutable
+	// once parsed, so concurrent renders share the lock instead of queueing
+	// behind an exclusive one - but the lock has to be held across the render,
+	// not just the lookup: Load writes the engine's LayoutName and pongo2's
+	// package-level autoescape flag, which the render reads.
 	e.Mutex.RLock()
-	tmpl, ok := e.Templates[name]
-	var lay *pongo2.Template
-	if hasLayout {
-		lay = e.Templates[layout[0]]
-	}
-	e.Mutex.RUnlock()
+	defer e.Mutex.RUnlock()
 
+	tmpl, ok := e.Templates[name]
 	if !ok {
 		return fmt.Errorf("template %s does not exist", name)
+	}
+
+	var lay *pongo2.Template
+	if hasLayout {
+		if lay, ok = e.Templates[layout[0]]; !ok {
+			return fmt.Errorf("LayoutName %s does not exist", layout[0])
+		}
 	}
 
 	bind := getPongoBinding(binding)
 
 	if !hasLayout {
 		// pongo2 buffers the render internally and writes nothing on error, so
-		// this keeps the all-or-nothing behaviour of Execute while dropping
+		// this keeps the all-or-nothing behavior of Execute while dropping
 		// both full-page copies it needed: one into a string, one back out
 		// into a []byte for the writer.
 		return tmpl.ExecuteWriter(bind, out)
@@ -268,10 +275,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	parsed, err := tmpl.ExecuteBytes(bind)
 	if err != nil {
 		return err
-	}
-
-	if lay == nil {
-		return fmt.Errorf("LayoutName %s does not exist", layout[0])
 	}
 
 	// bind may alias the caller's map, so the embed key goes into a context of

@@ -4,24 +4,23 @@ package template
 import (
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	"github.com/gofiber/utils/v2"
-	"github.com/gofiber/utils/v2/simd"
 )
 
 // Reflect types the binding helpers compare against. Type identity in reflect
 // is a pointer comparison, so these keep the check to a couple of loads.
 var (
-	stringType       = reflect.TypeOf("")
-	anyType          = reflect.TypeOf((*interface{})(nil)).Elem()
-	mapStringAnyType = reflect.TypeOf(map[string]interface{}(nil))
+	stringType       = reflect.TypeFor[string]()
+	anyType          = reflect.TypeFor[interface{}]()
+	mapStringAnyType = reflect.TypeFor[map[string]interface{}]()
 )
 
 // IEngine interface, to be implemented for any templating engine added to the repository
@@ -59,7 +58,7 @@ type Engine struct {
 	LayoutName string
 	// determines if the engine parsed all templates
 	Loaded bool
-	// reload on each render, toggled through Reload
+	// reload on each render
 	ShouldReload bool
 	// debug prints the parsed templates
 	Verbose bool
@@ -67,10 +66,6 @@ type Engine struct {
 	Mutex sync.RWMutex
 	// template funcmap
 	Funcmap map[string]interface{}
-	// ready mirrors "Loaded && !ShouldReload" so PreRenderCheck can answer the
-	// steady state without touching Mutex at all. It is only ever set from
-	// under Mutex, and cleared by Reload.
-	ready atomic.Bool
 }
 
 // AddFunc adds the function to the template's function map.
@@ -127,14 +122,10 @@ func (e *Engine) Layout(key string) IEngineCore {
 // Reload if set to true the templates are reloading on each render,
 // use it when you're in development and you don't want to restart
 // the application when you edit a template file.
-//
-// Toggle reloading through this method rather than by assigning ShouldReload:
-// it also invalidates the state PreRenderCheck caches for its lock-free path.
 func (e *Engine) Reload(enabled bool) IEngineCore {
 	e.Mutex.Lock()
 	e.ShouldReload = enabled
 	e.Mutex.Unlock()
-	e.ready.Store(false)
 	return e
 }
 
@@ -142,14 +133,16 @@ func (e *Engine) Reload(enabled bool) IEngineCore {
 // Explicit mutex unlock vs defer offers better performance.
 //
 // A loaded engine with reloading disabled - the steady state every render
-// passes through - is answered from an atomic flag instead of the mutex.
-// Taking even the shared lock here would make each render alternate between
-// reader and writer on the mutex the layout paths need exclusively, which
-// convoys badly once several goroutines render at once.
+// passes through - is answered under the shared lock, so concurrent renders
+// pass through together instead of queueing behind an exclusive one. Only the
+// case that has to clear Loaded takes the lock exclusively.
 func (e *Engine) PreRenderCheck() bool {
-	if e.ready.Load() {
+	e.Mutex.RLock()
+	if e.Loaded && !e.ShouldReload {
+		e.Mutex.RUnlock()
 		return false
 	}
+	e.Mutex.RUnlock()
 
 	e.Mutex.Lock()
 	if !e.Loaded || e.ShouldReload {
@@ -159,9 +152,6 @@ func (e *Engine) PreRenderCheck() bool {
 		e.Mutex.Unlock()
 		return true
 	}
-	// Loaded with reloading off: the answer cannot change again until Reload
-	// clears the flag, so let every later render skip the mutex.
-	e.ready.Store(true)
 	e.Mutex.Unlock()
 	return false
 }
@@ -192,8 +182,19 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 // binding's own. Engines injecting layout data use it so the injected key
 // cannot leak back into - or race on - the map the caller handed in.
 func NewViewContext(binding interface{}, extra int) map[string]interface{} {
-	result := make(map[string]interface{}, ViewContextLen(binding)+extra)
-	RangeViewContext(binding, func(key string, value interface{}) {
+	if binds, ok := binding.(map[string]interface{}); ok {
+		result := make(map[string]interface{}, len(binds)+extra)
+		maps.Copy(result, binds)
+		return result
+	}
+
+	val, ok := bindingMap(binding)
+	if !ok {
+		return make(map[string]interface{}, extra)
+	}
+
+	result := make(map[string]interface{}, val.Len()+extra)
+	rangeMap(val, func(key string, value interface{}) {
 		result[key] = value
 	})
 	return result
@@ -297,7 +298,7 @@ func HasExtension(path, extension string) bool {
 }
 
 // TemplateName derives the name a template file is registered under: its path
-// relative to directory, with OS separators normalised to '/' and the
+// relative to directory, with OS separators normalized to '/' and the
 // extension trimmed. ./views/partials/footer.html becomes partials/footer.
 func TemplateName(directory, path, extension string) (string, error) {
 	rel, err := filepath.Rel(directory, path)
@@ -305,17 +306,6 @@ func TemplateName(directory, path, extension string) (string, error) {
 		return "", fmt.Errorf("failed to resolve template path: %w", err)
 	}
 	return strings.TrimSuffix(filepath.ToSlash(rel), extension), nil
-}
-
-// IsWord reports whether s consists solely of word characters, the regular
-// expression \w class of [A-Za-z0-9_]. The empty string qualifies. Engines use
-// it to reject binding keys that cannot be addressed as template identifiers.
-//
-// The scan runs on the SIMD kernels of gofiber/utils, which cover a 32-byte
-// vector per step on amd64 and a machine word per step elsewhere, rather than
-// decoding s one rune at a time.
-func IsWord(s string) bool {
-	return simd.MemchrNotWord(utils.UnsafeBytes(s)) < 0
 }
 
 // UnsafeString returns a string sharing the backing array of b, without the

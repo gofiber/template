@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -156,27 +157,27 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	bind := jetVarMap(binding)
+	// A jet template is immutable once parsed and Execute is safe for
+	// concurrent use, so renders take the shared lock and run alongside each
+	// other.
+	e.Mutex.RLock()
+	defer e.Mutex.RUnlock()
 
-	// jetVarMap hands a caller-owned VarMap back untouched, so serialise the
-	// renders that write the embed function into it. The lookups ride along
-	// inside that same critical section: taking the shared lock first only to
-	// hand it straight back makes every render alternate between reader and
-	// writer on the same mutex, which convoys hard under load.
+	tmpl, err := e.Templates.GetTemplate(name)
+	if err != nil || tmpl == nil {
+		return fmt.Errorf("render: template %s could not be Loaded: %w", name, err)
+	}
+
 	if len(layout) > 0 && layout[0] != "" {
-		e.Mutex.Lock()
-		defer e.Mutex.Unlock()
-
-		tmpl, err := e.Templates.GetTemplate(name)
-		if err != nil || tmpl == nil {
-			return fmt.Errorf("render: template %s could not be Loaded: %w", name, err)
-		}
-
 		lay, err := e.Templates.GetTemplate(layout[0])
 		if err != nil {
 			return err
 		}
 
+		// The embed function goes into a VarMap of our own: writing it into
+		// the caller's would leave a closure over this render's writer behind
+		// in their data, and two renders sharing one VarMap would race on it.
+		bind := jetVarMap(binding, 1)
 		var renderingError error
 		bind.Set(e.LayoutName, func() {
 			renderingError = tmpl.Execute(out, bind, nil)
@@ -188,28 +189,26 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return err
 	}
 
-	// A plain render only reads the map, and jet.Template.Execute is safe for
-	// concurrent use, so the shared lock only has to cover the lookup.
-	e.Mutex.RLock()
-	tmpl, err := e.Templates.GetTemplate(name)
-	e.Mutex.RUnlock()
-
-	if err != nil || tmpl == nil {
-		return fmt.Errorf("render: template %s could not be Loaded: %w", name, err)
-	}
-
-	return tmpl.Execute(out, bind, nil)
+	return tmpl.Execute(out, jetVarMap(binding, 0), nil)
 }
 
-func jetVarMap(binding interface{}) jet.VarMap {
-	if bind, ok := binding.(jet.VarMap); ok {
+// jetVarMap resolves binding into a jet.VarMap. A caller-supplied VarMap is
+// passed through untouched unless extra room is asked for, in which case it is
+// copied so the caller's map is never written to.
+func jetVarMap(binding interface{}, extra int) jet.VarMap {
+	if caller, ok := binding.(jet.VarMap); ok {
+		if extra == 0 {
+			return caller
+		}
+		bind := make(jet.VarMap, len(caller)+extra)
+		maps.Copy(bind, caller)
 		return bind
 	}
 
 	// Fill the VarMap straight from the binding: building a
 	// map[string]interface{} first only to copy out of it again costs an extra
 	// map allocation and a second pass on every render.
-	bind := make(jet.VarMap, core.ViewContextLen(binding))
+	bind := make(jet.VarMap, core.ViewContextLen(binding)+extra)
 	core.RangeViewContext(binding, func(key string, value interface{}) {
 		bind.Set(key, value)
 	})

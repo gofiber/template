@@ -132,13 +132,16 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 
 	// Without a layout there is nothing to embed, so skip the per-render func
 	// map and the nested render closures entirely and execute the template
-	// straight away. html/template.Execute is safe for concurrent use, so the
-	// shared lock only has to cover the lookup.
+	// straight away. The render must still not overlap a layout render, which
+	// installs a closure into the func map every template in the set shares:
+	// a template containing the layout action would pick it up and write into
+	// the other render's writer. The shared lock lets plain renders run
+	// together while excluding the layout path.
 	if len(layout) == 0 || layout[0] == "" {
 		e.Mutex.RLock()
-		tmpl := e.Templates.Lookup(name)
-		e.Mutex.RUnlock()
+		defer e.Mutex.RUnlock()
 
+		tmpl := e.Templates.Lookup(name)
 		if tmpl == nil {
 			return fmt.Errorf("render: template %s does not exist", name)
 		}
@@ -173,16 +176,14 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	return render()
 }
 
+// renderFuncCreate builds the closure that renders tmpl with childRenderFunc
+// installed as the layout function. The innermost template is given a nil
+// child: overwriting the entry matters even there, because the func map is
+// shared by every template in the set, so leaving the previous render's
+// closure in place would let a template containing the layout action call it -
+// re-rendering into a writer that request has already finished with, or
+// recursing into itself without end.
 func renderFuncCreate(e *Engine, out io.Writer, binding interface{}, tmpl *template.Template, childRenderFunc func() error) func() error {
-	// The innermost template has nothing to embed, so leave the func map -
-	// which every template in the set shares - alone rather than overwriting
-	// the layout entry with a nil function on every render.
-	if childRenderFunc == nil {
-		return func() error {
-			return tmpl.Execute(out, binding)
-		}
-	}
-
 	return func() error {
 		tmpl.Funcs(map[string]interface{}{
 			e.LayoutName: childRenderFunc,

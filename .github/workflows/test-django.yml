@@ -5,11 +5,19 @@ on:
             - main
         paths:
             - 'django/**'
+            # the engine builds the core module through a local replace
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     pull_request:
         branches:
             - '*'
         paths:
             - 'django/**'
+            # the engine builds the core module through a local replace
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     workflow_dispatch:
 name: Tests Django
 

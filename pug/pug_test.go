@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -89,6 +90,52 @@ func Test_Empty_Layout(t *testing.T) {
 	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
 	result := trim(buf.String())
 	require.Equal(t, expect, result)
+}
+
+func Test_Layout_Isolation(t *testing.T) {
+	t.Parallel()
+	engine := New("./views", ".pug")
+	engine.AddFunc("isAdmin", func(user string) bool {
+		return user == admin
+	})
+	require.NoError(t, engine.Load())
+
+	var first bytes.Buffer
+	require.NoError(t, engine.Render(&first, "index", map[string]interface{}{
+		"Title": "FIRST",
+	}, "layouts/main"))
+	before := first.String()
+	require.Contains(t, before, "FIRST")
+
+	// The layout function lives in the func map every template in the set
+	// shares. Rendering the layout template on its own must not reach the
+	// closure the render above installed, which still holds that render's
+	// writer and binding.
+	var second bytes.Buffer
+	//nolint:errcheck // the engines differ in whether the unset layout function reports or renders
+	_ = engine.Render(&second, "layouts/main", map[string]interface{}{"Title": "SECOND"})
+	require.Equal(t, before, first.String(), "a finished render's writer was written to again")
+	require.NotContains(t, second.String(), "FIRST", "an earlier render's body leaked into a later one")
+
+	// Under -race, plain and layout renders must not overlap in a way that
+	// lets one of them write through the other's closure.
+	var wg sync.WaitGroup
+	for range 20 {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			//nolint:errcheck // only the absence of a race matters here
+			_ = engine.Render(&buf, "index", map[string]interface{}{"Title": "x"}, "layouts/main")
+		}()
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			//nolint:errcheck // only the absence of a race matters here
+			_ = engine.Render(&buf, "layouts/main", map[string]interface{}{"Title": "y"})
+		}()
+	}
+	wg.Wait()
 }
 
 func Test_FileSystem(t *testing.T) {
