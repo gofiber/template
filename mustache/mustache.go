@@ -29,8 +29,6 @@ type fileSystemPartialProvider struct {
 
 func (p fileSystemPartialProvider) Get(path string) (string, error) {
 	buf, err := core.ReadFile(path+p.extension, p.fileSystem)
-	// The parser keeps the source around, and buf is never written to again,
-	// so hand it over without copying it into a string.
 	return core.UnsafeString(buf), err
 }
 
@@ -94,7 +92,6 @@ func (e *Engine) Load() error {
 			return nil
 		}
 
-		// Derive the template name from the path
 		// ./views/html/index.tmpl -> index
 		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
@@ -110,8 +107,6 @@ func (e *Engine) Load() error {
 
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		// The parser keeps the source around, and buf is never written to
-		// again, so hand it over without copying it into a string.
 		source := core.UnsafeString(buf)
 		var tmpl *mustache.Template
 		if e.partialsProvider != nil {
@@ -148,8 +143,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// A mustache template is immutable once parsed, so renders take the shared
-	// lock and run alongside each other.
+	// A mustache template is immutable once parsed, so renders share the lock.
 	e.Mutex.RLock()
 	defer e.Mutex.RUnlock()
 
@@ -170,9 +164,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return err
 		}
 
-		// The embed key goes into a context of our own: writing it into the
-		// caller's map would leak the rendered body back to them, and two
-		// renders sharing one binding map would race on it.
+		// Our own context: the embed key must not land in the caller's map.
 		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = buf.String()
 		return lay.FRender(out, bind)

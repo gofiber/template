@@ -148,8 +148,7 @@ func Test_NewViewContext(t *testing.T) {
 		got := template.NewViewContext(binding, 1)
 		require.Equal(t, want, got, name)
 
-		// The result is always the caller's to write into: unlike
-		// AcquireViewContext it must never be the binding itself.
+		// Always the caller's to write into, never the binding itself.
 		got["embed"] = "body"
 		require.Equal(t, want, template.AcquireViewContext(binding), name)
 	}
@@ -260,9 +259,8 @@ func Test_Walk(t *testing.T) {
 }
 
 func Benchmark_AcquireViewContext(b *testing.B) {
-	// A native map is handed straight back; a named one - fiber.Map and
-	// friends, which is what bindings usually are - is copied with plain Go;
-	// anything else has to go through reflect.
+	// Native maps are handed straight back, named ones copied with plain Go,
+	// anything else resolved through reflect.
 	for name, binding := range map[string]interface{}{
 		"native": map[string]interface{}{"Title": "Hello", "User": "admin"},
 		"named":  customMap{"Title": "Hello", "User": "admin"},

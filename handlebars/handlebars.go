@@ -75,7 +75,6 @@ func (e *Engine) Load() error {
 		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
-		// Derive the template name from the path
 		// ./views/html/index.tmpl -> index
 		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
@@ -90,8 +89,6 @@ func (e *Engine) Load() error {
 		}
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		// The parser keeps the source around, and buf is never written to
-		// again, so hand it over without copying it into a string.
 		tmpl, err := raymond.Parse(core.UnsafeString(buf))
 		if err != nil {
 			return err
@@ -131,9 +128,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Lock while executing. raymond parses a globally registered source partial
-	// lazily on first use, writing the parsed template into the shared partial
-	// without a lock of its own, so renders of this engine cannot overlap.
+	// Exclusive: raymond parses a globally registered source partial lazily on
+	// first use, writing into the shared partial without a lock of its own.
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
@@ -152,9 +148,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if lay == nil {
 			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
 		}
-		// The embed key goes into a context of our own: writing it into the
-		// caller's map would leak the rendered body back to them, and two
-		// renders sharing one binding map would race on it.
+		// Our own context: the embed key must not land in the caller's map.
 		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = raymond.SafeString(parsed)
 		if parsed, err = lay.Exec(bind); err != nil {
@@ -162,8 +156,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Write neither modifies nor retains the slice it is given, so the
-	// rendered page goes out as a view over parsed instead of a copy.
 	if _, err = out.Write(core.UnsafeBytes(parsed)); err != nil {
 		return fmt.Errorf("render: %w", err)
 	}

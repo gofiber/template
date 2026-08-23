@@ -71,7 +71,6 @@ func (e *Engine) Load() error {
 		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
-		// Derive the template name from the path
 		// ./views/html/index.tmpl -> index
 		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
@@ -125,12 +124,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Lock while executing. go-slim's Execute registers a `render` helper that
-	// writes into the template's own map of nested templates, so renders of
-	// the same template cannot overlap. The lookups ride along inside that
-	// same critical section: taking the shared lock first only to hand it
-	// straight back makes every render alternate between reader and writer on
-	// the same mutex, which convoys hard under load.
+	// Exclusive: go-slim's Execute registers a `render` helper that writes into
+	// the template's own map of nested templates.
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
@@ -145,10 +140,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if err := tmpl.Execute(buf, binding); err != nil {
 			return err
 		}
-		// The embed key goes into a context of our own: writing it into the
-		// caller's map would leak the rendered body back to them, and a
-		// binding that is not literally a map[string]interface{} - fiber.Map
-		// is one - would otherwise reach the layout with none of its values.
+		// Our own context: the caller's map must not be written to, and a
+		// fiber.Map would otherwise reach the layout empty.
 		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = buf.String()
 		lay := e.Templates[layout[0]]

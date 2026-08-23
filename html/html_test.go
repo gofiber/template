@@ -229,18 +229,15 @@ func Test_Layout_Isolation(t *testing.T) {
 	before := first.String()
 	require.Contains(t, before, "FIRST")
 
-	// The layout function lives in the func map every template in the set
-	// shares. Rendering the layout template on its own must not reach the
-	// closure the render above installed, which still holds that render's
-	// writer and binding.
+	// The layout template on its own must not reach the closure the render
+	// above installed, which still holds that render's writer and binding.
 	var second bytes.Buffer
-	//nolint:errcheck // the engines differ in whether the unset layout function reports or renders
+	//nolint:errcheck // an unset layout function reports in some engines, renders in others
 	_ = engine.Render(&second, "layouts/main", map[string]interface{}{"Title": "SECOND"})
 	require.Equal(t, before, first.String(), "a finished render's writer was written to again")
 	require.NotContains(t, second.String(), "FIRST", "an earlier render's body leaked into a later one")
 
-	// Under -race, plain and layout renders must not overlap in a way that
-	// lets one of them write through the other's closure.
+	// Under -race, neither render may write through the other's closure.
 	var wg sync.WaitGroup
 	for range 20 {
 		wg.Add(2)

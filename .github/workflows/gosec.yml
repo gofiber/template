@@ -49,8 +49,6 @@ jobs:
           escape_json: false
           dir_names: true
           dir_names_max_depth: '1'
-          # the root module holds the shared core package, so it has to be
-          # scannable too - excluding '.' would drop it from the matrix
           dir_names_exclude_current_dir: false
   gosec-scan:
     runs-on: blacksmith-4vcpu-ubuntu-2404

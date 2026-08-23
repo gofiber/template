@@ -5,7 +5,6 @@ on:
             - main
         paths:
             - 'mustache/**'
-            # the engine builds the core module through a local replace
             - '*.go'
             - 'go.mod'
             - 'go.sum'
@@ -14,7 +13,6 @@ on:
             - '*'
         paths:
             - 'mustache/**'
-            # the engine builds the core module through a local replace
             - '*.go'
             - 'go.mod'
             - 'go.sum'

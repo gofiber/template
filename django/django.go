@@ -104,7 +104,6 @@ func (e *Engine) Load() error {
 			return nil
 		}
 
-		// Derive the template name from the path
 		// ./views/html/index.tmpl -> index
 		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
@@ -148,10 +147,8 @@ func (e *Engine) Load() error {
 // - map[string]interface{}
 // It returns nil if the binding is not one of the supported types.
 //
-// The result may alias binding. pongo2 copies the context into a map of its own
-// before executing and never writes back, so a context that is only rendered
-// needs no copy of its own; a caller that writes into the context - the layout
-// path adds the embed key - has to build its own map from it.
+// The result may alias binding: pongo2 copies the context before executing and
+// never writes back, so only a caller that writes into it needs a map of its own.
 func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
@@ -185,9 +182,8 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	return bind
 }
 
-// sanitizePongoContext drops the keys pongo2 cannot address as identifiers. It
-// hands data straight back when every key is already valid, which is the usual
-// case; see getPongoBinding on why that is safe to do.
+// sanitizePongoContext drops the keys pongo2 cannot address as identifiers,
+// handing data straight back when they are all valid - see getPongoBinding.
 func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
 	if len(data) == 0 {
 		return make(pongo2.Context)
@@ -201,8 +197,8 @@ func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
 	return data
 }
 
-// copyValidPongoKeys is the slow path of sanitizePongoContext, taken only when
-// data holds a key that has to be dropped.
+// copyValidPongoKeys is sanitizePongoContext's slow path, for data with a key
+// that has to be dropped.
 func copyValidPongoKeys(data map[string]interface{}) pongo2.Context {
 	bind := make(pongo2.Context, len(data))
 	for key, value := range data {
@@ -242,11 +238,9 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 
 	hasLayout := len(layout) > 0 && layout[0] != ""
 
-	// Acquire read lock for the whole render. A pongo2 template is immutable
-	// once parsed, so concurrent renders share the lock instead of queueing
-	// behind an exclusive one - but the lock has to be held across the render,
-	// not just the lookup: Load writes the engine's LayoutName and pongo2's
-	// package-level autoescape flag, which the render reads.
+	// A pongo2 template is immutable once parsed, so renders share the lock -
+	// held across the render, since Load writes LayoutName and pongo2's
+	// package-level autoescape flag that the render reads.
 	e.Mutex.RLock()
 	defer e.Mutex.RUnlock()
 
@@ -265,10 +259,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	bind := getPongoBinding(binding)
 
 	if !hasLayout {
-		// pongo2 buffers the render internally and writes nothing on error, so
-		// this keeps the all-or-nothing behavior of Execute while dropping
-		// both full-page copies it needed: one into a string, one back out
-		// into a []byte for the writer.
+		// Same all-or-nothing behavior as Execute - pongo2 buffers internally -
+		// without its two full-page copies, into a string and back to a []byte.
 		return tmpl.ExecuteWriter(bind, out)
 	}
 
@@ -277,8 +269,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return err
 	}
 
-	// bind may alias the caller's map, so the embed key goes into a context of
-	// our own rather than into theirs.
+	// bind may alias the caller's map, so the embed key goes into our own.
 	layoutBind := make(pongo2.Context, len(bind)+1)
 	maps.Copy(layoutBind, bind)
 
@@ -286,8 +277,6 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// Mark the `embed` variable as safe
 	// it has already been escaped above
 	// e.LayoutName will be 'embed'
-	// The buffer behind parsed is never reused, so the rendered body goes in as
-	// a view over it rather than a copy.
 	layoutBind[e.LayoutName] = pongo2.AsSafeValue(core.UnsafeString(parsed))
 
 	return lay.ExecuteWriter(layoutBind, out)

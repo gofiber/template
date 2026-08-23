@@ -82,7 +82,6 @@ func (e *Engine) Load() error {
 			return nil
 		}
 
-		// Derive the template name from the path
 		// ./views/html/index.tmpl -> index
 		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
@@ -98,8 +97,6 @@ func (e *Engine) Load() error {
 
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		// The parser keeps the source around, and buf is never written to
-		// again, so hand it over without copying it into a string.
 		_, err = e.Templates.New(name).Parse(core.UnsafeString(buf))
 		if err != nil {
 			return err
@@ -131,12 +128,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	}
 
 	// Without a layout there is nothing to embed, so skip the per-render func
-	// map and the nested render closures entirely and execute the template
-	// straight away. The render must still not overlap a layout render, which
-	// installs a closure into the func map every template in the set shares:
-	// a template containing the layout action would pick it up and write into
-	// the other render's writer. The shared lock lets plain renders run
-	// together while excluding the layout path.
+	// map and the nested closures. The shared lock lets plain renders run
+	// together, but never alongside the layout path.
 	if len(layout) == 0 || layout[0] == "" {
 		e.Mutex.RLock()
 		defer e.Mutex.RUnlock()
@@ -148,11 +141,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return tmpl.Execute(out, binding)
 	}
 
-	// Injecting the layout function mutates the func map shared by every
-	// template in the set, so layout renders run one at a time. Look the
-	// templates up inside that same critical section: taking the shared lock
-	// first only to hand it straight back makes every render alternate between
-	// reader and writer on the same mutex, which convoys hard under load.
+	// The layout function goes into the func map the whole set shares, so
+	// layout renders run one at a time, lookups included.
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
@@ -176,13 +166,10 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	return render()
 }
 
-// renderFuncCreate builds the closure that renders tmpl with childRenderFunc
-// installed as the layout function. The innermost template is given a nil
-// child: overwriting the entry matters even there, because the func map is
-// shared by every template in the set, so leaving the previous render's
-// closure in place would let a template containing the layout action call it -
-// re-rendering into a writer that request has already finished with, or
-// recursing into itself without end.
+// renderFuncCreate renders tmpl with childRenderFunc installed as the layout
+// function. The innermost template gets a nil child rather than no call at all:
+// the entry is shared by the whole set, and leaving the previous closure there
+// would let a template embed a finished render, or itself without end.
 func renderFuncCreate(e *Engine, out io.Writer, binding interface{}, tmpl *template.Template, childRenderFunc func() error) func() error {
 	return func() error {
 		tmpl.Funcs(map[string]interface{}{

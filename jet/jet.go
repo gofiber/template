@@ -114,7 +114,6 @@ func (e *Engine) Load() error {
 			return nil
 		}
 
-		// Derive the template name from the path
 		// ./views/html/index.tmpl -> index
 		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
@@ -128,8 +127,6 @@ func (e *Engine) Load() error {
 			return err
 		}
 
-		// Set copies the source into its own store, so pass a view over buf
-		// rather than allocating a second copy on the way in.
 		l.Set(name, core.UnsafeString(buf))
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
@@ -157,9 +154,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// A jet template is immutable once parsed and Execute is safe for
-	// concurrent use, so renders take the shared lock and run alongside each
-	// other.
+	// A jet template is immutable once parsed, so renders share the lock.
 	e.Mutex.RLock()
 	defer e.Mutex.RUnlock()
 
@@ -174,9 +169,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return err
 		}
 
-		// The embed function goes into a VarMap of our own: writing it into
-		// the caller's would leave a closure over this render's writer behind
-		// in their data, and two renders sharing one VarMap would race on it.
+		// Our own VarMap: the embed closure holds this render's writer and
+		// must not be left behind in the caller's.
 		bind := jetVarMap(binding, 1)
 		var renderingError error
 		bind.Set(e.LayoutName, func() {
@@ -192,9 +186,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	return tmpl.Execute(out, jetVarMap(binding, 0), nil)
 }
 
-// jetVarMap resolves binding into a jet.VarMap. A caller-supplied VarMap is
-// passed through untouched unless extra room is asked for, in which case it is
-// copied so the caller's map is never written to.
+// jetVarMap resolves binding into a jet.VarMap, passing a caller-supplied one
+// through untouched unless extra room is asked for, in which case it is copied.
 func jetVarMap(binding interface{}, extra int) jet.VarMap {
 	if caller, ok := binding.(jet.VarMap); ok {
 		if extra == 0 {
@@ -205,9 +198,8 @@ func jetVarMap(binding interface{}, extra int) jet.VarMap {
 		return bind
 	}
 
-	// Fill the VarMap straight from the binding: building a
-	// map[string]interface{} first only to copy out of it again costs an extra
-	// map allocation and a second pass on every render.
+	// Fill it straight from the binding: a map[string]interface{} in between
+	// would cost another allocation and a second pass per render.
 	bind := make(jet.VarMap, core.ViewContextLen(binding)+extra)
 	core.RangeViewContext(binding, func(key string, value interface{}) {
 		bind.Set(key, value)

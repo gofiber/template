@@ -5,7 +5,6 @@ on:
             - main
         paths:
             - 'html/**'
-            # the engine builds the core module through a local replace
             - '*.go'
             - 'go.mod'
             - 'go.sum'
@@ -14,7 +13,6 @@ on:
             - '*'
         paths:
             - 'html/**'
-            # the engine builds the core module through a local replace
             - '*.go'
             - 'go.mod'
             - 'go.sum'

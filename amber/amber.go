@@ -50,11 +50,8 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	return engine
 }
 
-// layoutUnexpected is the layout function the engine keeps installed outside a
-// layout render. The func map is shared by every template in the set, so the
-// closure a layout render installs has to be replaced when that render ends:
-// left in place, a later render of a template containing the layout action
-// would call it and write into a writer that render has already finished with.
+// layoutUnexpected is what the layout function is set to outside a layout
+// render, so a finished render's closure can never be reached again.
 func layoutUnexpected() error {
 	return errors.New("layoutName called unexpectedly")
 }
@@ -95,7 +92,6 @@ func (e *Engine) Load() error {
 		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
-		// Derive the template name from the path
 		// ./views/html/index.tmpl -> index
 		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
@@ -143,11 +139,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Injecting the layout function mutates the func map shared by every
-	// template in the set, so layout renders run one at a time. The lookups
-	// ride along inside that same critical section: taking the shared lock
-	// first only to hand it straight back makes every render alternate between
-	// reader and writer on the same mutex, which convoys hard under load.
+	// The layout function goes into the func map the whole set shares, so
+	// layout renders run one at a time, lookups included.
 	if len(layout) > 0 && layout[0] != "" {
 		e.Mutex.Lock()
 		defer e.Mutex.Unlock()
@@ -170,11 +163,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return lay.Execute(out, binding)
 	}
 
-	// A plain render only reads, but it must not overlap a layout render: that
-	// one installs a closure into the func map every template in the set
-	// shares, and a template containing the layout action would pick it up and
-	// write into the other render's writer. The shared lock lets plain renders
-	// run together while excluding the layout path.
+	// Shared lock: plain renders run together, but never alongside the layout
+	// path, whose closure they would otherwise pick up out of the func map.
 	e.Mutex.RLock()
 	defer e.Mutex.RUnlock()
 

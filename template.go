@@ -15,8 +15,7 @@ import (
 	"github.com/gofiber/utils/v2"
 )
 
-// Reflect types the binding helpers compare against. Type identity in reflect
-// is a pointer comparison, so these keep the check to a couple of loads.
+// Reflect types the binding helpers compare against.
 var (
 	stringType       = reflect.TypeFor[string]()
 	anyType          = reflect.TypeFor[interface{}]()
@@ -132,10 +131,8 @@ func (e *Engine) Reload(enabled bool) IEngineCore {
 // PreRenderCheck determines if the engine should reload the templates before rendering.
 // Explicit mutex unlock vs defer offers better performance.
 //
-// A loaded engine with reloading disabled - the steady state every render
-// passes through - is answered under the shared lock, so concurrent renders
-// pass through together instead of queueing behind an exclusive one. Only the
-// case that has to clear Loaded takes the lock exclusively.
+// The steady state - loaded, reloading off - is answered under the shared lock,
+// so concurrent renders pass through together.
 func (e *Engine) PreRenderCheck() bool {
 	e.Mutex.RLock()
 	if e.Loaded && !e.ShouldReload {
@@ -177,10 +174,8 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 	return result
 }
 
-// NewViewContext resolves binding the same way AcquireViewContext does, but
-// always returns a map the caller owns, sized to hold extra entries beyond the
-// binding's own. Engines injecting layout data use it so the injected key
-// cannot leak back into - or race on - the map the caller handed in.
+// NewViewContext resolves binding like AcquireViewContext, but always returns a
+// map the caller owns, sized for extra entries beyond the binding's own.
 func NewViewContext(binding interface{}, extra int) map[string]interface{} {
 	if binds, ok := binding.(map[string]interface{}); ok {
 		result := make(map[string]interface{}, len(binds)+extra)
@@ -201,8 +196,7 @@ func NewViewContext(binding interface{}, extra int) map[string]interface{} {
 }
 
 // ViewContextLen reports how many key/value pairs RangeViewContext yields for
-// binding. Engines use it to size their own context type in a single
-// allocation before filling it.
+// binding, so engines can size their own context type before filling it.
 func ViewContextLen(binding interface{}) int {
 	if binds, ok := binding.(map[string]interface{}); ok {
 		return len(binds)
@@ -215,10 +209,9 @@ func ViewContextLen(binding interface{}) int {
 	return val.Len()
 }
 
-// RangeViewContext resolves binding exactly like AcquireViewContext and passes
-// every key/value pair to fn. Engines that keep bindings in their own context
-// type use it to fill that type directly, instead of building a
-// map[string]interface{} only to copy out of it again.
+// RangeViewContext resolves binding like AcquireViewContext and passes every
+// key/value pair to fn, so an engine with its own context type can fill it
+// directly instead of copying out of a map[string]interface{}.
 func RangeViewContext(binding interface{}, fn func(key string, value interface{})) {
 	if binds, ok := binding.(map[string]interface{}); ok {
 		for key, value := range binds {
@@ -235,9 +228,8 @@ func RangeViewContext(binding interface{}, fn func(key string, value interface{}
 }
 
 // directMap returns val as a plain map[string]interface{} when its type converts
-// to one without copying - a named map[string]interface{} such as fiber.Map,
-// which is what bindings overwhelmingly are. The second return value is false
-// for any other map type, which has to go through reflect.
+// to one without copying - fiber.Map and other named map[string]interface{}
+// types, which is what bindings overwhelmingly are.
 func directMap(val reflect.Value) (map[string]interface{}, bool) {
 	typ := val.Type()
 	if typ.Kind() != reflect.Map || typ.Key() != stringType || typ.Elem() != anyType {
@@ -247,9 +239,8 @@ func directMap(val reflect.Value) (map[string]interface{}, bool) {
 	return binds, ok
 }
 
-// rangeMap hands every entry of the string-keyed map value val to fn. Where the
-// map's type allows it, the entries are ranged over directly instead of through
-// reflect's map iterator, which heap-allocates on every call.
+// rangeMap hands every entry of the string-keyed map value val to fn, avoiding
+// reflect's map iterator - which heap-allocates - where the type allows it.
 func rangeMap(val reflect.Value, fn func(key string, value interface{})) {
 	if binds, ok := directMap(val); ok {
 		for key, value := range binds {
@@ -265,8 +256,7 @@ func rangeMap(val reflect.Value, fn func(key string, value interface{})) {
 }
 
 // bindingMap resolves binding to the non-nil, string-keyed map value it wraps,
-// dereferencing a pointer on the way. The second return value is false when
-// binding holds no such map.
+// dereferencing a pointer on the way.
 func bindingMap(binding interface{}) (reflect.Value, bool) {
 	if binding == nil {
 		return reflect.Value{}, false
@@ -290,16 +280,14 @@ func bindingMap(binding interface{}) (reflect.Value, bool) {
 	return val, true
 }
 
-// HasExtension reports whether path is a template file for extension: it has
-// to end in extension and carry a name in front of it. This is the check every
-// engine applies to the files handed to it while walking the views directory.
+// HasExtension reports whether path is a template file for extension: it has to
+// end in extension and carry a name in front of it.
 func HasExtension(path, extension string) bool {
 	return len(path) > len(extension) && strings.HasSuffix(path, extension)
 }
 
-// TemplateName derives the name a template file is registered under: its path
-// relative to directory, with OS separators normalized to '/' and the
-// extension trimmed. ./views/partials/footer.html becomes partials/footer.
+// TemplateName derives the name a template file is registered under:
+// ./views/partials/footer.html relative to ./views becomes partials/footer.
 func TemplateName(directory, path, extension string) (string, error) {
 	rel, err := filepath.Rel(directory, path)
 	if err != nil {
@@ -308,18 +296,14 @@ func TemplateName(directory, path, extension string) (string, error) {
 	return strings.TrimSuffix(filepath.ToSlash(rel), extension), nil
 }
 
-// UnsafeString returns a string sharing the backing array of b, without the
-// copy a string(b) conversion makes. It is only safe when b is never written
-// to again, which holds for the freshly read template sources engines hand to
-// their parsers.
+// UnsafeString returns a string sharing the backing array of b, skipping the
+// copy string(b) makes. Only safe while b is never written to again.
 func UnsafeString(b []byte) string {
 	return utils.UnsafeString(b)
 }
 
-// UnsafeBytes returns a byte slice sharing the backing array of s, without the
-// copy a []byte(s) conversion makes. The result must only ever be read, which
-// holds for handing rendered output to an io.Writer: Write is not allowed to
-// modify or retain the slice it is given.
+// UnsafeBytes returns a byte slice sharing the backing array of s, skipping the
+// copy []byte(s) makes. The result must only ever be read.
 func UnsafeBytes(s string) []byte {
 	return utils.UnsafeBytes(s)
 }
