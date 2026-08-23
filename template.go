@@ -187,6 +187,18 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 	return result
 }
 
+// NewViewContext resolves binding the same way AcquireViewContext does, but
+// always returns a map the caller owns, sized to hold extra entries beyond the
+// binding's own. Engines injecting layout data use it so the injected key
+// cannot leak back into - or race on - the map the caller handed in.
+func NewViewContext(binding interface{}, extra int) map[string]interface{} {
+	result := make(map[string]interface{}, ViewContextLen(binding)+extra)
+	RangeViewContext(binding, func(key string, value interface{}) {
+		result[key] = value
+	})
+	return result
+}
+
 // ViewContextLen reports how many key/value pairs RangeViewContext yields for
 // binding. Engines use it to size their own context type in a single
 // allocation before filling it.

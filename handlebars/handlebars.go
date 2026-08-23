@@ -134,17 +134,10 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	hasLayout := len(layout) > 0 && layout[0] != ""
 
 	// Rendering only reads the template map, and raymond guards a template's
-	// own state internally, so a plain render takes the shared lock and runs
-	// alongside others. The layout branch writes the embed key into the view
-	// context, which AcquireViewContext may hand straight back from the
-	// caller, so it keeps the exclusive lock.
-	if hasLayout {
-		e.Mutex.Lock()
-		defer e.Mutex.Unlock()
-	} else {
-		e.Mutex.RLock()
-		defer e.Mutex.RUnlock()
-	}
+	// own state internally, so renders take the shared lock and run alongside
+	// each other.
+	e.Mutex.RLock()
+	defer e.Mutex.RUnlock()
 
 	tmpl := e.Templates[name]
 	if tmpl == nil {
@@ -161,7 +154,10 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if lay == nil {
 			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
 		}
-		bind := core.AcquireViewContext(binding)
+		// The embed key goes into a context of our own: writing it into the
+		// caller's map would leak the rendered body back to them, and two
+		// renders sharing one binding map would race on it.
+		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = raymond.SafeString(parsed)
 		parsed, err := lay.Exec(bind)
 		if err != nil {

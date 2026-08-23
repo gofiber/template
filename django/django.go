@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -146,6 +147,11 @@ func (e *Engine) Load() error {
 // - pongo2.Context
 // - map[string]interface{}
 // It returns nil if the binding is not one of the supported types.
+//
+// The result may alias binding. pongo2 copies the context into a map of its own
+// before executing and never writes back, so a context that is only rendered
+// needs no copy of its own; a caller that writes into the context - the layout
+// path adds the embed key - has to build its own map from it.
 func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
@@ -179,11 +185,25 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	return bind
 }
 
+// sanitizePongoContext drops the keys pongo2 cannot address as identifiers. It
+// hands data straight back when every key is already valid, which is the usual
+// case; see getPongoBinding on why that is safe to do.
 func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
 	if len(data) == 0 {
 		return make(pongo2.Context)
 	}
 
+	for key := range data {
+		if !isValidKey(key) {
+			return copyValidPongoKeys(data)
+		}
+	}
+	return data
+}
+
+// copyValidPongoKeys is the slow path of sanitizePongoContext, taken only when
+// data holds a key that has to be dropped.
+func copyValidPongoKeys(data map[string]interface{}) pongo2.Context {
 	bind := make(pongo2.Context, len(data))
 	for key, value := range data {
 		if !isValidKey(key) {
@@ -254,17 +274,18 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return fmt.Errorf("LayoutName %s does not exist", layout[0])
 	}
 
-	if bind == nil {
-		bind = make(pongo2.Context, 1)
-	}
+	// bind may alias the caller's map, so the embed key goes into a context of
+	// our own rather than into theirs.
+	layoutBind := make(pongo2.Context, len(bind)+1)
+	maps.Copy(layoutBind, bind)
 
 	// Workaround for custom {{embed}} tag
 	// Mark the `embed` variable as safe
 	// it has already been escaped above
 	// e.LayoutName will be 'embed'
-	// getPongoBinding always builds a map we own and the buffer behind parsed
-	// is never reused, so the rendered body goes in as a view over it.
-	bind[e.LayoutName] = pongo2.AsSafeValue(core.UnsafeString(parsed))
+	// The buffer behind parsed is never reused, so the rendered body goes in as
+	// a view over it rather than a copy.
+	layoutBind[e.LayoutName] = pongo2.AsSafeValue(core.UnsafeString(parsed))
 
-	return lay.ExecuteWriter(bind, out)
+	return lay.ExecuteWriter(layoutBind, out)
 }

@@ -174,6 +174,15 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 }
 
 func renderFuncCreate(e *Engine, out io.Writer, binding interface{}, tmpl *template.Template, childRenderFunc func() error) func() error {
+	// The innermost template has nothing to embed, so leave the func map -
+	// which every template in the set shares - alone rather than overwriting
+	// the layout entry with a nil function on every render.
+	if childRenderFunc == nil {
+		return func() error {
+			return tmpl.Execute(out, binding)
+		}
+	}
+
 	return func() error {
 		tmpl.Funcs(map[string]interface{}{
 			e.LayoutName: childRenderFunc,

@@ -274,3 +274,23 @@ func Test_Walk(t *testing.T) {
 	})
 	require.Error(t, err)
 }
+
+func Benchmark_AcquireViewContext(b *testing.B) {
+	// A native map is handed straight back; a named one - fiber.Map and
+	// friends, which is what bindings usually are - is copied with plain Go;
+	// anything else has to go through reflect.
+	for name, binding := range map[string]interface{}{
+		"native": map[string]interface{}{"Title": "Hello", "User": "admin"},
+		"named":  customMap{"Title": "Hello", "User": "admin"},
+		"typed":  map[string]string{"Title": "Hello", "User": "admin"},
+	} {
+		b.Run(name, func(bb *testing.B) {
+			bb.ReportAllocs()
+			for range bb.N {
+				benchSink = AcquireViewContext(binding)
+			}
+		})
+	}
+}
+
+var benchSink map[string]interface{}

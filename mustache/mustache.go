@@ -148,19 +148,20 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// The layout branch writes the embed key into the view context, which
-	// AcquireViewContext may hand straight back from the caller, so it holds
-	// the exclusive lock. The lookups ride along inside that same critical
-	// section: taking the shared lock first only to hand it straight back
-	// makes every render alternate between reader and writer on the same
-	// mutex, which convoys hard under load.
-	if len(layout) > 0 && layout[0] != "" {
-		e.Mutex.Lock()
-		defer e.Mutex.Unlock()
+	// A mustache template is immutable once parsed, so renders take the shared
+	// lock and run alongside each other.
+	e.Mutex.RLock()
+	defer e.Mutex.RUnlock()
 
-		tmpl := e.Templates[name]
-		if tmpl == nil {
-			return fmt.Errorf("render: template %s does not exist", name)
+	tmpl := e.Templates[name]
+	if tmpl == nil {
+		return fmt.Errorf("render: template %s does not exist", name)
+	}
+
+	if len(layout) > 0 && layout[0] != "" {
+		lay := e.Templates[layout[0]]
+		if lay == nil {
+			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
 
 		buf := bytebufferpool.Get()
@@ -169,23 +170,12 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return err
 		}
 
-		bind := core.AcquireViewContext(binding)
+		// The embed key goes into a context of our own: writing it into the
+		// caller's map would leak the rendered body back to them, and two
+		// renders sharing one binding map would race on it.
+		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = buf.String()
-		lay := e.Templates[layout[0]]
-		if lay == nil {
-			return fmt.Errorf("render: layout %s does not exist", layout[0])
-		}
 		return lay.FRender(out, bind)
-	}
-
-	// A mustache template is immutable once parsed, so the shared lock only
-	// has to cover the lookup.
-	e.Mutex.RLock()
-	tmpl := e.Templates[name]
-	e.Mutex.RUnlock()
-
-	if tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", name)
 	}
 	return tmpl.FRender(out, binding)
 }
