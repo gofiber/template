@@ -81,6 +81,48 @@ func Test_Empty_Layout(t *testing.T) {
 	require.Equal(t, expect, result)
 }
 
+// customMap stands in for binding types like fiber.Map: a named map type whose
+// underlying type is map[string]interface{}.
+type customMap map[string]interface{}
+
+func Test_Layout_Binding(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/child.slim", []byte("h1 = Title\n"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/layout.slim", []byte("div\n  p = Title\n  == embed\n"), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".slim")
+	require.NoError(t, engine.Load())
+
+	expect := `<div><p>Hello, World!</p><div><h1>Hello, World!</h1></div></div>`
+
+	// A binding that is not literally a map[string]interface{} has to reach
+	// the layout with its values intact, not just the embedded body.
+	var buf bytes.Buffer
+	err = engine.Render(&buf, "child", customMap{"Title": "Hello, World!"}, "layout")
+	require.NoError(t, err)
+	require.Equal(t, expect, trim(buf.String()))
+
+	// And rendering must not write the embedded body back into the binding the
+	// caller handed in.
+	binding := map[string]interface{}{"Title": "Hello, World!"}
+	buf.Reset()
+	err = engine.Render(&buf, "child", binding, "layout")
+	require.NoError(t, err)
+	require.Equal(t, expect, trim(buf.String()))
+	require.Equal(t, map[string]interface{}{"Title": "Hello, World!"}, binding)
+}
+
 func Test_FileSystem(t *testing.T) {
 	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".slim")

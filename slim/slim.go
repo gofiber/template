@@ -145,12 +145,11 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if err := tmpl.Execute(buf, binding); err != nil {
 			return err
 		}
-		var bind map[string]interface{}
-		if context, ok := binding.(map[string]interface{}); ok {
-			bind = context
-		} else {
-			bind = make(map[string]interface{}, 1)
-		}
+		// The embed key goes into a context of our own: writing it into the
+		// caller's map would leak the rendered body back to them, and a
+		// binding that is not literally a map[string]interface{} - fiber.Map
+		// is one - would otherwise reach the layout with none of its values.
+		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = buf.String()
 		lay := e.Templates[layout[0]]
 		if lay == nil {
