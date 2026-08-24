@@ -296,18 +296,6 @@ func TemplateName(directory, path, extension string) (string, error) {
 	return strings.TrimSuffix(filepath.ToSlash(rel), extension), nil
 }
 
-// UnsafeString returns a string sharing the backing array of b, skipping the
-// copy string(b) makes. Only safe while b is never written to again.
-func UnsafeString(b []byte) string {
-	return utils.UnsafeString(b)
-}
-
-// UnsafeBytes returns a byte slice sharing the backing array of s, skipping the
-// copy []byte(s) makes. The result must only ever be read.
-func UnsafeBytes(s string) []byte {
-	return utils.UnsafeBytes(s)
-}
-
 // ReadFile reads a file from the file system or http.FileSystem.
 // This wrapper provides a centralized abstraction point for file operations,
 // allowing template engines to depend only on the core package while the core

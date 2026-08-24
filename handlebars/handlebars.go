@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	core "github.com/gofiber/template/v2"
+	"github.com/gofiber/utils/v2"
 	"github.com/mailgun/raymond/v2"
 )
 
@@ -89,7 +90,7 @@ func (e *Engine) Load() error {
 		}
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		tmpl, err := raymond.Parse(core.UnsafeString(buf))
+		tmpl, err := raymond.Parse(utils.UnsafeString(buf))
 		if err != nil {
 			return err
 		}
@@ -156,7 +157,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	if _, err = out.Write(core.UnsafeBytes(parsed)); err != nil {
+	if _, err = out.Write(utils.UnsafeBytes(parsed)); err != nil {
 		return fmt.Errorf("render: %w", err)
 	}
 	return nil

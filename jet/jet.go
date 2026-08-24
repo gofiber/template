@@ -12,6 +12,7 @@ import (
 	"github.com/CloudyKit/jet/v6"
 	"github.com/CloudyKit/jet/v6/loaders/httpfs"
 	core "github.com/gofiber/template/v2"
+	"github.com/gofiber/utils/v2"
 )
 
 // Engine struct
@@ -127,7 +128,7 @@ func (e *Engine) Load() error {
 			return err
 		}
 
-		l.Set(name, core.UnsafeString(buf))
+		l.Set(name, utils.UnsafeString(buf))
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}

@@ -12,6 +12,7 @@ import (
 
 	"github.com/flosch/pongo2/v6"
 	core "github.com/gofiber/template/v2"
+	"github.com/gofiber/utils/v2"
 )
 
 // Engine struct
@@ -277,7 +278,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// Mark the `embed` variable as safe
 	// it has already been escaped above
 	// e.LayoutName will be 'embed'
-	layoutBind[e.LayoutName] = pongo2.AsSafeValue(core.UnsafeString(parsed))
+	layoutBind[e.LayoutName] = pongo2.AsSafeValue(utils.UnsafeString(parsed))
 
 	return lay.ExecuteWriter(layoutBind, out)
 }

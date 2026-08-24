@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	core "github.com/gofiber/template/v2"
+	"github.com/gofiber/utils/v2"
 )
 
 // Engine struct
@@ -99,7 +100,7 @@ func (e *Engine) Load() error {
 
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		_, err = e.Templates.New(name).Parse(core.UnsafeString(buf))
+		_, err = e.Templates.New(name).Parse(utils.UnsafeString(buf))
 		if err != nil {
 			return err
 		}

@@ -197,16 +197,6 @@ func Test_TemplateName_Error(t *testing.T) {
 	require.Error(t, err)
 }
 
-func Test_UnsafeConversions(t *testing.T) {
-	t.Parallel()
-
-	require.Equal(t, "hello", template.UnsafeString([]byte("hello")))
-	require.Empty(t, template.UnsafeString(nil))
-
-	require.Equal(t, []byte("hello"), template.UnsafeBytes("hello"))
-	require.Empty(t, template.UnsafeBytes(""))
-}
-
 func Test_ReadFile(t *testing.T) {
 	t.Parallel()
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/cbroglie/mustache"
 	core "github.com/gofiber/template/v2"
+	"github.com/gofiber/utils/v2"
 	"github.com/valyala/bytebufferpool"
 )
 
@@ -29,7 +30,7 @@ type fileSystemPartialProvider struct {
 
 func (p fileSystemPartialProvider) Get(path string) (string, error) {
 	buf, err := core.ReadFile(path+p.extension, p.fileSystem)
-	return core.UnsafeString(buf), err
+	return utils.UnsafeString(buf), err
 }
 
 // New returns a Mustache render engine for Fiber
@@ -107,7 +108,7 @@ func (e *Engine) Load() error {
 
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		source := core.UnsafeString(buf)
+		source := utils.UnsafeString(buf)
 		var tmpl *mustache.Template
 		if e.partialsProvider != nil {
 			tmpl, err = mustache.ParseStringPartials(source, e.partialsProvider)
