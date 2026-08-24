@@ -110,15 +110,13 @@ func Test_Layout_Isolation(t *testing.T) {
 	before := first.String()
 	require.Contains(t, before, "FIRST")
 
-	// The layout template on its own must not reach the closure the render
-	// above installed - outside a layout render the layout function reports.
+	// A standalone layout render must not reach another render's closure.
 	var second bytes.Buffer
 	require.Error(t, engine.Render(&second, "layouts/main", map[string]interface{}{"Title": "SECOND"}))
 	require.Equal(t, before, first.String(), "a finished render's writer was written to again")
 	require.NotContains(t, second.String(), "FIRST", "an earlier render's body leaked into a later one")
 
-	// Under -race, neither render may write through the other's closure - and a
-	// clean race report alone would still miss a page render left short of a body.
+	// Concurrent layout renders must not disturb page renders or their output.
 	const rounds = 20
 	errs := make([]error, rounds)
 	outs := make([]string, rounds)
@@ -393,8 +391,7 @@ func Test_Render_Reentrant(t *testing.T) {
 	require.NoError(t, err)
 
 	engine := New(dir, ".ace")
-	// A template function that renders through the engine again must not
-	// deadlock on a lock its own render holds.
+	// A template function that calls Render again must not deadlock.
 	engine.AddFunc("partial", func() (string, error) {
 		var buf bytes.Buffer
 		err := engine.Render(&buf, "child", nil, "layout")
@@ -457,8 +454,7 @@ func Test_AddFunc_Layout_Override(t *testing.T) {
 	require.NoError(t, err)
 
 	engine := New(dir, ".ace")
-	// Overwriting a default action is documented as legal, so a layout render
-	// must not clobber the override for later plain renders.
+	// A layout render must not clobber an AddFunc override of the layout function.
 	engine.AddFunc(engine.LayoutName, func() string { return "CUSTOM" })
 	require.NoError(t, engine.Load())
 
@@ -488,8 +484,7 @@ func Test_Load_Retry(t *testing.T) {
 	engine := New(views, ".ace")
 	require.Error(t, engine.Load())
 
-	// A failed load must not stick: once the cause is gone, the next render
-	// has to reload and serve - Load stays failed-state aware on its own.
+	// Once the cause is gone, the next render has to reload and serve.
 	require.NoError(t, os.MkdirAll(views, 0o700))
 	require.NoError(t, os.WriteFile(views+"/index.ace", []byte("| OK"), 0o600))
 

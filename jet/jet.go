@@ -171,8 +171,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return err
 		}
 
-		// Our own VarMap: the embed closure holds this render's writer and
-		// must not be left behind in the caller's.
+		// Our own VarMap: the embed closure must not land in the caller's.
 		bind := jetVarMap(binding, 1)
 		var renderingError error
 		bind.Set(e.LayoutName, func() {
@@ -188,10 +187,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	return tmpl.Execute(out, jetVarMap(binding, 0), nil)
 }
 
-// jetVarMap resolves binding into a jet.VarMap the engine owns, sized for extra
-// entries beyond the binding's own. A caller-supplied VarMap is copied rather
-// than passed through: jet assigns back into the map it is handed, so sharing
-// one would leak render state into the caller and race between renders.
+// jetVarMap resolves binding into a VarMap the engine owns - jet assigns back
+// into the map it is handed, so a caller-supplied one is copied, never shared.
 func jetVarMap(binding interface{}, extra int) jet.VarMap {
 	if caller, ok := binding.(jet.VarMap); ok {
 		bind := make(jet.VarMap, len(caller)+extra)
@@ -199,8 +196,7 @@ func jetVarMap(binding interface{}, extra int) jet.VarMap {
 		return bind
 	}
 
-	// Fill it straight from the binding: a map[string]interface{} in between
-	// would cost another allocation and a second pass per render.
+	// Filled straight from the binding, skipping an intermediate map.
 	bind := make(jet.VarMap, core.ViewContextLen(binding)+extra)
 	core.RangeViewContext(binding, func(key string, value interface{}) {
 		bind.Set(key, value)

@@ -110,9 +110,7 @@ func Test_VarMap_Isolation(t *testing.T) {
 	engine := New(dir, ".jet")
 	require.NoError(t, engine.Load())
 
-	// jet assigns back into the VarMap it is handed, so the engine has to render
-	// from one of its own - otherwise the caller's map changes under them, and
-	// concurrent renders sharing it race.
+	// jet writes back into the VarMap it is handed; the engine must use its own copy.
 	shared := jet.VarMap{}
 	shared.Set("Title", "original")
 
@@ -121,8 +119,7 @@ func Test_VarMap_Isolation(t *testing.T) {
 	require.Equal(t, "original", shared["Title"].String())
 	before := buf.String()
 
-	// A regression that only shows up under contention would leave the shared map
-	// intact but the renders themselves failing, so keep each one's result.
+	// Keep each render's result: a contention-only failure would otherwise pass.
 	const rounds = 20
 	errs := make([]error, rounds)
 	outs := make([]string, rounds)
@@ -376,8 +373,7 @@ func Test_Load_Retry(t *testing.T) {
 	engine := New(views, ".jet")
 	require.Error(t, engine.Load())
 
-	// A failed load must not stick: once the cause is gone, the next render
-	// has to reload and serve - Load stays failed-state aware on its own.
+	// Once the cause is gone, the next render has to reload and serve.
 	require.NoError(t, os.MkdirAll(views, 0o700))
 	require.NoError(t, os.WriteFile(views+"/index.jet", []byte(`OK-{{ Title }}`), 0o600))
 

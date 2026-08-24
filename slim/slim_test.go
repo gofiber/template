@@ -81,8 +81,7 @@ func Test_Empty_Layout(t *testing.T) {
 	require.Equal(t, expect, result)
 }
 
-// customMap stands in for binding types like fiber.Map: a named map type whose
-// underlying type is map[string]interface{}.
+// customMap stands in for named map types like fiber.Map.
 type customMap map[string]interface{}
 
 func Test_Layout_Binding(t *testing.T) {
@@ -106,8 +105,7 @@ func Test_Layout_Binding(t *testing.T) {
 
 	expect := `<div><p>Hello, World!</p><div><h1>Hello, World!</h1></div></div>`
 
-	// A binding that is not literally a map[string]interface{} has to reach
-	// the layout with its values intact, not just the embedded body.
+	// A named map binding has to reach the layout with its values intact.
 	custom := customMap{"Title": "Hello, World!"}
 	var buf bytes.Buffer
 	err = engine.Render(&buf, "child", custom, "layout")
@@ -115,8 +113,7 @@ func Test_Layout_Binding(t *testing.T) {
 	require.Equal(t, expect, trim(buf.String()))
 	require.Equal(t, customMap{"Title": "Hello, World!"}, custom)
 
-	// And rendering must not write the embedded body back into the binding the
-	// caller handed in.
+	// Rendering must not write the embedded body back into the caller's binding.
 	binding := map[string]interface{}{"Title": "Hello, World!"}
 	buf.Reset()
 	err = engine.Render(&buf, "child", binding, "layout")
@@ -308,8 +305,7 @@ func Test_Load_Retry(t *testing.T) {
 	engine := New(views, ".slim")
 	require.Error(t, engine.Load())
 
-	// A failed load must not stick: once the cause is gone, the next render
-	// has to reload and serve - Load stays failed-state aware on its own.
+	// Once the cause is gone, the next render has to reload and serve.
 	require.NoError(t, os.MkdirAll(views, 0o700))
 	require.NoError(t, os.WriteFile(views+"/index.slim", []byte(`p ok`), 0o600))
 

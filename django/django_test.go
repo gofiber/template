@@ -320,8 +320,7 @@ func Test_Render_Failure_Writes_Nothing(t *testing.T) {
 	engine := New(dir, ".django")
 	require.NoError(t, engine.Load())
 
-	// A render that fails part way through must leave the writer untouched
-	// rather than handing the caller a truncated page.
+	// A render that fails part way through must leave the writer untouched.
 	var buf bytes.Buffer
 	err = engine.Render(&buf, "boom", map[string]interface{}{
 		"boom": func() (string, error) { return "", errors.New("kaboom") },
@@ -634,8 +633,7 @@ func Test_Render_Concurrent(t *testing.T) {
 	require.NoError(t, engine.Render(&first, "index", map[string]interface{}{"Title": "C"}))
 	before := first.String()
 
-	// The shared-lock render path rests on pongo2 executing without writes -
-	// hold it to a race-detected proof rather than a comment.
+	// Concurrent renders pin pongo2's executes-without-writes claim under -race.
 	const rounds = 20
 	errs := make([]error, rounds)
 	outs := make([]string, rounds)
@@ -661,8 +659,7 @@ func Test_Render_TrimBlocks_Concurrent(t *testing.T) {
 	engine := New("./views", ".django")
 	require.NoError(t, engine.Load())
 
-	// The exported trim options make pongo2 rewrite the token stream at
-	// execution, so these renders have to serialize on the write lock.
+	// Trim options make pongo2 rewrite tokens at execution; these must serialize.
 	engine.Templates["index"].Options.TrimBlocks = true
 
 	const rounds = 8
@@ -698,8 +695,7 @@ func Test_Load_Retry(t *testing.T) {
 	engine := New(dir, ".django")
 	require.Error(t, engine.Load())
 
-	// A failed load must not stick: once the cause is gone, the next render
-	// has to reload and serve - Load stays failed-state aware on its own.
+	// Once the cause is gone, the next render has to reload and serve.
 	err = os.WriteFile(dir+"/index.django", []byte(`OK-{{ Title }}`), 0o600)
 	require.NoError(t, err)
 
@@ -727,8 +723,7 @@ func Test_AutoEscape_Isolation(t *testing.T) {
 		return trim(buf.String())
 	}
 
-	// pongo2's flag is package-global: the unescaped engine loading above must
-	// not bleed into the escaped engine's renders, in either order.
+	// One engine's autoescape setting must not bleed into the other's renders.
 	require.Equal(t, expEscaped, render(escaped))
 	require.Equal(t, expRaw, render(unescaped))
 	require.Equal(t, expEscaped, render(escaped))

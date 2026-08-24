@@ -155,8 +155,7 @@ func (e *Engine) Load() error {
 // - map[string]interface{}
 // It returns nil if the binding is not one of the supported types.
 //
-// The result may alias binding: pongo2 copies the context before executing and
-// never writes back, so only a caller that writes into it needs a map of its own.
+// The result may alias binding - pongo2 copies before executing, never writes back.
 func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
@@ -190,8 +189,7 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	return bind
 }
 
-// sanitizePongoContext drops the keys pongo2 cannot address as identifiers,
-// handing data straight back when they are all valid - see getPongoBinding.
+// sanitizePongoContext drops invalid keys, aliasing data when all are valid.
 func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
 	if len(data) == 0 {
 		return make(pongo2.Context)
@@ -205,8 +203,7 @@ func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
 	return data
 }
 
-// copyValidPongoKeys is sanitizePongoContext's slow path, for data with a key
-// that has to be dropped.
+// copyValidPongoKeys copies data without its invalid keys.
 func copyValidPongoKeys(data map[string]interface{}) pongo2.Context {
 	bind := make(pongo2.Context, len(data))
 	for key, value := range data {
@@ -238,10 +235,8 @@ func (e *Engine) SetAutoEscape(autoEscape bool) {
 	e.Mutex.Unlock()
 }
 
-// pongo2's autoescape flag is package-global, so renders from engines with
-// different settings would bleed into each other. autoescape shadows what the
-// flag holds: a render whose engine matches shares the read lock, one that
-// needs the flag flipped holds the write lock for its whole execution.
+// pongo2's autoescape flag is package-global. The shadow keeps each engine's
+// setting: matching renders share the read lock, a flip holds the write lock.
 var autoescape struct {
 	sync.RWMutex
 	value, known bool
@@ -292,11 +287,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 
 	hasLayout := len(layout) > 0 && layout[0] != ""
 
-	// A parsed pongo2 template is immutable at execution - unless its exported
-	// trim options are set, which make pongo2 rewrite the token stream in
-	// place. Those renders take the write lock; the rest share the read lock,
-	// held across the render since Load writes LayoutName and pongo2's
-	// package-level autoescape flag that the render reads.
+	// Trim options make pongo2 rewrite the token stream at execution - those
+	// renders take the write lock, the rest share the read lock across the render.
 	e.Mutex.RLock()
 	tmpl, err := e.lookup(name, "template")
 	var lay *pongo2.Template
@@ -328,8 +320,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	esc := e.autoEscape
 
 	if !hasLayout {
-		// Same all-or-nothing behavior as Execute - pongo2 buffers internally -
-		// without its two full-page copies, into a string and back to a []byte.
+		// pongo2 buffers internally, so a failed render writes nothing to out.
 		return withAutoescape(esc, func() error {
 			return tmpl.ExecuteWriter(bind, out)
 		})
@@ -355,8 +346,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	})
 }
 
-// lookup resolves one template by name, wording the error with kind. The
-// caller holds e.Mutex in either mode.
+// lookup resolves name, wording the error with kind; the caller holds e.Mutex.
 func (e *Engine) lookup(name, kind string) (*pongo2.Template, error) {
 	tmpl, ok := e.Templates[name]
 	if !ok {
@@ -365,8 +355,7 @@ func (e *Engine) lookup(name, kind string) (*pongo2.Template, error) {
 	return tmpl, nil
 }
 
-// executionMutates reports whether executing tmpl writes shared template
-// state: pongo2 trims the token stream in place under either trim option.
+// executionMutates reports whether executing tmpl rewrites its token stream.
 func executionMutates(tmpl *pongo2.Template) bool {
 	return tmpl.Options != nil && (tmpl.Options.TrimBlocks || tmpl.Options.LStripBlocks)
 }

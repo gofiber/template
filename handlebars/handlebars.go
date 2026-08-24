@@ -132,8 +132,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Exclusive: raymond parses a globally registered source partial lazily on
-	// first use, writing into the shared partial without a lock of its own.
+	// Exclusive: raymond lazily parses global source partials with no lock of its own.
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 

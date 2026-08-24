@@ -319,8 +319,7 @@ func Test_Load_Retry(t *testing.T) {
 	engine := New(views, ".hbs")
 	require.Error(t, engine.Load())
 
-	// A failed load must not stick: once the cause is gone, the next render
-	// has to reload and serve - Load stays failed-state aware on its own.
+	// Once the cause is gone, the next render has to reload and serve.
 	require.NoError(t, os.MkdirAll(views, 0o700))
 	require.NoError(t, os.WriteFile(views+"/index.hbs", []byte(`OK-{{Title}}`), 0o600))
 

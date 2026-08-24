@@ -130,8 +130,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Exclusive: go-slim's Execute registers a `render` helper that writes into
-	// the template's own map of nested templates.
+	// Exclusive: go-slim's Execute writes nested templates into engine state.
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
@@ -146,8 +145,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if err := tmpl.Execute(buf, binding); err != nil {
 			return err
 		}
-		// Our own context: the caller's map must not be written to, and a
-		// fiber.Map would otherwise reach the layout empty.
+		// Our own context: the caller's map must not be written to.
 		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = buf.String()
 		lay := e.Templates[layout[0]]

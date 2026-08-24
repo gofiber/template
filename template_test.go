@@ -57,8 +57,7 @@ func Test_PreRenderCheck(t *testing.T) {
 		require.False(t, e.PreRenderCheck())
 		require.False(t, e.PreRenderCheck())
 
-		// Turning reloading on has to take effect even though the previous
-		// answer was cached, and has to stay in effect on every render.
+		// Turning reloading on must take effect despite the cached previous answer.
 		e.Reload(true)
 		for range 3 {
 			require.True(t, e.PreRenderCheck())
@@ -249,8 +248,7 @@ func Test_Walk(t *testing.T) {
 }
 
 func Benchmark_AcquireViewContext(b *testing.B) {
-	// Native maps are handed straight back, named ones copied with plain Go,
-	// anything else resolved through reflect.
+	// Native maps come straight back, named ones via Go, the rest via reflect.
 	for name, binding := range map[string]interface{}{
 		"native": map[string]interface{}{"Title": "Hello", "User": "admin"},
 		"named":  customMap{"Title": "Hello", "User": "admin"},

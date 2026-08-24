@@ -197,8 +197,7 @@ func Test_Render_Concurrent(t *testing.T) {
 	require.NoError(t, engine.Render(&first, "index", map[string]interface{}{"Title": "C"}))
 	before := first.String()
 
-	// The shared-lock render path rests on mustache executing without writes -
-	// hold it to a race-detected proof rather than a comment.
+	// Concurrent renders pin mustache's executes-without-writes claim under -race.
 	const rounds = 20
 	errs := make([]error, rounds)
 	outs := make([]string, rounds)
@@ -235,8 +234,7 @@ func Test_Load_Retry(t *testing.T) {
 	engine := New(views, ".mustache")
 	require.Error(t, engine.Load())
 
-	// A failed load must not stick: once the cause is gone, the next render
-	// has to reload and serve - Load stays failed-state aware on its own.
+	// Once the cause is gone, the next render has to reload and serve.
 	require.NoError(t, os.MkdirAll(views, 0o700))
 	require.NoError(t, os.WriteFile(views+"/index.mustache", []byte(`OK-{{Title}}`), 0o600))
 

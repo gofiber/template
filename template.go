@@ -131,8 +131,7 @@ func (e *Engine) Reload(enabled bool) IEngineCore {
 // PreRenderCheck determines if the engine should reload the templates before rendering.
 // Explicit mutex unlock vs defer offers better performance.
 //
-// The steady state - loaded, reloading off - is answered under the shared lock,
-// so concurrent renders pass through together.
+// The steady state - loaded, reloading off - is answered under the shared lock.
 func (e *Engine) PreRenderCheck() bool {
 	e.Mutex.RLock()
 	if e.Loaded && !e.ShouldReload {
@@ -200,9 +199,8 @@ func ViewContextLen(binding interface{}) int {
 	return val.Len()
 }
 
-// RangeViewContext resolves binding like AcquireViewContext and passes every
-// key/value pair to fn, so an engine with its own context type can fill it
-// directly instead of copying out of a map[string]interface{}.
+// RangeViewContext resolves binding like AcquireViewContext and hands every
+// key/value pair to fn.
 func RangeViewContext(binding interface{}, fn func(key string, value interface{})) {
 	if binds, ok := binding.(map[string]interface{}); ok {
 		for key, value := range binds {
@@ -218,9 +216,8 @@ func RangeViewContext(binding interface{}, fn func(key string, value interface{}
 	rangeMap(val, fn)
 }
 
-// directMap returns val as a plain map[string]interface{} when its type converts
-// to one without copying - fiber.Map and other named map[string]interface{}
-// types, which is what bindings overwhelmingly are.
+// directMap returns val as a plain map[string]interface{} when its type
+// converts without copying - fiber.Map and other named map types.
 func directMap(val reflect.Value) (map[string]interface{}, bool) {
 	typ := val.Type()
 	if typ.Kind() != reflect.Map || typ.Key() != stringType || typ.Elem() != anyType {

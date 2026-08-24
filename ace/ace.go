@@ -21,9 +21,8 @@ type Engine struct {
 	core.Engine
 	// templates
 	Templates *template.Template
-	// pristine is a never-executed copy of Templates made by Load - a set
-	// that has executed cannot be cloned. pool recycles the clones between
-	// layout renders, so steady-state renders skip the clone and re-escape.
+	// pristine is never executed - an executed set cannot be cloned. pool
+	// recycles the layout-render clones and their escape work.
 	pristine *template.Template
 	pool     *sync.Pool
 }
@@ -61,9 +60,8 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	return engine
 }
 
-// layoutUnexpected is the layout function outside a layout render. The unused
-// string result makes html/template treat the returned error as the call
-// failing, rather than as a value to print into the page.
+// layoutUnexpected is the layout function outside a layout render - the
+// (string, error) shape makes html/template fail the call instead of printing it.
 func layoutUnexpected() (string, error) {
 	return "", errors.New("content called unexpectedly")
 }
@@ -162,22 +160,18 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Load replaces both sets wholesale, so a render works on the snapshot it
-	// takes here and holds no lock while executing - templates are immutable
-	// once loaded, and a template function may itself call Render again.
+	// Renders execute lock-free on this snapshot: the sets are immutable once
+	// loaded, and a template function may itself call Render again.
 	e.Mutex.RLock()
 	templates, pristine, pool := e.Templates, e.pristine, e.pool
 	e.Mutex.RUnlock()
 
 	if len(layout) > 0 && layout[0] != "" {
-		// The layout function is a closure over this render's writer, so it
-		// goes into a private clone of the pristine set - never into the set
-		// plain renders execute.
+		// The embed closure holds this render's writer, so it goes into a private clone.
 		if pristine == nil {
 			pristine = templates
 		}
-		// A pooled set is only ever executed after this render installs its
-		// own layout closure, so nothing stale in it is reachable.
+		// A pooled set always gets this render's closure before executing.
 		var set *template.Template
 		if pool != nil {
 			if pooled, ok := pool.Get().(*template.Template); ok {
@@ -204,8 +198,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
 
-		// A page holding the layout action would re-enter this closure through
-		// the clone's shared func map and recurse without end.
+		// A self-embedding page would recurse without end through the func map.
 		var embedded bool
 		set.Funcs(map[string]interface{}{
 			e.LayoutName: func() (string, error) {
