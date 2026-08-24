@@ -248,7 +248,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// held across the render since Load writes LayoutName and pongo2's
 	// package-level autoescape flag that the render reads.
 	e.Mutex.RLock()
-	tmpl, lay, err := e.lookup(name, layout, hasLayout)
+	tmpl, lay, err := e.lookup(name, layout)
 	if err != nil {
 		e.Mutex.RUnlock()
 		return err
@@ -258,7 +258,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		e.Mutex.Lock()
 		defer e.Mutex.Unlock()
 		// The templates may have been reloaded while no lock was held.
-		if tmpl, lay, err = e.lookup(name, layout, hasLayout); err != nil {
+		if tmpl, lay, err = e.lookup(name, layout); err != nil {
 			return err
 		}
 	} else {
@@ -291,16 +291,16 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	return lay.ExecuteWriter(layoutBind, out)
 }
 
-// lookup resolves the page and, when hasLayout, the layout template. The
-// caller holds e.Mutex in either mode.
-func (e *Engine) lookup(name string, layout []string, hasLayout bool) (*pongo2.Template, *pongo2.Template, error) {
+// lookup resolves the page and, when a layout is named, the layout template.
+// The caller holds e.Mutex in either mode.
+func (e *Engine) lookup(name string, layout []string) (*pongo2.Template, *pongo2.Template, error) {
 	tmpl, ok := e.Templates[name]
 	if !ok {
 		return nil, nil, fmt.Errorf("template %s does not exist", name)
 	}
 
 	var lay *pongo2.Template
-	if hasLayout {
+	if len(layout) > 0 && layout[0] != "" {
 		if lay, ok = e.Templates[layout[0]]; !ok {
 			return nil, nil, fmt.Errorf("LayoutName %s does not exist", layout[0])
 		}
