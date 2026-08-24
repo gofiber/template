@@ -257,6 +257,42 @@ func Test_Layout_Isolation(t *testing.T) {
 	wg.Wait()
 }
 
+func Test_Layout_Isolation_Unreached(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/page.html", []byte("BODY-{{.Secret}}"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/cond.html", []byte("<cond>{{if .Embed}}{{embed}}{{end}}</cond>"), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".html")
+	require.NoError(t, engine.Load())
+
+	// A layout that renders without reaching the layout action still has to
+	// leave the func map - which the whole set shares - clean behind it.
+	var first bytes.Buffer
+	require.NoError(t, engine.Render(&first, "page", map[string]interface{}{
+		"Secret": "PRIVATE",
+		"Embed":  false,
+	}, "cond"))
+	before := first.String()
+	require.NotContains(t, before, "PRIVATE")
+
+	var second bytes.Buffer
+	//nolint:errcheck // only the isolation of the two renders is under test
+	_ = engine.Render(&second, "cond", map[string]interface{}{"Embed": true})
+	require.Equal(t, before, first.String(), "a finished render's writer was written to again")
+	require.NotContains(t, second.String(), "PRIVATE", "an earlier render's binding leaked into a later one")
+}
+
 func Test_FileSystem(t *testing.T) {
 	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".html")

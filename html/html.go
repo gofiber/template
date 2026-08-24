@@ -43,12 +43,14 @@ func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 			Funcmap:    make(map[string]interface{}),
 		},
 	}
-	// Add a default function that throws an error if called unexpectedly.
-	// This can be useful for debugging or ensuring certain functions are used correctly.
-	engine.AddFunc(engine.LayoutName, func() error {
-		return errors.New("layoutName called unexpectedly")
-	})
+	engine.AddFunc(engine.LayoutName, layoutUnexpected)
 	return engine
+}
+
+// layoutUnexpected is what the layout function is set to outside a layout
+// render, so a finished render's closure can never be reached again.
+func layoutUnexpected() error {
+	return errors.New("layoutName called unexpectedly")
 }
 
 // Load parses the templates to the engine.
@@ -145,6 +147,9 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// layout renders run one at a time, lookups included.
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
+	// A layout that never reaches the layout action leaves its closure - and
+	// this render's writer with it - behind for the next render to call.
+	defer e.Templates.Funcs(map[string]interface{}{e.LayoutName: layoutUnexpected})
 
 	tmpl := e.Templates.Lookup(name)
 	if tmpl == nil {
@@ -167,9 +172,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 }
 
 // renderFuncCreate renders tmpl with childRenderFunc installed as the layout
-// function. The innermost template gets a nil child rather than no call at all:
-// the entry is shared by the whole set, and leaving the previous closure there
-// would let a template embed a finished render, or itself without end.
+// function. The innermost template gets a nil child rather than no call at all,
+// so a template holding the layout action cannot embed itself without end.
 func renderFuncCreate(e *Engine, out io.Writer, binding interface{}, tmpl *template.Template, childRenderFunc func() error) func() error {
 	return func() error {
 		tmpl.Funcs(map[string]interface{}{
