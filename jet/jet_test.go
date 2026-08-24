@@ -119,19 +119,30 @@ func Test_VarMap_Isolation(t *testing.T) {
 	var buf bytes.Buffer
 	require.NoError(t, engine.Render(&buf, "page", shared))
 	require.Equal(t, "original", shared["Title"].String())
+	before := buf.String()
 
+	// A regression that only shows up under contention would leave the shared map
+	// intact but the renders themselves failing, so keep each one's result.
+	const rounds = 20
+	errs := make([]error, rounds)
+	outs := make([]string, rounds)
 	var wg sync.WaitGroup
-	for range 20 {
+	for i := range rounds {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			var buf bytes.Buffer
-			//nolint:errcheck // only the absence of a race matters here
-			_ = engine.Render(&buf, "page", shared)
+			errs[i] = engine.Render(&buf, "page", shared)
+			outs[i] = buf.String()
 		}()
 	}
 	wg.Wait()
 	require.Equal(t, "original", shared["Title"].String())
+
+	for i := range rounds {
+		require.NoError(t, errs[i])
+		require.Equal(t, before, outs[i])
+	}
 }
 
 func Test_FileSystem(t *testing.T) {
