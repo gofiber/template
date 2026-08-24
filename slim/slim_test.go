@@ -108,10 +108,12 @@ func Test_Layout_Binding(t *testing.T) {
 
 	// A binding that is not literally a map[string]interface{} has to reach
 	// the layout with its values intact, not just the embedded body.
+	custom := customMap{"Title": "Hello, World!"}
 	var buf bytes.Buffer
-	err = engine.Render(&buf, "child", customMap{"Title": "Hello, World!"}, "layout")
+	err = engine.Render(&buf, "child", custom, "layout")
 	require.NoError(t, err)
 	require.Equal(t, expect, trim(buf.String()))
+	require.Equal(t, customMap{"Title": "Hello, World!"}, custom)
 
 	// And rendering must not write the embedded body back into the binding the
 	// caller handed in.

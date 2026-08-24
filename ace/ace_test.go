@@ -117,24 +117,33 @@ func Test_Layout_Isolation(t *testing.T) {
 	require.Equal(t, before, first.String(), "a finished render's writer was written to again")
 	require.NotContains(t, second.String(), "FIRST", "an earlier render's body leaked into a later one")
 
-	// Under -race, neither render may write through the other's closure.
+	// Under -race, neither render may write through the other's closure - and a
+	// clean race report alone would still miss a page render left short of a body.
+	const rounds = 20
+	errs := make([]error, rounds)
+	outs := make([]string, rounds)
 	var wg sync.WaitGroup
-	for range 20 {
+	for i := range rounds {
 		wg.Add(2)
 		go func() {
 			defer wg.Done()
 			var buf bytes.Buffer
-			//nolint:errcheck // only the absence of a race matters here
-			_ = engine.Render(&buf, "index", map[string]interface{}{"Title": "x"}, "layouts/main")
+			errs[i] = engine.Render(&buf, "index", map[string]interface{}{"Title": "FIRST"}, "layouts/main")
+			outs[i] = buf.String()
 		}()
 		go func() {
 			defer wg.Done()
 			var buf bytes.Buffer
-			//nolint:errcheck // only the absence of a race matters here
-			_ = engine.Render(&buf, "layouts/main", map[string]interface{}{"Title": "y"})
+			//nolint:errcheck // an unset layout function reports in some engines, renders in others
+			_ = engine.Render(&buf, "layouts/main", map[string]interface{}{"Title": "SECOND"})
 		}()
 	}
 	wg.Wait()
+
+	for i := range rounds {
+		require.NoError(t, errs[i])
+		require.Equal(t, before, outs[i], "a concurrent layout render disturbed a page render")
+	}
 }
 
 func Test_FileSystem(t *testing.T) {
