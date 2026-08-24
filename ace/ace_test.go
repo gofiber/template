@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -110,10 +111,9 @@ func Test_Layout_Isolation(t *testing.T) {
 	require.Contains(t, before, "FIRST")
 
 	// The layout template on its own must not reach the closure the render
-	// above installed, which still holds that render's writer and binding.
+	// above installed - outside a layout render the layout function reports.
 	var second bytes.Buffer
-	//nolint:errcheck // an unset layout function reports in some engines, renders in others
-	_ = engine.Render(&second, "layouts/main", map[string]interface{}{"Title": "SECOND"})
+	require.Error(t, engine.Render(&second, "layouts/main", map[string]interface{}{"Title": "SECOND"}))
 	require.Equal(t, before, first.String(), "a finished render's writer was written to again")
 	require.NotContains(t, second.String(), "FIRST", "an earlier render's body leaked into a later one")
 
@@ -122,6 +122,7 @@ func Test_Layout_Isolation(t *testing.T) {
 	const rounds = 20
 	errs := make([]error, rounds)
 	outs := make([]string, rounds)
+	layErrs := make([]error, rounds)
 	var wg sync.WaitGroup
 	for i := range rounds {
 		wg.Add(2)
@@ -134,8 +135,7 @@ func Test_Layout_Isolation(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			var buf bytes.Buffer
-			//nolint:errcheck // an unset layout function reports in some engines, renders in others
-			_ = engine.Render(&buf, "layouts/main", map[string]interface{}{"Title": "SECOND"})
+			layErrs[i] = engine.Render(&buf, "layouts/main", map[string]interface{}{"Title": "SECOND"})
 		}()
 	}
 	wg.Wait()
@@ -143,6 +143,7 @@ func Test_Layout_Isolation(t *testing.T) {
 	for i := range rounds {
 		require.NoError(t, errs[i])
 		require.Equal(t, before, outs[i], "a concurrent layout render disturbed a page render")
+		require.Error(t, layErrs[i], "a standalone layout render reached another render's closure")
 	}
 }
 
@@ -372,4 +373,128 @@ func Benchmark_Ace_Parallel(b *testing.B) {
 			}
 		})
 	})
+}
+
+func Test_Render_Reentrant(t *testing.T) {
+	t.Parallel()
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/child.ace", []byte("| C"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/layout.ace", []byte("| L[{{embed}}]L"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/page.ace", []byte("| X{{partial}}Y"), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".ace")
+	// A template function that renders through the engine again must not
+	// deadlock on a lock its own render holds.
+	engine.AddFunc("partial", func() (string, error) {
+		var buf bytes.Buffer
+		err := engine.Render(&buf, "child", nil, "layout")
+		return buf.String(), err
+	})
+	require.NoError(t, engine.Load())
+
+	done := make(chan error, 1)
+	var buf bytes.Buffer
+	go func() {
+		done <- engine.Render(&buf, "page", nil)
+	}()
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+		require.Equal(t, "XL[C]LY", trim(buf.String()))
+	case <-time.After(5 * time.Second):
+		t.Fatal("re-entrant render deadlocked")
+	}
+}
+
+func Test_Render_SelfEmbed_Errors(t *testing.T) {
+	t.Parallel()
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/self.ace", []byte("| S{{embed}}S"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/layout.ace", []byte("| L[{{embed}}]L"), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".ace")
+	require.NoError(t, engine.Load())
+
+	// A page holding the layout action must fail its render, not recurse.
+	var buf bytes.Buffer
+	require.Error(t, engine.Render(&buf, "self", nil, "layout"))
+}
+
+func Test_AddFunc_Layout_Override(t *testing.T) {
+	t.Parallel()
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/plain.ace", []byte("| A-{{embed}}-B"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/child.ace", []byte("| C"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/layout.ace", []byte("| L[{{embed}}]L"), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".ace")
+	// Overwriting a default action is documented as legal, so a layout render
+	// must not clobber the override for later plain renders.
+	engine.AddFunc(engine.LayoutName, func() string { return "CUSTOM" })
+	require.NoError(t, engine.Load())
+
+	var before bytes.Buffer
+	require.NoError(t, engine.Render(&before, "plain", nil))
+	require.Contains(t, before.String(), "CUSTOM")
+
+	var lay bytes.Buffer
+	require.NoError(t, engine.Render(&lay, "child", nil, "layout"))
+
+	var after bytes.Buffer
+	require.NoError(t, engine.Render(&after, "plain", nil))
+	require.Equal(t, before.String(), after.String())
+}
+
+func Test_Load_Retry(t *testing.T) {
+	t.Parallel()
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	views := dir + "/views"
+	engine := New(views, ".ace")
+	require.Error(t, engine.Load())
+
+	// A failed load must not stick: once the cause is gone, the next load
+	// parses and renders.
+	require.NoError(t, os.MkdirAll(views, 0o700))
+	require.NoError(t, os.WriteFile(views+"/index.ace", []byte("| OK"), 0o600))
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "index", nil))
+	require.Equal(t, "OK", trim(buf.String()))
 }

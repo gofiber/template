@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/eknkc/amber"
 	core "github.com/gofiber/template/v2"
@@ -19,6 +20,11 @@ type Engine struct {
 	core.Engine
 	// templates
 	Templates map[string]*template.Template
+	// pristine holds never-executed copies made by Load - an executed template
+	// cannot be cloned. pools recycles the clones between layout renders, so
+	// steady-state renders skip the clone and re-escape.
+	pristine map[string]*template.Template
+	pools    map[string]*sync.Pool
 }
 
 // New returns an Amber render engine for Fiber
@@ -50,10 +56,11 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 	return engine
 }
 
-// layoutUnexpected is what the layout function is set to outside a layout
-// render, so a finished render's closure can never be reached again.
-func layoutUnexpected() error {
-	return errors.New("layoutName called unexpectedly")
+// layoutUnexpected is the layout function outside a layout render. The unused
+// string result makes html/template treat the returned error as the call
+// failing, rather than as a value to print into the page.
+func layoutUnexpected() (string, error) {
+	return "", errors.New("layoutName called unexpectedly")
 }
 
 // Load parses the templates to the engine.
@@ -121,13 +128,27 @@ func (e *Engine) Load() error {
 		return err
 	}
 
-	// notify Engine that we parsed all templates
-	e.Loaded = true
-
+	var err error
 	if e.FileSystem != nil {
-		return core.Walk(e.FileSystem, e.Directory, walkFn)
+		err = core.Walk(e.FileSystem, e.Directory, walkFn)
+	} else {
+		err = filepath.Walk(e.Directory, walkFn)
 	}
-	return filepath.Walk(e.Directory, walkFn)
+	if err != nil {
+		return err
+	}
+	e.pristine = make(map[string]*template.Template, len(e.Templates))
+	e.pools = make(map[string]*sync.Pool, len(e.Templates))
+	for name, tmpl := range e.Templates {
+		if e.pristine[name], err = tmpl.Clone(); err != nil {
+			return err
+		}
+		e.pools[name] = &sync.Pool{}
+	}
+
+	// A load that failed leaves Loaded unset, so the next render retries.
+	e.Loaded = true
+	return nil
 }
 
 // Render will execute the template name along with the given values.
@@ -139,36 +160,56 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// The layout function goes into the func map the whole set shares, so
-	// layout renders run one at a time, lookups included.
-	if len(layout) > 0 && layout[0] != "" {
-		e.Mutex.Lock()
-		defer e.Mutex.Unlock()
+	// Load replaces both maps wholesale, so a render works on the snapshot it
+	// takes here and holds no lock while executing - templates are immutable
+	// once loaded, and a template function may itself call Render again.
+	e.Mutex.RLock()
+	templates, pristine, pools := e.Templates, e.pristine, e.pools
+	e.Mutex.RUnlock()
 
-		tmpl := e.Templates[name]
+	if len(layout) > 0 && layout[0] != "" {
+		tmpl := templates[name]
 		if tmpl == nil {
 			return fmt.Errorf("render: template %s does not exist", name)
 		}
 
-		lay := e.Templates[layout[0]]
-		if lay == nil {
-			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
+		// The layout function is a closure over this render's writer, so it
+		// goes into a private clone of the layout - amber compiles each file
+		// as its own set, so the page template is untouched either way.
+		// A pooled clone is only ever executed after this render installs its
+		// own layout closure, so nothing stale in it is reachable.
+		var lay *template.Template
+		pool := pools[layout[0]]
+		if pool != nil {
+			if pooled, ok := pool.Get().(*template.Template); ok {
+				lay = pooled
+			}
 		}
-		defer lay.Funcs(map[string]interface{}{e.LayoutName: layoutUnexpected})
+		if lay == nil {
+			pl := pristine[layout[0]]
+			if pl == nil {
+				pl = templates[layout[0]]
+			}
+			if pl == nil {
+				return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
+			}
+			var cerr error
+			if lay, cerr = pl.Clone(); cerr != nil {
+				return fmt.Errorf("render: %w", cerr)
+			}
+		}
+		if pool != nil {
+			defer pool.Put(lay)
+		}
 		lay.Funcs(map[string]interface{}{
-			e.LayoutName: func() error {
-				return tmpl.Execute(out, binding)
+			e.LayoutName: func() (string, error) {
+				return "", tmpl.Execute(out, binding)
 			},
 		})
 		return lay.Execute(out, binding)
 	}
 
-	// Shared lock: plain renders run together, but never alongside the layout
-	// path, whose closure they would otherwise pick up out of the func map.
-	e.Mutex.RLock()
-	defer e.Mutex.RUnlock()
-
-	tmpl := e.Templates[name]
+	tmpl := templates[name]
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
