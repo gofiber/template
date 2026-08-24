@@ -131,7 +131,7 @@ func (e *Engine) Load() error {
 		return err
 	}
 
-	// notify Engine that we parsed all templates
+	// A load that failed leaves Loaded unset, so the next render retries.
 	e.Loaded = true
 
 	if e.FileSystem != nil {
@@ -225,7 +225,10 @@ func isValidKey(key string) bool {
 
 // SetAutoEscape sets the auto-escape property of the template engine
 func (e *Engine) SetAutoEscape(autoEscape bool) {
+	// Load reads the flag under the same lock.
+	e.Mutex.Lock()
 	e.autoEscape = autoEscape
+	e.Mutex.Unlock()
 }
 
 // Render will render the template by name
@@ -239,22 +242,27 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 
 	hasLayout := len(layout) > 0 && layout[0] != ""
 
-	// A pongo2 template is immutable once parsed, so renders share the lock -
-	// held across the render, since Load writes LayoutName and pongo2's
+	// A parsed pongo2 template is immutable at execution - unless its exported
+	// trim options are set, which make pongo2 rewrite the token stream in
+	// place. Those renders take the write lock; the rest share the read lock,
+	// held across the render since Load writes LayoutName and pongo2's
 	// package-level autoescape flag that the render reads.
 	e.Mutex.RLock()
-	defer e.Mutex.RUnlock()
-
-	tmpl, ok := e.Templates[name]
-	if !ok {
-		return fmt.Errorf("template %s does not exist", name)
+	tmpl, lay, err := e.lookup(name, layout, hasLayout)
+	if err != nil {
+		e.Mutex.RUnlock()
+		return err
 	}
-
-	var lay *pongo2.Template
-	if hasLayout {
-		if lay, ok = e.Templates[layout[0]]; !ok {
-			return fmt.Errorf("LayoutName %s does not exist", layout[0])
+	if executionMutates(tmpl) || (hasLayout && executionMutates(lay)) {
+		e.Mutex.RUnlock()
+		e.Mutex.Lock()
+		defer e.Mutex.Unlock()
+		// The templates may have been reloaded while no lock was held.
+		if tmpl, lay, err = e.lookup(name, layout, hasLayout); err != nil {
+			return err
 		}
+	} else {
+		defer e.Mutex.RUnlock()
 	}
 
 	bind := getPongoBinding(binding)
@@ -265,9 +273,9 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		return tmpl.ExecuteWriter(bind, out)
 	}
 
-	parsed, err := tmpl.ExecuteBytes(bind)
-	if err != nil {
-		return err
+	parsed, perr := tmpl.ExecuteBytes(bind)
+	if perr != nil {
+		return perr
 	}
 
 	// bind may alias the caller's map, so the embed key goes into our own.
@@ -281,4 +289,27 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	layoutBind[e.LayoutName] = pongo2.AsSafeValue(utils.UnsafeString(parsed))
 
 	return lay.ExecuteWriter(layoutBind, out)
+}
+
+// lookup resolves the page and, when hasLayout, the layout template. The
+// caller holds e.Mutex in either mode.
+func (e *Engine) lookup(name string, layout []string, hasLayout bool) (*pongo2.Template, *pongo2.Template, error) {
+	tmpl, ok := e.Templates[name]
+	if !ok {
+		return nil, nil, fmt.Errorf("template %s does not exist", name)
+	}
+
+	var lay *pongo2.Template
+	if hasLayout {
+		if lay, ok = e.Templates[layout[0]]; !ok {
+			return nil, nil, fmt.Errorf("LayoutName %s does not exist", layout[0])
+		}
+	}
+	return tmpl, lay, nil
+}
+
+// executionMutates reports whether executing tmpl writes shared template
+// state: pongo2 trims the token stream in place under either trim option.
+func executionMutates(tmpl *pongo2.Template) bool {
+	return tmpl.Options != nil && (tmpl.Options.TrimBlocks || tmpl.Options.LStripBlocks)
 }

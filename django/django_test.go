@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"unicode"
 
@@ -623,4 +624,87 @@ func Benchmark_Django_Parallel(b *testing.B) {
 			}
 		})
 	})
+}
+
+func Test_Render_Concurrent(t *testing.T) {
+	engine := New("./views", ".django")
+	require.NoError(t, engine.Load())
+
+	var first bytes.Buffer
+	require.NoError(t, engine.Render(&first, "index", map[string]interface{}{"Title": "C"}))
+	before := first.String()
+
+	// The shared-lock render path rests on pongo2 executing without writes -
+	// hold it to a race-detected proof rather than a comment.
+	const rounds = 20
+	errs := make([]error, rounds)
+	outs := make([]string, rounds)
+	var wg sync.WaitGroup
+	for i := range rounds {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i] = engine.Render(&buf, "index", map[string]interface{}{"Title": "C"})
+			outs[i] = buf.String()
+		}()
+	}
+	wg.Wait()
+
+	for i := range rounds {
+		require.NoError(t, errs[i])
+		require.Equal(t, before, outs[i])
+	}
+}
+
+func Test_Render_TrimBlocks_Concurrent(t *testing.T) {
+	engine := New("./views", ".django")
+	require.NoError(t, engine.Load())
+
+	// The exported trim options make pongo2 rewrite the token stream at
+	// execution, so these renders have to serialize on the write lock.
+	engine.Templates["index"].Options.TrimBlocks = true
+
+	const rounds = 8
+	errs := make([]error, rounds)
+	var wg sync.WaitGroup
+	for i := range rounds {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i] = engine.Render(&buf, "index", map[string]interface{}{"Title": "x"})
+		}()
+	}
+	wg.Wait()
+
+	for i := range rounds {
+		require.NoError(t, errs[i])
+	}
+}
+
+func Test_Load_Retry(t *testing.T) {
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/index.django", []byte(`{% if %}`), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".django")
+	require.Error(t, engine.Load())
+
+	// A failed load must not stick: once the cause is gone, the next load
+	// parses and renders.
+	err = os.WriteFile(dir+"/index.django", []byte(`OK-{{ Title }}`), 0o600)
+	require.NoError(t, err)
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "1"}))
+	require.Equal(t, "OK-1", buf.String())
 }
