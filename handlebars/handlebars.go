@@ -58,6 +58,7 @@ func (e *Engine) Load() error {
 	var err error
 
 	// Set template settings
+	e.Loaded = false
 	e.Templates = make(map[string]*raymond.Template)
 	e.registerHelpersOnce.Do(func() {
 		raymond.RegisterHelpers(e.Funcmap)

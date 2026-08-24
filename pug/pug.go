@@ -68,6 +68,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	e.Templates = template.New(e.Directory)
 
 	// Set template settings

@@ -72,6 +72,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	e.Templates = template.New(e.Directory)
 
 	e.Templates.Delims(e.Left, e.Right)

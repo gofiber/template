@@ -74,6 +74,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	e.Templates = make(map[string]*mustache.Template)
 
 	// Loop trough each directory and register template files

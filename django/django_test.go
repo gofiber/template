@@ -702,6 +702,18 @@ func Test_Load_Retry(t *testing.T) {
 	var buf bytes.Buffer
 	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "1"}))
 	require.Equal(t, "OK-1", buf.String())
+
+	// A failed reload of a loaded engine must not stick either.
+	err = os.WriteFile(dir+"/index.django", []byte(`{% if %}`), 0o600)
+	require.NoError(t, err)
+	require.Error(t, engine.Load())
+
+	err = os.WriteFile(dir+"/index.django", []byte(`OK-{{ Title }}`), 0o600)
+	require.NoError(t, err)
+
+	buf.Reset()
+	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "2"}))
+	require.Equal(t, "OK-2", buf.String())
 }
 
 func Test_AutoEscape_Isolation(t *testing.T) {

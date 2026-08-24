@@ -67,6 +67,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	e.Templates = make(map[string]*pongo2.Template)
 	baseDir := e.Directory
 	var pongoloader pongo2.TemplateLoader

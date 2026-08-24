@@ -67,6 +67,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	// parse templates
 	// e.Templates = jet.NewHTMLSet(e.Directory)
 	var loader jet.Loader

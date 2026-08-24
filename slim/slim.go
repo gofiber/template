@@ -55,6 +55,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	e.Templates = make(map[string]*slim.Template)
 
 	// Loop trough each Directory and register template files
