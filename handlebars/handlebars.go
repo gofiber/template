@@ -108,6 +108,9 @@ func (e *Engine) Load() error {
 	} else {
 		err = filepath.Walk(e.Directory, walkFn)
 	}
+	if err != nil {
+		return err
+	}
 	// Link templates with eachother
 	for j := range e.Templates {
 		for n, template := range e.Templates {
@@ -115,9 +118,9 @@ func (e *Engine) Load() error {
 		}
 	}
 
-	// notify Engine that we parsed all templates
+	// A load that failed leaves Loaded unset, so the next render retries.
 	e.Loaded = true
-	return err
+	return nil
 }
 
 // Render will render the template by name

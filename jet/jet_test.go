@@ -360,3 +360,29 @@ func Benchmark_Jet_Parallel(b *testing.B) {
 		})
 	})
 }
+
+func Test_Load_Retry(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	views := dir + "/views"
+	engine := New(views, ".jet")
+	require.Error(t, engine.Load())
+
+	// A failed load must not stick: once the cause is gone, the next load
+	// parses and renders.
+	require.NoError(t, os.MkdirAll(views, 0o700))
+	require.NoError(t, os.WriteFile(views+"/index.jet", []byte(`OK-{{ Title }}`), 0o600))
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "1"}))
+	require.Equal(t, "OK-1", trim(buf.String()))
+}

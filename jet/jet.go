@@ -136,14 +136,15 @@ func (e *Engine) Load() error {
 		return err
 	}
 
-	// notify Engine that we parsed all templates
-	e.Loaded = true
-
 	if _, ok := loader.(*jet.InMemLoader); ok {
-		return filepath.Walk(e.Directory, walkFn)
+		if err := filepath.Walk(e.Directory, walkFn); err != nil {
+			return err
+		}
 	}
 
-	return err
+	// A load that failed leaves Loaded unset, so the next render retries.
+	e.Loaded = true
+	return nil
 }
 
 // Render will render the template by name
