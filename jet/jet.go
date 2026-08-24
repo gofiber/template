@@ -186,13 +186,12 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	return tmpl.Execute(out, jetVarMap(binding, 0), nil)
 }
 
-// jetVarMap resolves binding into a jet.VarMap, passing a caller-supplied one
-// through untouched unless extra room is asked for, in which case it is copied.
+// jetVarMap resolves binding into a jet.VarMap the engine owns, sized for extra
+// entries beyond the binding's own. A caller-supplied VarMap is copied rather
+// than passed through: jet assigns back into the map it is handed, so sharing
+// one would leak render state into the caller and race between renders.
 func jetVarMap(binding interface{}, extra int) jet.VarMap {
 	if caller, ok := binding.(jet.VarMap); ok {
-		if extra == 0 {
-			return caller
-		}
 		bind := make(jet.VarMap, len(caller)+extra)
 		maps.Copy(bind, caller)
 		return bind

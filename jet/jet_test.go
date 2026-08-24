@@ -6,8 +6,10 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
+	"github.com/CloudyKit/jet/v6"
 	"github.com/stretchr/testify/require"
 )
 
@@ -89,6 +91,47 @@ func Test_Empty_Layout(t *testing.T) {
 	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
 	result := trim(buf.String())
 	require.Equal(t, expect, result)
+}
+
+func Test_VarMap_Isolation(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/page.jet", []byte(`{{ Title = "MUTATED" }}<p>{{ Title }}</p>`), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".jet")
+	require.NoError(t, engine.Load())
+
+	// jet assigns back into the VarMap it is handed, so the engine has to render
+	// from one of its own - otherwise the caller's map changes under them, and
+	// concurrent renders sharing it race.
+	shared := jet.VarMap{}
+	shared.Set("Title", "original")
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "page", shared))
+	require.Equal(t, "original", shared["Title"].String())
+
+	var wg sync.WaitGroup
+	for range 20 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			//nolint:errcheck // only the absence of a race matters here
+			_ = engine.Render(&buf, "page", shared)
+		}()
+	}
+	wg.Wait()
+	require.Equal(t, "original", shared["Title"].String())
 }
 
 func Test_FileSystem(t *testing.T) {
