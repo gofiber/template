@@ -4,6 +4,7 @@ package django
 import (
 	"bytes"
 	"embed"
+	"errors"
 	"math/rand"
 	"net/http"
 	"os"
@@ -301,6 +302,31 @@ func Test_Invalid_Template(t *testing.T) {
 	var buf bytes.Buffer
 	err := engine.Render(&buf, "invalid", nil)
 	require.Error(t, err)
+}
+
+func Test_Render_Failure_Writes_Nothing(t *testing.T) {
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/boom.django", []byte(`PREFIX-{{ boom() }}-SUFFIX`), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".django")
+	require.NoError(t, engine.Load())
+
+	// A render that fails part way through must leave the writer untouched
+	// rather than handing the caller a truncated page.
+	var buf bytes.Buffer
+	err = engine.Render(&buf, "boom", map[string]interface{}{
+		"boom": func() (string, error) { return "", errors.New("kaboom") },
+	})
+	require.Error(t, err)
+	require.Empty(t, buf.String())
 }
 
 func Test_Invalid_Layout(t *testing.T) {
