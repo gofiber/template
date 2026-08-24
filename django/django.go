@@ -248,7 +248,11 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// held across the render since Load writes LayoutName and pongo2's
 	// package-level autoescape flag that the render reads.
 	e.Mutex.RLock()
-	tmpl, lay, err := e.lookup(name, layout)
+	tmpl, err := e.lookup(name, "template")
+	var lay *pongo2.Template
+	if err == nil && hasLayout {
+		lay, err = e.lookup(layout[0], "LayoutName")
+	}
 	if err != nil {
 		e.Mutex.RUnlock()
 		return err
@@ -258,8 +262,13 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		e.Mutex.Lock()
 		defer e.Mutex.Unlock()
 		// The templates may have been reloaded while no lock was held.
-		if tmpl, lay, err = e.lookup(name, layout); err != nil {
+		if tmpl, err = e.lookup(name, "template"); err != nil {
 			return err
+		}
+		if hasLayout {
+			if lay, err = e.lookup(layout[0], "LayoutName"); err != nil {
+				return err
+			}
 		}
 	} else {
 		defer e.Mutex.RUnlock()
@@ -291,21 +300,14 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	return lay.ExecuteWriter(layoutBind, out)
 }
 
-// lookup resolves the page and, when a layout is named, the layout template.
-// The caller holds e.Mutex in either mode.
-func (e *Engine) lookup(name string, layout []string) (*pongo2.Template, *pongo2.Template, error) {
+// lookup resolves one template by name, wording the error with kind. The
+// caller holds e.Mutex in either mode.
+func (e *Engine) lookup(name, kind string) (*pongo2.Template, error) {
 	tmpl, ok := e.Templates[name]
 	if !ok {
-		return nil, nil, fmt.Errorf("template %s does not exist", name)
+		return nil, fmt.Errorf("%s %s does not exist", kind, name)
 	}
-
-	var lay *pongo2.Template
-	if len(layout) > 0 && layout[0] != "" {
-		if lay, ok = e.Templates[layout[0]]; !ok {
-			return nil, nil, fmt.Errorf("LayoutName %s does not exist", layout[0])
-		}
-	}
-	return tmpl, lay, nil
+	return tmpl, nil
 }
 
 // executionMutates reports whether executing tmpl writes shared template
