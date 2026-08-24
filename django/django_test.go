@@ -698,13 +698,67 @@ func Test_Load_Retry(t *testing.T) {
 	engine := New(dir, ".django")
 	require.Error(t, engine.Load())
 
-	// A failed load must not stick: once the cause is gone, the next load
-	// parses and renders.
+	// A failed load must not stick: once the cause is gone, the next render
+	// has to reload and serve - Load stays failed-state aware on its own.
 	err = os.WriteFile(dir+"/index.django", []byte(`OK-{{ Title }}`), 0o600)
 	require.NoError(t, err)
-	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
 	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "1"}))
 	require.Equal(t, "OK-1", buf.String())
+}
+
+func Test_AutoEscape_Isolation(t *testing.T) {
+	title := "<script>alert('XSS')</script>"
+	expEscaped := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>&lt;script&gt;alert(&#39;XSS&#39;)&lt;/script&gt;</h1><h2>Footer</h2></body></html>`
+	expRaw := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1><script>alert('XSS')</script></h1><h2>Footer</h2></body></html>`
+
+	escaped := New("./views", ".django")
+	require.NoError(t, escaped.Load())
+
+	unescaped := New("./views", ".django")
+	unescaped.SetAutoEscape(false)
+	require.NoError(t, unescaped.Load())
+
+	render := func(e *Engine) string {
+		t.Helper()
+		var buf bytes.Buffer
+		require.NoError(t, e.Render(&buf, "index", map[string]interface{}{"Title": title}, "layouts/main"))
+		return trim(buf.String())
+	}
+
+	// pongo2's flag is package-global: the unescaped engine loading above must
+	// not bleed into the escaped engine's renders, in either order.
+	require.Equal(t, expEscaped, render(escaped))
+	require.Equal(t, expRaw, render(unescaped))
+	require.Equal(t, expEscaped, render(escaped))
+
+	// And not under contention either.
+	const rounds = 10
+	errs := make([]error, rounds*2)
+	outs := make([]string, rounds*2)
+	var wg sync.WaitGroup
+	for i := range rounds {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i*2] = escaped.Render(&buf, "index", map[string]interface{}{"Title": title}, "layouts/main")
+			outs[i*2] = trim(buf.String())
+		}()
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i*2+1] = unescaped.Render(&buf, "index", map[string]interface{}{"Title": title}, "layouts/main")
+			outs[i*2+1] = trim(buf.String())
+		}()
+	}
+	wg.Wait()
+
+	for i := range rounds {
+		require.NoError(t, errs[i*2])
+		require.Equal(t, expEscaped, outs[i*2], "another engine's setting bled into an escaped render")
+		require.NoError(t, errs[i*2+1])
+		require.Equal(t, expRaw, outs[i*2+1], "another engine's setting bled into an unescaped render")
+	}
 }

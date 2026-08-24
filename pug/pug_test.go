@@ -483,11 +483,10 @@ func Test_Load_Retry(t *testing.T) {
 	engine := New(views, ".pug")
 	require.Error(t, engine.Load())
 
-	// A failed load must not stick: once the cause is gone, the next load
-	// parses and renders.
+	// A failed load must not stick: once the cause is gone, the next render
+	// has to reload and serve - Load stays failed-state aware on its own.
 	require.NoError(t, os.MkdirAll(views, 0o700))
 	require.NoError(t, os.WriteFile(views+"/index.pug", []byte("| OK"), 0o600))
-	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer
 	require.NoError(t, engine.Render(&buf, "index", nil))

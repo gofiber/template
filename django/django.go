@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sync"
 
 	"github.com/flosch/pongo2/v6"
 	core "github.com/gofiber/template/v2"
@@ -86,7 +87,7 @@ func (e *Engine) Load() error {
 	// Set template settings
 	pongoset.Globals.Update(e.Funcmap)
 	// Set autoescaping
-	pongo2.SetAutoescape(e.autoEscape)
+	setAutoescape(e.autoEscape)
 
 	// Loop trough each Directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -131,13 +132,19 @@ func (e *Engine) Load() error {
 		return err
 	}
 
+	var err error
+	if e.FileSystem != nil {
+		err = core.Walk(e.FileSystem, e.Directory, walkFn)
+	} else {
+		err = filepath.Walk(e.Directory, walkFn)
+	}
+	if err != nil {
+		return err
+	}
+
 	// A load that failed leaves Loaded unset, so the next render retries.
 	e.Loaded = true
-
-	if e.FileSystem != nil {
-		return core.Walk(e.FileSystem, e.Directory, walkFn)
-	}
-	return filepath.Walk(e.Directory, walkFn)
+	return nil
 }
 
 // getPongoBinding creates a pongo2.Context containing
@@ -231,6 +238,49 @@ func (e *Engine) SetAutoEscape(autoEscape bool) {
 	e.Mutex.Unlock()
 }
 
+// pongo2's autoescape flag is package-global, so renders from engines with
+// different settings would bleed into each other. autoescape shadows what the
+// flag holds: a render whose engine matches shares the read lock, one that
+// needs the flag flipped holds the write lock for its whole execution.
+var autoescape struct {
+	sync.RWMutex
+	value, known bool
+}
+
+// applyAutoescape points pongo2's flag at want; the caller holds the write lock.
+//
+//nolint:revive // want is the value being stored, not a control switch
+func applyAutoescape(want bool) {
+	if !autoescape.known || autoescape.value != want {
+		pongo2.SetAutoescape(want)
+		autoescape.value = want
+		autoescape.known = true
+	}
+}
+
+func setAutoescape(want bool) {
+	autoescape.Lock()
+	applyAutoescape(want)
+	autoescape.Unlock()
+}
+
+// withAutoescape runs fn with pongo2's package flag set to want.
+//
+//nolint:revive // want is the value being stored, not a control switch
+func withAutoescape(want bool, fn func() error) error {
+	autoescape.RLock()
+	if autoescape.known && autoescape.value == want {
+		defer autoescape.RUnlock()
+		return fn()
+	}
+	autoescape.RUnlock()
+
+	autoescape.Lock()
+	defer autoescape.Unlock()
+	applyAutoescape(want)
+	return fn()
+}
+
 // Render will render the template by name
 func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
@@ -275,29 +325,34 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	}
 
 	bind := getPongoBinding(binding)
+	esc := e.autoEscape
 
 	if !hasLayout {
 		// Same all-or-nothing behavior as Execute - pongo2 buffers internally -
 		// without its two full-page copies, into a string and back to a []byte.
-		return tmpl.ExecuteWriter(bind, out)
+		return withAutoescape(esc, func() error {
+			return tmpl.ExecuteWriter(bind, out)
+		})
 	}
 
-	parsed, perr := tmpl.ExecuteBytes(bind)
-	if perr != nil {
-		return perr
-	}
+	return withAutoescape(esc, func() error {
+		parsed, err := tmpl.ExecuteBytes(bind)
+		if err != nil {
+			return err
+		}
 
-	// bind may alias the caller's map, so the embed key goes into our own.
-	layoutBind := make(pongo2.Context, len(bind)+1)
-	maps.Copy(layoutBind, bind)
+		// bind may alias the caller's map, so the embed key goes into our own.
+		layoutBind := make(pongo2.Context, len(bind)+1)
+		maps.Copy(layoutBind, bind)
 
-	// Workaround for custom {{embed}} tag
-	// Mark the `embed` variable as safe
-	// it has already been escaped above
-	// e.LayoutName will be 'embed'
-	layoutBind[e.LayoutName] = pongo2.AsSafeValue(utils.UnsafeString(parsed))
+		// Workaround for custom {{embed}} tag
+		// Mark the `embed` variable as safe
+		// it has already been escaped above
+		// e.LayoutName will be 'embed'
+		layoutBind[e.LayoutName] = pongo2.AsSafeValue(utils.UnsafeString(parsed))
 
-	return lay.ExecuteWriter(layoutBind, out)
+		return lay.ExecuteWriter(layoutBind, out)
+	})
 }
 
 // lookup resolves one template by name, wording the error with kind. The
