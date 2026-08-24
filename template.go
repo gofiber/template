@@ -162,16 +162,7 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 		return binds
 	}
 
-	val, ok := bindingMap(binding)
-	if !ok {
-		return make(map[string]interface{})
-	}
-
-	result := make(map[string]interface{}, val.Len())
-	rangeMap(val, func(key string, value interface{}) {
-		result[key] = value
-	})
-	return result
+	return NewViewContext(binding, 0)
 }
 
 // NewViewContext resolves binding like AcquireViewContext, but always returns a
