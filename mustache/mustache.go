@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/cbroglie/mustache"
 	core "github.com/gofiber/template/v2"
+	"github.com/gofiber/utils/v2"
 	"github.com/valyala/bytebufferpool"
 )
 
@@ -30,7 +30,7 @@ type fileSystemPartialProvider struct {
 
 func (p fileSystemPartialProvider) Get(path string) (string, error) {
 	buf, err := core.ReadFile(path+p.extension, p.fileSystem)
-	return string(buf), err
+	return utils.UnsafeString(buf), err
 }
 
 // New returns a Mustache render engine for Fiber
@@ -74,6 +74,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	e.Templates = make(map[string]*mustache.Template)
 
 	// Loop trough each directory and register template files
@@ -89,23 +90,16 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
 
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
 
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.Extension)
-		// name = strings.Replace(name, e.extension, "", -1)
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -115,11 +109,12 @@ func (e *Engine) Load() error {
 
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
+		source := utils.UnsafeString(buf)
 		var tmpl *mustache.Template
 		if e.partialsProvider != nil {
-			tmpl, err = mustache.ParseStringPartials(string(buf), e.partialsProvider)
+			tmpl, err = mustache.ParseStringPartials(source, e.partialsProvider)
 		} else {
-			tmpl, err = mustache.ParseString(string(buf))
+			tmpl, err = mustache.ParseString(source)
 		}
 		if err != nil {
 			return err
@@ -132,13 +127,19 @@ func (e *Engine) Load() error {
 		return err
 	}
 
-	// notify Engine that we parsed all templates
-	e.Loaded = true
-
+	var err error
 	if e.FileSystem != nil {
-		return core.Walk(e.FileSystem, e.Directory, walkFn)
+		err = core.Walk(e.FileSystem, e.Directory, walkFn)
+	} else {
+		err = filepath.Walk(e.Directory, walkFn)
 	}
-	return filepath.Walk(e.Directory, walkFn)
+	if err != nil {
+		return err
+	}
+
+	// A load that failed leaves Loaded unset, so the next render retries.
+	e.Loaded = true
+	return nil
 }
 
 // Render will render the template by name
@@ -150,32 +151,30 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
+	// A mustache template is immutable once parsed, so renders share the lock.
 	e.Mutex.RLock()
-	tmpl := e.Templates[name]
-	e.Mutex.RUnlock()
+	defer e.Mutex.RUnlock()
 
+	tmpl := e.Templates[name]
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
 
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
-
 	if len(layout) > 0 && layout[0] != "" {
+		lay := e.Templates[layout[0]]
+		if lay == nil {
+			return fmt.Errorf("render: layout %s does not exist", layout[0])
+		}
+
 		buf := bytebufferpool.Get()
 		defer bytebufferpool.Put(buf)
 		if err := tmpl.FRender(buf, binding); err != nil {
 			return err
 		}
 
-		bind := core.AcquireViewContext(binding)
+		// Our own context: the embed key must not land in the caller's map.
+		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = buf.String()
-		lay := e.Templates[layout[0]]
-		if lay == nil {
-			return fmt.Errorf("render: layout %s does not exist", layout[0])
-		}
 		return lay.FRender(out, bind)
 	}
 	return tmpl.FRender(out, binding)

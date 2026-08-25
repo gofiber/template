@@ -5,11 +5,17 @@ on:
             - main
         paths:
             - 'handlebars/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     pull_request:
         branches:
             - '*'
         paths:
             - 'handlebars/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     workflow_dispatch:
 name: Tests Handlebars
 

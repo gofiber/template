@@ -5,11 +5,17 @@ on:
             - main
         paths:
             - 'html/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     pull_request:
         branches:
             - '*'
         paths:
             - 'html/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     workflow_dispatch:
 name: Tests Html
 

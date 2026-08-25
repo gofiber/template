@@ -5,11 +5,17 @@ on:
             - main
         paths:
             - 'pug/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     pull_request:
         branches:
             - '*'
         paths:
             - 'pug/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     workflow_dispatch:
 name: Tests Pug
 

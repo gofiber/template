@@ -5,11 +5,17 @@ on:
             - main
         paths:
             - 'amber/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     pull_request:
         branches:
             - '*'
         paths:
             - 'amber/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     workflow_dispatch:
 name: Tests Amber
 

@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	core "github.com/gofiber/template/v2"
+	"github.com/gofiber/utils/v2"
 	"github.com/mailgun/raymond/v2"
 )
 
@@ -58,6 +58,7 @@ func (e *Engine) Load() error {
 	var err error
 
 	// Set template settings
+	e.Loaded = false
 	e.Templates = make(map[string]*raymond.Template)
 	e.registerHelpersOnce.Do(func() {
 		raymond.RegisterHelpers(e.Funcmap)
@@ -73,20 +74,14 @@ func (e *Engine) Load() error {
 			return nil
 		}
 		// Skip file if it does not equal the given template Extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.Extension)
 
 		// Read the file
 		// #gosec G304
@@ -96,7 +91,7 @@ func (e *Engine) Load() error {
 		}
 		// Create new template associated with the current one
 		// This enable use to invoke other templates {{ template .. }}
-		tmpl, err := raymond.Parse(string(buf))
+		tmpl, err := raymond.Parse(utils.UnsafeString(buf))
 		if err != nil {
 			return err
 		}
@@ -114,6 +109,9 @@ func (e *Engine) Load() error {
 	} else {
 		err = filepath.Walk(e.Directory, walkFn)
 	}
+	if err != nil {
+		return err
+	}
 	// Link templates with eachother
 	for j := range e.Templates {
 		for n, template := range e.Templates {
@@ -121,9 +119,9 @@ func (e *Engine) Load() error {
 		}
 	}
 
-	// notify Engine that we parsed all templates
+	// A load that failed leaves Loaded unset, so the next render retries.
 	e.Loaded = true
-	return err
+	return nil
 }
 
 // Render will render the template by name
@@ -135,7 +133,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Lock while executing layout
+	// Exclusive: raymond lazily parses global source partials with no lock of its own.
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
@@ -154,19 +152,16 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if lay == nil {
 			return fmt.Errorf("render: LayoutName %s does not exist", layout[0])
 		}
-		bind := core.AcquireViewContext(binding)
+		// Our own context: the embed key must not land in the caller's map.
+		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = raymond.SafeString(parsed)
-		parsed, err := lay.Exec(bind)
-		if err != nil {
+		if parsed, err = lay.Exec(bind); err != nil {
 			return fmt.Errorf("render: %w", err)
 		}
-		if _, err = out.Write([]byte(parsed)); err != nil {
-			return fmt.Errorf("render: %w", err)
-		}
-		return nil
 	}
-	if _, err = out.Write([]byte(parsed)); err != nil {
+
+	if _, err = out.Write(utils.UnsafeBytes(parsed)); err != nil {
 		return fmt.Errorf("render: %w", err)
 	}
-	return err
+	return nil
 }

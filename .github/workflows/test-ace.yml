@@ -5,11 +5,17 @@ on:
             - main
         paths:
             - 'ace/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     pull_request:
         branches:
             - '*'
         paths:
             - 'ace/**'
+            - '*.go'
+            - 'go.mod'
+            - 'go.sum'
     workflow_dispatch:
 name: Tests Ace
 

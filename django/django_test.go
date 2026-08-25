@@ -4,12 +4,15 @@ package django
 import (
 	"bytes"
 	"embed"
+	"errors"
 	"math/rand"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 	"unicode"
 
 	"github.com/flosch/pongo2/v6"
@@ -301,6 +304,30 @@ func Test_Invalid_Template(t *testing.T) {
 	var buf bytes.Buffer
 	err := engine.Render(&buf, "invalid", nil)
 	require.Error(t, err)
+}
+
+func Test_Render_Failure_Writes_Nothing(t *testing.T) {
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/boom.django", []byte(`PREFIX-{{ boom() }}-SUFFIX`), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".django")
+	require.NoError(t, engine.Load())
+
+	// A render that fails part way through must leave the writer untouched.
+	var buf bytes.Buffer
+	err = engine.Render(&buf, "boom", map[string]interface{}{
+		"boom": func() (string, error) { return "", errors.New("kaboom") },
+	})
+	require.Error(t, err)
+	require.Empty(t, buf.String())
 }
 
 func Test_Invalid_Layout(t *testing.T) {
@@ -597,4 +624,254 @@ func Benchmark_Django_Parallel(b *testing.B) {
 			}
 		})
 	})
+}
+
+func Test_Render_Concurrent(t *testing.T) {
+	engine := New("./views", ".django")
+	require.NoError(t, engine.Load())
+
+	var first bytes.Buffer
+	require.NoError(t, engine.Render(&first, "index", map[string]interface{}{"Title": "C"}))
+	before := first.String()
+
+	// Concurrent renders pin pongo2's executes-without-writes claim under -race.
+	const rounds = 20
+	errs := make([]error, rounds)
+	outs := make([]string, rounds)
+	var wg sync.WaitGroup
+	for i := range rounds {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i] = engine.Render(&buf, "index", map[string]interface{}{"Title": "C"})
+			outs[i] = buf.String()
+		}()
+	}
+	wg.Wait()
+
+	for i := range rounds {
+		require.NoError(t, errs[i])
+		require.Equal(t, before, outs[i])
+	}
+}
+
+func Test_Render_TrimBlocks_Concurrent(t *testing.T) {
+	engine := New("./views", ".django")
+	require.NoError(t, engine.Load())
+
+	// Trim options make pongo2 rewrite tokens at execution; these must serialize.
+	engine.Templates["index"].Options.TrimBlocks = true
+
+	const rounds = 8
+	errs := make([]error, rounds)
+	var wg sync.WaitGroup
+	for i := range rounds {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i] = engine.Render(&buf, "index", map[string]interface{}{"Title": "x"})
+		}()
+	}
+	wg.Wait()
+
+	for i := range rounds {
+		require.NoError(t, errs[i])
+	}
+}
+
+func Test_Load_Retry(t *testing.T) {
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/index.django", []byte(`{% if %}`), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".django")
+	require.Error(t, engine.Load())
+
+	// Once the cause is gone, the next render has to reload and serve.
+	err = os.WriteFile(dir+"/index.django", []byte(`OK-{{ Title }}`), 0o600)
+	require.NoError(t, err)
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "1"}))
+	require.Equal(t, "OK-1", buf.String())
+
+	// A failed reload of a loaded engine must not stick either.
+	err = os.WriteFile(dir+"/index.django", []byte(`{% if %}`), 0o600)
+	require.NoError(t, err)
+	require.Error(t, engine.Load())
+
+	err = os.WriteFile(dir+"/index.django", []byte(`OK-{{ Title }}`), 0o600)
+	require.NoError(t, err)
+
+	buf.Reset()
+	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "2"}))
+	require.Equal(t, "OK-2", buf.String())
+}
+
+func Test_AutoEscape_Isolation(t *testing.T) {
+	title := "<script>alert('XSS')</script>"
+	expEscaped := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1>&lt;script&gt;alert(&#39;XSS&#39;)&lt;/script&gt;</h1><h2>Footer</h2></body></html>`
+	expRaw := `<!DOCTYPE html><html><head><title>Main</title></head><body><h2>Header</h2><h1><script>alert('XSS')</script></h1><h2>Footer</h2></body></html>`
+
+	escaped := New("./views", ".django")
+	require.NoError(t, escaped.Load())
+
+	unescaped := New("./views", ".django")
+	unescaped.SetAutoEscape(false)
+	require.NoError(t, unescaped.Load())
+
+	render := func(e *Engine) string {
+		t.Helper()
+		var buf bytes.Buffer
+		require.NoError(t, e.Render(&buf, "index", map[string]interface{}{"Title": title}, "layouts/main"))
+		return trim(buf.String())
+	}
+
+	// One engine's autoescape setting must not bleed into the other's renders.
+	require.Equal(t, expEscaped, render(escaped))
+	require.Equal(t, expRaw, render(unescaped))
+	require.Equal(t, expEscaped, render(escaped))
+
+	// And not under contention either.
+	const rounds = 10
+	errs := make([]error, rounds*2)
+	outs := make([]string, rounds*2)
+	var wg sync.WaitGroup
+	for i := range rounds {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i*2] = escaped.Render(&buf, "index", map[string]interface{}{"Title": title}, "layouts/main")
+			outs[i*2] = trim(buf.String())
+		}()
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i*2+1] = unescaped.Render(&buf, "index", map[string]interface{}{"Title": title}, "layouts/main")
+			outs[i*2+1] = trim(buf.String())
+		}()
+	}
+	wg.Wait()
+
+	for i := range rounds {
+		require.NoError(t, errs[i*2])
+		require.Equal(t, expEscaped, outs[i*2], "another engine's setting bled into an escaped render")
+		require.NoError(t, errs[i*2+1])
+		require.Equal(t, expRaw, outs[i*2+1], "another engine's setting bled into an unescaped render")
+	}
+}
+
+func Test_Render_Reentrant(t *testing.T) {
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+	defer func() { require.NoError(t, os.RemoveAll(dir)) }()
+
+	require.NoError(t, os.WriteFile(dir+"/outer.django", []byte(`X{{ inner() }}Y`), 0o600))
+	require.NoError(t, os.WriteFile(dir+"/child.django", []byte(`[{{ Title }}]`), 0o600))
+
+	engine := New(dir, ".django")
+
+	started := make(chan struct{})
+	var once sync.Once
+	engine.AddFunc("inner", func() string {
+		once.Do(func() { close(started) })
+		// Give the concurrent SetAutoEscape time to queue on the engine mutex.
+		time.Sleep(300 * time.Millisecond)
+		var buf bytes.Buffer
+		if err := engine.Render(&buf, "child", map[string]interface{}{"Title": "C"}); err != nil {
+			return "ERR:" + err.Error()
+		}
+		return buf.String()
+	})
+	require.NoError(t, engine.Load())
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		<-started
+		engine.SetAutoEscape(true)
+	}()
+
+	done := make(chan error, 1)
+	var buf bytes.Buffer
+	go func() {
+		done <- engine.Render(&buf, "outer", nil)
+	}()
+
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("re-entrant render deadlocked")
+	}
+	wg.Wait()
+	require.Equal(t, "X[C]Y", buf.String())
+}
+
+func Test_Render_Nested_Engines(t *testing.T) {
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+	defer func() { require.NoError(t, os.RemoveAll(dir)) }()
+
+	require.NoError(t, os.WriteFile(dir+"/outer.django", []byte(`A{{ nested() }}Z`), 0o600))
+	require.NoError(t, os.WriteFile(dir+"/child.django", []byte(`[{{ Title }}]`), 0o600))
+
+	inner := New(dir, ".django")
+	require.NoError(t, inner.Load())
+
+	flipper := New(dir, ".django")
+	flipper.SetAutoEscape(false)
+	require.NoError(t, flipper.Load())
+
+	started := make(chan struct{})
+	var once sync.Once
+	outer := New(dir, ".django")
+	outer.AddFunc("nested", func() string {
+		once.Do(func() { close(started) })
+		// Give the opposite-setting render time to queue for the flag flip.
+		time.Sleep(300 * time.Millisecond)
+		var buf bytes.Buffer
+		if err := inner.Render(&buf, "child", map[string]interface{}{"Title": "C"}); err != nil {
+			return "ERR:" + err.Error()
+		}
+		return buf.String()
+	})
+	require.NoError(t, outer.Load())
+
+	var flipErr error
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		<-started
+		var fbuf bytes.Buffer
+		flipErr = flipper.Render(&fbuf, "child", map[string]interface{}{"Title": "F"})
+	}()
+
+	done := make(chan error, 1)
+	var buf bytes.Buffer
+	go func() {
+		done <- outer.Render(&buf, "outer", nil)
+	}()
+
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("nested cross-engine render deadlocked")
+	}
+	wg.Wait()
+	require.NoError(t, flipErr)
+	require.Equal(t, "A[C]Z", buf.String())
 }

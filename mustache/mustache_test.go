@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -185,4 +186,59 @@ func Benchmark_Mustache_Parallel(b *testing.B) {
 			}
 		})
 	})
+}
+
+func Test_Render_Concurrent(t *testing.T) {
+	t.Parallel()
+	engine := New("./views", ".mustache")
+	require.NoError(t, engine.Load())
+
+	var first bytes.Buffer
+	require.NoError(t, engine.Render(&first, "index", map[string]interface{}{"Title": "C"}))
+	before := first.String()
+
+	// Concurrent renders pin mustache's executes-without-writes claim under -race.
+	const rounds = 20
+	errs := make([]error, rounds)
+	outs := make([]string, rounds)
+	var wg sync.WaitGroup
+	for i := range rounds {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i] = engine.Render(&buf, "index", map[string]interface{}{"Title": "C"})
+			outs[i] = buf.String()
+		}()
+	}
+	wg.Wait()
+
+	for i := range rounds {
+		require.NoError(t, errs[i])
+		require.Equal(t, before, outs[i])
+	}
+}
+
+func Test_Load_Retry(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	views := dir + "/views"
+	engine := New(views, ".mustache")
+	require.Error(t, engine.Load())
+
+	// Once the cause is gone, the next render has to reload and serve.
+	require.NoError(t, os.MkdirAll(views, 0o700))
+	require.NoError(t, os.WriteFile(views+"/index.mustache", []byte(`OK-{{Title}}`), 0o600))
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "1"}))
+	require.Equal(t, "OK-1", buf.String())
 }

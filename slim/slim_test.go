@@ -81,6 +81,47 @@ func Test_Empty_Layout(t *testing.T) {
 	require.Equal(t, expect, result)
 }
 
+// customMap stands in for named map types like fiber.Map.
+type customMap map[string]interface{}
+
+func Test_Layout_Binding(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/child.slim", []byte("h1 = Title\n"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/layout.slim", []byte("div\n  p = Title\n  == embed\n"), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".slim")
+	require.NoError(t, engine.Load())
+
+	expect := `<div><p>Hello, World!</p><div><h1>Hello, World!</h1></div></div>`
+
+	// A named map binding has to reach the layout with its values intact.
+	custom := customMap{"Title": "Hello, World!"}
+	var buf bytes.Buffer
+	err = engine.Render(&buf, "child", custom, "layout")
+	require.NoError(t, err)
+	require.Equal(t, expect, trim(buf.String()))
+	require.Equal(t, customMap{"Title": "Hello, World!"}, custom)
+
+	// Rendering must not write the embedded body back into the caller's binding.
+	binding := map[string]interface{}{"Title": "Hello, World!"}
+	buf.Reset()
+	err = engine.Render(&buf, "child", binding, "layout")
+	require.NoError(t, err)
+	require.Equal(t, expect, trim(buf.String()))
+	require.Equal(t, map[string]interface{}{"Title": "Hello, World!"}, binding)
+}
+
 func Test_FileSystem(t *testing.T) {
 	t.Parallel()
 	engine := NewFileSystem(http.Dir("./views"), ".slim")
@@ -247,4 +288,28 @@ func Benchmark_Slim_Parallel(b *testing.B) {
 			}
 		})
 	})
+}
+
+func Test_Load_Retry(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	views := dir + "/views"
+	engine := New(views, ".slim")
+	require.Error(t, engine.Load())
+
+	// Once the cause is gone, the next render has to reload and serve.
+	require.NoError(t, os.MkdirAll(views, 0o700))
+	require.NoError(t, os.WriteFile(views+"/index.slim", []byte(`p ok`), 0o600))
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "index", nil))
+	require.Equal(t, "<p>ok</p>", trim(buf.String()))
 }
