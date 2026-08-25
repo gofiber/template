@@ -61,6 +61,7 @@ jobs:
                 package: ${{ fromJSON(needs.changes.outputs.packages || '[]') }}
         steps:
             - name: Checkout shared config
+              if: matrix.package != 'core'
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   repository: gofiber/.github
@@ -68,11 +69,14 @@ jobs:
                   sparse-checkout-cone-mode: false
 
             - name: Generate config from shared template
+              if: matrix.package != 'core'
               run: |
                   sed "s|{{MODULE}}|${{ matrix.package }}|g" \
                       .github/release-drafter-module.yml > .github/release-drafter-parsed.yml
 
+            # core is the root module, not a subdirectory: it keeps unprefixed
+            # tags and needs its own config instead of the {{MODULE}} template.
             - name: Run release drafter
               uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7
               with:
-                  config-name: file:release-drafter-parsed.yml
+                  config-name: ${{ matrix.package == 'core' && 'release-drafter-core.yml' || 'file:release-drafter-parsed.yml' }}
