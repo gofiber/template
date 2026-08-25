@@ -470,3 +470,37 @@ func Test_Load_Retry(t *testing.T) {
 	require.NoError(t, engine.Render(&buf, "index", nil))
 	require.Equal(t, "OK", trim(buf.String()))
 }
+
+func Test_Layout_Concurrent_Rename(t *testing.T) {
+	engine := New("./views", ".amber")
+	require.NoError(t, engine.Load())
+
+	// Layout writes LayoutName while layout renders read it.
+	errs := make([]error, 4)
+	var wg sync.WaitGroup
+	for g := range 4 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for range 50 {
+				var buf bytes.Buffer
+				if err := engine.Render(&buf, "index", map[string]interface{}{"Title": "Hello, World!"}, "layouts/main"); err != nil {
+					errs[g] = err
+					return
+				}
+			}
+		}()
+	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for range 200 {
+			engine.Layout("embed")
+		}
+	}()
+	wg.Wait()
+
+	for _, err := range errs {
+		require.NoError(t, err)
+	}
+}

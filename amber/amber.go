@@ -163,6 +163,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// loaded, and a template function may itself call Render again.
 	e.Mutex.RLock()
 	templates, pristine, pools := e.Templates, e.pristine, e.pools
+	layoutName := e.LayoutName
 	e.Mutex.RUnlock()
 
 	if len(layout) > 0 && layout[0] != "" {
@@ -193,10 +194,14 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			}
 		}
 		if pool != nil {
-			defer pool.Put(lay)
+			// The closure holds this render's writer; the sentinel replaces it in the pool.
+			defer func() {
+				lay.Funcs(map[string]interface{}{layoutName: layoutUnexpected})
+				pool.Put(lay)
+			}()
 		}
 		lay.Funcs(map[string]interface{}{
-			e.LayoutName: func() (string, error) {
+			layoutName: func() (string, error) {
 				return "", tmpl.Execute(out, binding)
 			},
 		})

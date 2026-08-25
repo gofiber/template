@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 	"unicode"
 
 	"github.com/flosch/pongo2/v6"
@@ -768,4 +769,109 @@ func Test_AutoEscape_Isolation(t *testing.T) {
 		require.NoError(t, errs[i*2+1])
 		require.Equal(t, expRaw, outs[i*2+1], "another engine's setting bled into an unescaped render")
 	}
+}
+
+func Test_Render_Reentrant(t *testing.T) {
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+	defer func() { require.NoError(t, os.RemoveAll(dir)) }()
+
+	require.NoError(t, os.WriteFile(dir+"/outer.django", []byte(`X{{ inner() }}Y`), 0o600))
+	require.NoError(t, os.WriteFile(dir+"/child.django", []byte(`[{{ Title }}]`), 0o600))
+
+	engine := New(dir, ".django")
+
+	started := make(chan struct{})
+	var once sync.Once
+	engine.AddFunc("inner", func() string {
+		once.Do(func() { close(started) })
+		// Give the concurrent SetAutoEscape time to queue on the engine mutex.
+		time.Sleep(300 * time.Millisecond)
+		var buf bytes.Buffer
+		if err := engine.Render(&buf, "child", map[string]interface{}{"Title": "C"}); err != nil {
+			return "ERR:" + err.Error()
+		}
+		return buf.String()
+	})
+	require.NoError(t, engine.Load())
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		<-started
+		engine.SetAutoEscape(true)
+	}()
+
+	done := make(chan error, 1)
+	var buf bytes.Buffer
+	go func() {
+		done <- engine.Render(&buf, "outer", nil)
+	}()
+
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("re-entrant render deadlocked")
+	}
+	wg.Wait()
+	require.Equal(t, "X[C]Y", buf.String())
+}
+
+func Test_Render_Nested_Engines(t *testing.T) {
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+	defer func() { require.NoError(t, os.RemoveAll(dir)) }()
+
+	require.NoError(t, os.WriteFile(dir+"/outer.django", []byte(`A{{ nested() }}Z`), 0o600))
+	require.NoError(t, os.WriteFile(dir+"/child.django", []byte(`[{{ Title }}]`), 0o600))
+
+	inner := New(dir, ".django")
+	require.NoError(t, inner.Load())
+
+	flipper := New(dir, ".django")
+	flipper.SetAutoEscape(false)
+	require.NoError(t, flipper.Load())
+
+	started := make(chan struct{})
+	var once sync.Once
+	outer := New(dir, ".django")
+	outer.AddFunc("nested", func() string {
+		once.Do(func() { close(started) })
+		// Give the opposite-setting render time to queue for the flag flip.
+		time.Sleep(300 * time.Millisecond)
+		var buf bytes.Buffer
+		if err := inner.Render(&buf, "child", map[string]interface{}{"Title": "C"}); err != nil {
+			return "ERR:" + err.Error()
+		}
+		return buf.String()
+	})
+	require.NoError(t, outer.Load())
+
+	var flipErr error
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		<-started
+		var fbuf bytes.Buffer
+		flipErr = flipper.Render(&fbuf, "child", map[string]interface{}{"Title": "F"})
+	}()
+
+	done := make(chan error, 1)
+	var buf bytes.Buffer
+	go func() {
+		done <- outer.Render(&buf, "outer", nil)
+	}()
+
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("nested cross-engine render deadlocked")
+	}
+	wg.Wait()
+	require.NoError(t, flipErr)
+	require.Equal(t, "A[C]Z", buf.String())
 }

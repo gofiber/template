@@ -165,6 +165,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// loaded, and a template function may itself call Render again.
 	e.Mutex.RLock()
 	templates, pristine, pool := e.Templates, e.pristine, e.pool
+	layoutName := e.LayoutName
 	e.Mutex.RUnlock()
 
 	if len(layout) > 0 && layout[0] != "" {
@@ -186,7 +187,11 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 			}
 		}
 		if pool != nil {
-			defer pool.Put(set)
+			// The closure holds this render's writer; the sentinel replaces it in the pool.
+			defer func() {
+				set.Funcs(map[string]interface{}{layoutName: layoutUnexpected})
+				pool.Put(set)
+			}()
 		}
 
 		tmpl := set.Lookup(name)
@@ -202,7 +207,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		// A self-embedding page would recurse without end through the func map.
 		var embedded bool
 		set.Funcs(map[string]interface{}{
-			e.LayoutName: func() (string, error) {
+			layoutName: func() (string, error) {
 				if embedded {
 					return "", errors.New("content embedded recursively")
 				}

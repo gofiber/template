@@ -87,8 +87,6 @@ func (e *Engine) Load() error {
 	pongoset := pongo2.NewSet("default", pongoloader)
 	// Set template settings
 	pongoset.Globals.Update(e.Funcmap)
-	// Set autoescaping
-	setAutoescape(e.autoEscape)
 
 	// Loop trough each Directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -236,44 +234,46 @@ func (e *Engine) SetAutoEscape(autoEscape bool) {
 	e.Mutex.Unlock()
 }
 
-// pongo2's autoescape flag is package-global. The shadow keeps each engine's
-// setting: matching renders share the read lock, a flip holds the write lock.
+// pongo2's autoescape flag is package-global and re-read at every top-level
+// execution - {% include %} and {% ssi %} included - so it must hold a render's
+// setting for that render's whole execution. The gate counts renders in flight:
+// matching renders join without ever waiting - a nested render cannot deadlock -
+// and a flip waits until the flag is idle.
 var autoescape struct {
-	sync.RWMutex
+	sync.Mutex
 	value, known bool
+	active       int
 }
 
-// applyAutoescape points pongo2's flag at want; the caller holds the write lock.
-//
+var autoescapeIdle = sync.NewCond(&autoescape)
+
 //nolint:revive // want is the value being stored, not a control switch
-func applyAutoescape(want bool) {
+func acquireAutoescape(want bool) {
+	autoescape.Lock()
+	for autoescape.known && autoescape.value != want && autoescape.active > 0 {
+		autoescapeIdle.Wait()
+	}
 	if !autoescape.known || autoescape.value != want {
 		pongo2.SetAutoescape(want)
-		autoescape.value = want
-		autoescape.known = true
+		autoescape.value, autoescape.known = want, true
 	}
+	autoescape.active++
+	autoescape.Unlock()
 }
 
-func setAutoescape(want bool) {
+func releaseAutoescape() {
 	autoescape.Lock()
-	applyAutoescape(want)
+	autoescape.active--
+	if autoescape.active == 0 {
+		autoescapeIdle.Broadcast()
+	}
 	autoescape.Unlock()
 }
 
 // withAutoescape runs fn with pongo2's package flag set to want.
-//
-//nolint:revive // want is the value being stored, not a control switch
 func withAutoescape(want bool, fn func() error) error {
-	autoescape.RLock()
-	if autoescape.known && autoescape.value == want {
-		defer autoescape.RUnlock()
-		return fn()
-	}
-	autoescape.RUnlock()
-
-	autoescape.Lock()
-	defer autoescape.Unlock()
-	applyAutoescape(want)
+	acquireAutoescape(want)
+	defer releaseAutoescape()
 	return fn()
 }
 
@@ -289,19 +289,22 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	hasLayout := len(layout) > 0 && layout[0] != ""
 
 	// Trim options make pongo2 rewrite the token stream at execution - those
-	// renders take the write lock, the rest share the read lock across the render.
+	// renders hold the write lock. The rest execute lock-free on the snapshot,
+	// so a template function may itself call Render again.
 	e.Mutex.RLock()
 	tmpl, err := e.lookup(name, "template")
 	var lay *pongo2.Template
 	if err == nil && hasLayout {
 		lay, err = e.lookup(layout[0], "LayoutName")
 	}
+	esc := e.autoEscape
+	layoutName := e.LayoutName
+	locked := err == nil && (executionMutates(tmpl) || (hasLayout && executionMutates(lay)))
+	e.Mutex.RUnlock()
 	if err != nil {
-		e.Mutex.RUnlock()
 		return err
 	}
-	if executionMutates(tmpl) || (hasLayout && executionMutates(lay)) {
-		e.Mutex.RUnlock()
+	if locked {
 		e.Mutex.Lock()
 		defer e.Mutex.Unlock()
 		// The templates may have been reloaded while no lock was held.
@@ -313,12 +316,11 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 				return err
 			}
 		}
-	} else {
-		defer e.Mutex.RUnlock()
+		esc = e.autoEscape
+		layoutName = e.LayoutName
 	}
 
 	bind := getPongoBinding(binding)
-	esc := e.autoEscape
 
 	if !hasLayout {
 		// pongo2 buffers internally, so a failed render writes nothing to out.
@@ -341,7 +343,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		// Mark the `embed` variable as safe
 		// it has already been escaped above
 		// e.LayoutName will be 'embed'
-		layoutBind[e.LayoutName] = pongo2.AsSafeValue(utils.UnsafeString(parsed))
+		layoutBind[layoutName] = pongo2.AsSafeValue(utils.UnsafeString(parsed))
 
 		return lay.ExecuteWriter(layoutBind, out)
 	})

@@ -149,6 +149,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	// loaded, and a template function may itself call Render again.
 	e.Mutex.RLock()
 	templates, pristine, pool := e.Templates, e.pristine, e.pool
+	layoutName := e.LayoutName
 	e.Mutex.RUnlock()
 
 	// Without a layout there is nothing to embed.
@@ -178,7 +179,11 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 	if pool != nil {
-		defer pool.Put(set)
+		// The closures hold this render's writer; the sentinel replaces them in the pool.
+		defer func() {
+			set.Funcs(map[string]interface{}{layoutName: layoutUnexpected})
+			pool.Put(set)
+		}()
 	}
 
 	tmpl := set.Lookup(name)
@@ -187,7 +192,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	}
 
 	// construct a nested render function to embed templates in layouts
-	render := renderFuncCreate(e, out, binding, tmpl, nil)
+	render := renderFuncCreate(layoutName, out, binding, tmpl, nil)
 	for _, layName := range layout {
 		if layName == "" {
 			break
@@ -196,21 +201,21 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if lay == nil {
 			return fmt.Errorf("render: LayoutName %s does not exist", layName)
 		}
-		render = renderFuncCreate(e, out, binding, lay, render)
+		render = renderFuncCreate(layoutName, out, binding, lay, render)
 	}
 	return render()
 }
 
 // renderFuncCreate renders tmpl with childRenderFunc as the layout function;
 // the innermost gets layoutUnexpected, so a self-embedding template fails.
-func renderFuncCreate(e *Engine, out io.Writer, binding interface{}, tmpl *template.Template, childRenderFunc func() error) func() error {
+func renderFuncCreate(layoutName string, out io.Writer, binding interface{}, tmpl *template.Template, childRenderFunc func() error) func() error {
 	return func() error {
 		embed := interface{}(layoutUnexpected)
 		if childRenderFunc != nil {
 			embed = func() (string, error) { return "", childRenderFunc() }
 		}
 		tmpl.Funcs(map[string]interface{}{
-			e.LayoutName: embed,
+			layoutName: embed,
 		})
 		return tmpl.Execute(out, binding)
 	}
