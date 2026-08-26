@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -72,36 +72,41 @@ func Test_Render_RelativePartials(t *testing.T) {
 func Test_LookupCandidates(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
+	type candidateCase struct {
 		fileSystem http.FileSystem
 		name       string
 		baseDir    string
 		partial    string
 		expect     []string
-	}{
+	}
+
+	tests := []candidateCase{
 		{
 			name:    "engine directory only",
 			baseDir: "./views",
 			partial: "partials/header",
-			expect:  []string{"views/partials/header.mustache"},
+			expect:  []string{filepath.Join("views", "partials", "header.mustache")},
 		},
 		{
 			name:    "full path stays supported",
 			baseDir: "./views",
 			partial: "views/partials/header",
-			expect:  []string{"views/views/partials/header.mustache", "views/partials/header.mustache"},
+			expect: []string{
+				filepath.Join("views", "views", "partials", "header.mustache"),
+				filepath.Join("views", "partials", "header.mustache"),
+			},
 		},
 		{
 			name:    "extension is not doubled",
 			baseDir: "./views",
 			partial: "partials/header.mustache",
-			expect:  []string{"views/partials/header.mustache"},
+			expect:  []string{filepath.Join("views", "partials", "header.mustache")},
 		},
 		{
 			name:    "leading dot slash is dropped",
 			baseDir: "./views",
 			partial: "./partials/header",
-			expect:  []string{"views/partials/header.mustache"},
+			expect:  []string{filepath.Join("views", "partials", "header.mustache")},
 		},
 		{
 			// The name as written would reach ./secrets, a sibling of the
@@ -109,13 +114,13 @@ func Test_LookupCandidates(t *testing.T) {
 			name:    "sibling of the engine directory is dropped",
 			baseDir: "./views",
 			partial: "secrets/config",
-			expect:  []string{"views/secrets/config.mustache"},
+			expect:  []string{filepath.Join("views", "secrets", "config.mustache")},
 		},
 		{
 			name:    "absolute engine directory is kept",
 			baseDir: "/srv/app/views",
 			partial: "partials/header",
-			expect:  []string{"/srv/app/views/partials/header.mustache"},
+			expect:  []string{filepath.Join("/srv/app/views", "partials", "header.mustache")},
 		},
 		{
 			name:       "http.FileSystem resolves from its own root",
@@ -127,7 +132,7 @@ func Test_LookupCandidates(t *testing.T) {
 			name:    "working directory needs no prefix",
 			baseDir: ".",
 			partial: "partials/header",
-			expect:  []string{"partials/header.mustache"},
+			expect:  []string{filepath.Join("partials", "header.mustache")},
 		},
 		{
 			name:    "traversal is rejected",
@@ -149,6 +154,17 @@ func Test_LookupCandidates(t *testing.T) {
 			baseDir: "./views",
 			partial: "   ",
 		},
+	}
+
+	if runtime.GOOS == "windows" {
+		// Cleaning the root through slash paths used to turn the share into a
+		// drive rooted path, which pointed the lookup at the wrong volume.
+		tests = append(tests, candidateCase{
+			name:    "unc engine directory keeps its share",
+			baseDir: `\\server\share\views`,
+			partial: "partials/header",
+			expect:  []string{`\\server\share\views\partials\header.mustache`},
+		})
 	}
 
 	for _, tc := range tests {
@@ -179,7 +195,7 @@ func Test_Render_MissingPartial(t *testing.T) {
 	err := engine.Render(&buf, "broken", nil)
 	require.Error(t, err)
 	require.ErrorContains(t, err, `partial "partials/missing" does not exist`)
-	require.ErrorContains(t, err, "(tried: "+path.Join(filepath.ToSlash(dir), "partials/missing.mustache")+")")
+	require.ErrorContains(t, err, "(tried: "+filepath.Join(dir, "partials", "missing.mustache")+")")
 }
 
 func Test_Render_PartialPathTraversal(t *testing.T) {

@@ -104,8 +104,10 @@ written, which keeps templates that already spell out the full path
 the engine directory. With `mustache.NewFileSystem` the lookup is relative to
 the filesystem root, which the filesystem confines on its own.
 
-No partial can leave that root: a name that is absolute, that climbs out with
-`..`, or that would resolve outside the engine directory is never read. When a
-partial is nowhere to be found, rendering fails with an error naming it and
-every path that was tried, instead of silently rendering nothing. Set
-`engine.Debug(true)` to log each attempt.
+No partial name can leave that root: one that is absolute, one that climbs out
+with `..`, and one that would resolve outside the engine directory are all
+refused. Symbolic links under the template directory are followed, the way
+`http.Dir` and template loading itself follow them, so keep that directory to
+content you trust. When a partial is nowhere to be found, rendering fails with
+an error naming it and every path that was tried, instead of silently rendering
+nothing. Set `engine.Debug(true)` to log each attempt.

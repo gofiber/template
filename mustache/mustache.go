@@ -82,22 +82,25 @@ func (p fileSystemPartialProvider) lookupCandidates(partial string) []string {
 		name += p.extension
 	}
 
-	// An http.FileSystem resolves names against its own root and refuses to
-	// serve anything above it, so the name as written is already confined.
+	// An http.FileSystem addresses its files with slash paths below its own
+	// root, and refuses to serve anything above it.
 	if p.fileSystem != nil {
 		return []string{name}
 	}
 
+	// On disk the candidates are operating system paths, so that a Windows UNC
+	// root such as \\server\share\views keeps its share.
+	local := filepath.FromSlash(name)
 	base := localBaseDir(p.baseDir)
 	if base == "" {
 		// The engine reads from the working directory, which the name is
 		// already relative to.
-		return []string{name}
+		return []string{local}
 	}
 
-	candidates := []string{slashpath.Join(base, name)}
-	if withinDir(base, name) {
-		candidates = append(candidates, name)
+	candidates := []string{filepath.Join(base, local)}
+	if withinDir(base, local) {
+		candidates = append(candidates, local)
 	}
 	return candidates
 }
@@ -122,15 +125,16 @@ func sanitizePartial(partial string) string {
 	return name
 }
 
-// localBaseDir turns the engine directory into a slash prefix. The working
-// directory needs no prefix, because the names are already relative to it.
+// localBaseDir cleans the engine directory into an operating system path
+// prefix. The working directory needs no prefix, because the names are already
+// relative to it.
 func localBaseDir(directory string) string {
-	base := strings.TrimSpace(filepath.ToSlash(directory))
+	base := strings.TrimSpace(directory)
 	if base == "" {
 		return ""
 	}
 
-	base = slashpath.Clean(base)
+	base = filepath.Clean(base)
 	if base == "." {
 		return ""
 	}
@@ -140,12 +144,12 @@ func localBaseDir(directory string) string {
 // withinDir reports whether a working directory relative name lands inside dir.
 // Both are compared lexically, the way http.Dir confines its own lookups.
 func withinDir(dir, name string) bool {
-	absDir, err := filepath.Abs(filepath.FromSlash(dir))
+	absDir, err := filepath.Abs(dir)
 	if err != nil {
 		return false
 	}
 
-	absName, err := filepath.Abs(filepath.FromSlash(name))
+	absName, err := filepath.Abs(name)
 	if err != nil {
 		return false
 	}
