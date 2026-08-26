@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
+	"sync"
 
 	"github.com/flosch/pongo2/v6"
 	core "github.com/gofiber/template/v2"
+	"github.com/gofiber/utils/v2"
 )
 
 // Engine struct
@@ -65,6 +67,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	e.Templates = make(map[string]*pongo2.Template)
 	baseDir := e.Directory
 	var pongoloader pongo2.TemplateLoader
@@ -84,8 +87,6 @@ func (e *Engine) Load() error {
 	pongoset := pongo2.NewSet("default", pongoloader)
 	// Set template settings
 	pongoset.Globals.Update(e.Funcmap)
-	// Set autoescaping
-	pongo2.SetAutoescape(e.autoEscape)
 
 	// Loop trough each Directory and register template files
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -100,23 +101,16 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template Extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
 
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
 
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.Extension)
-		// name = strings.Replace(name, e.Extension, "", -1)
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -137,13 +131,19 @@ func (e *Engine) Load() error {
 		return err
 	}
 
-	// notify Engine that we parsed all templates
-	e.Loaded = true
-
+	var err error
 	if e.FileSystem != nil {
-		return core.Walk(e.FileSystem, e.Directory, walkFn)
+		err = core.Walk(e.FileSystem, e.Directory, walkFn)
+	} else {
+		err = filepath.Walk(e.Directory, walkFn)
 	}
-	return filepath.Walk(e.Directory, walkFn)
+	if err != nil {
+		return err
+	}
+
+	// A load that failed leaves Loaded unset, so the next render retries.
+	e.Loaded = true
+	return nil
 }
 
 // getPongoBinding creates a pongo2.Context containing
@@ -153,6 +153,8 @@ func (e *Engine) Load() error {
 // - pongo2.Context
 // - map[string]interface{}
 // It returns nil if the binding is not one of the supported types.
+//
+// The result may alias binding - pongo2 copies before executing, never writes back.
 func getPongoBinding(binding interface{}) pongo2.Context {
 	if binding == nil {
 		return nil
@@ -186,11 +188,22 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	return bind
 }
 
+// sanitizePongoContext drops invalid keys, aliasing data when all are valid.
 func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
 	if len(data) == 0 {
 		return make(pongo2.Context)
 	}
 
+	for key := range data {
+		if !isValidKey(key) {
+			return copyValidPongoKeys(data)
+		}
+	}
+	return data
+}
+
+// copyValidPongoKeys copies data without its invalid keys.
+func copyValidPongoKeys(data map[string]interface{}) pongo2.Context {
 	bind := make(pongo2.Context, len(data))
 	for key, value := range data {
 		if !isValidKey(key) {
@@ -215,7 +228,53 @@ func isValidKey(key string) bool {
 
 // SetAutoEscape sets the auto-escape property of the template engine
 func (e *Engine) SetAutoEscape(autoEscape bool) {
+	// Load reads the flag under the same lock.
+	e.Mutex.Lock()
 	e.autoEscape = autoEscape
+	e.Mutex.Unlock()
+}
+
+// pongo2's autoescape flag is package-global and re-read at every top-level
+// execution - {% include %} and {% ssi %} included - so it must hold a render's
+// setting for that render's whole execution. The gate counts renders in flight:
+// matching renders join without ever waiting - a nested render cannot deadlock -
+// and a flip waits until the flag is idle.
+var autoescape struct {
+	sync.Mutex
+	value, known bool
+	active       int
+}
+
+var autoescapeIdle = sync.NewCond(&autoescape)
+
+//nolint:revive // want is the value being stored, not a control switch
+func acquireAutoescape(want bool) {
+	autoescape.Lock()
+	for autoescape.known && autoescape.value != want && autoescape.active > 0 {
+		autoescapeIdle.Wait()
+	}
+	if !autoescape.known || autoescape.value != want {
+		pongo2.SetAutoescape(want)
+		autoescape.value, autoescape.known = want, true
+	}
+	autoescape.active++
+	autoescape.Unlock()
+}
+
+func releaseAutoescape() {
+	autoescape.Lock()
+	autoescape.active--
+	if autoescape.active == 0 {
+		autoescapeIdle.Broadcast()
+	}
+	autoescape.Unlock()
+}
+
+// withAutoescape runs fn with pongo2's package flag set to want.
+func withAutoescape(want bool, fn func() error) error {
+	acquireAutoescape(want)
+	defer releaseAutoescape()
+	return fn()
 }
 
 // Render will render the template by name
@@ -227,47 +286,79 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
+	hasLayout := len(layout) > 0 && layout[0] != ""
+
+	// Trim options make pongo2 rewrite the token stream at execution - those
+	// renders hold the write lock. The rest execute lock-free on the snapshot,
+	// so a template function may itself call Render again.
 	e.Mutex.RLock()
-	tmpl, ok := e.Templates[name]
-	e.Mutex.RUnlock()
-
-	if !ok {
-		return fmt.Errorf("template %s does not exist", name)
+	tmpl, err := e.lookup(name, "template")
+	var lay *pongo2.Template
+	if err == nil && hasLayout {
+		lay, err = e.lookup(layout[0], "LayoutName")
 	}
-
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
-
-	bind := getPongoBinding(binding)
-	parsed, err := tmpl.Execute(bind)
+	esc := e.autoEscape
+	layoutName := e.LayoutName
+	locked := err == nil && (executionMutates(tmpl) || (hasLayout && executionMutates(lay)))
+	e.Mutex.RUnlock()
 	if err != nil {
 		return err
 	}
-
-	if len(layout) > 0 && layout[0] != "" {
-		if bind == nil {
-			bind = make(map[string]interface{}, 1)
+	if locked {
+		e.Mutex.Lock()
+		defer e.Mutex.Unlock()
+		// The templates may have been reloaded while no lock was held.
+		if tmpl, err = e.lookup(name, "template"); err != nil {
+			return err
 		}
+		if hasLayout {
+			if lay, err = e.lookup(layout[0], "LayoutName"); err != nil {
+				return err
+			}
+		}
+		esc = e.autoEscape
+		layoutName = e.LayoutName
+	}
+
+	bind := getPongoBinding(binding)
+
+	if !hasLayout {
+		// pongo2 buffers internally, so a failed render writes nothing to out.
+		return withAutoescape(esc, func() error {
+			return tmpl.ExecuteWriter(bind, out)
+		})
+	}
+
+	return withAutoescape(esc, func() error {
+		parsed, err := tmpl.ExecuteBytes(bind)
+		if err != nil {
+			return err
+		}
+
+		// bind may alias the caller's map, so the embed key goes into our own.
+		layoutBind := make(pongo2.Context, len(bind)+1)
+		maps.Copy(layoutBind, bind)
 
 		// Workaround for custom {{embed}} tag
 		// Mark the `embed` variable as safe
 		// it has already been escaped above
 		// e.LayoutName will be 'embed'
-		safeEmbed := pongo2.AsSafeValue(parsed)
+		layoutBind[layoutName] = pongo2.AsSafeValue(utils.UnsafeString(parsed))
 
-		// Add the safe value to the binding map
-		bind[e.LayoutName] = safeEmbed
+		return lay.ExecuteWriter(layoutBind, out)
+	})
+}
 
-		lay := e.Templates[layout[0]]
-		if lay == nil {
-			return fmt.Errorf("LayoutName %s does not exist", layout[0])
-		}
-		return lay.ExecuteWriter(bind, out)
+// lookup resolves name, wording the error with kind; the caller holds e.Mutex.
+func (e *Engine) lookup(name, kind string) (*pongo2.Template, error) {
+	tmpl, ok := e.Templates[name]
+	if !ok {
+		return nil, fmt.Errorf("%s %s does not exist", kind, name)
 	}
-	if _, err = out.Write([]byte(parsed)); err != nil {
-		return err
-	}
-	return nil
+	return tmpl, nil
+}
+
+// executionMutates reports whether executing tmpl rewrites its token stream.
+func executionMutates(tmpl *pongo2.Template) bool {
+	return tmpl.Options != nil && (tmpl.Options.TrimBlocks || tmpl.Options.LStripBlocks)
 }

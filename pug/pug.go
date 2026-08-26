@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
+	"sync"
 
 	"github.com/Joker/hpp"
 	"github.com/Joker/jade"
@@ -21,6 +21,10 @@ type Engine struct {
 	core.Engine
 	//  templates
 	Templates *template.Template
+	// pristine is never executed - an executed set cannot be cloned. pool
+	// recycles the layout-render clones and their escape work.
+	pristine *template.Template
+	pool     *sync.Pool
 }
 
 // New returns a Pug render engine for Fiber
@@ -48,10 +52,14 @@ func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 	}
 	// Add a default function that throws an error if called unexpectedly.
 	// This can be useful for debugging or ensuring certain functions are used correctly.
-	engine.AddFunc(engine.LayoutName, func() error {
-		return errors.New("layoutName called unexpectedly")
-	})
+	engine.AddFunc(engine.LayoutName, layoutUnexpected)
 	return engine
+}
+
+// layoutUnexpected is the layout function outside a layout render - the
+// (string, error) shape makes html/template fail the call instead of printing it.
+func layoutUnexpected() (string, error) {
+	return "", errors.New("layoutName called unexpectedly")
 }
 
 // Load parses the templates to the engine.
@@ -60,6 +68,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	e.Templates = template.New(e.Directory)
 
 	// Set template settings
@@ -75,23 +84,15 @@ func (e *Engine) Load() error {
 		if info == nil || info.IsDir() {
 			return nil
 		}
-		// Get file extension of file
-		ext := filepath.Ext(path)
 		// Skip file if it does not equal the given template extension
-		if ext != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.TrimSuffix(name, e.Extension)
 
 		// Read the file
 		// #gosec G304
@@ -122,14 +123,23 @@ func (e *Engine) Load() error {
 		return err
 	}
 
-	// notify Engine that we parsed all templates
-	e.Loaded = true
-
+	var err error
 	if e.FileSystem != nil {
-		return core.Walk(e.FileSystem, e.Directory, walkFn)
+		err = core.Walk(e.FileSystem, e.Directory, walkFn)
+	} else {
+		err = filepath.Walk(e.Directory, walkFn)
 	}
+	if err != nil {
+		return err
+	}
+	if e.pristine, err = e.Templates.Clone(); err != nil {
+		return err
+	}
+	e.pool = &sync.Pool{}
 
-	return filepath.Walk(e.Directory, walkFn)
+	// A load that failed leaves Loaded unset, so the next render retries.
+	e.Loaded = true
+	return nil
 }
 
 // Render will render the template by name
@@ -141,33 +151,68 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
+	// Renders execute lock-free on this snapshot: the sets are immutable once
+	// loaded, and a template function may itself call Render again.
 	e.Mutex.RLock()
-	tmpl := e.Templates.Lookup(name)
+	templates, pristine, pool := e.Templates, e.pristine, e.pool
+	layoutName := e.LayoutName
 	e.Mutex.RUnlock()
 
-	if tmpl == nil {
-		return fmt.Errorf("render: template %s does not exist", name)
-	}
-
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
-
-	// Handle layout if specified
 	if len(layout) > 0 && layout[0] != "" {
-		lay := e.Templates.Lookup(layout[0])
+		// The embed closure holds this render's writer, so it goes into a private clone.
+		if pristine == nil {
+			pristine = templates
+		}
+		// A pooled set always gets this render's closure before executing.
+		var set *template.Template
+		if pool != nil {
+			if pooled, ok := pool.Get().(*template.Template); ok {
+				set = pooled
+			}
+		}
+		if set == nil {
+			var cerr error
+			if set, cerr = pristine.Clone(); cerr != nil {
+				return fmt.Errorf("render: %w", cerr)
+			}
+		}
+		if pool != nil {
+			// The closure holds this render's writer; the sentinel replaces it in the pool.
+			defer func() {
+				set.Funcs(map[string]interface{}{layoutName: layoutUnexpected})
+				pool.Put(set)
+			}()
+		}
 
+		tmpl := set.Lookup(name)
+		if tmpl == nil {
+			return fmt.Errorf("render: template %s does not exist", name)
+		}
+
+		lay := set.Lookup(layout[0])
 		if lay == nil {
 			return fmt.Errorf("render: layout %s does not exist", layout[0])
 		}
 
-		lay.Funcs(map[string]interface{}{
-			e.LayoutName: func() error {
-				return tmpl.Execute(out, binding)
+		// A self-embedding page would recurse without end through the func map.
+		var embedded bool
+		set.Funcs(map[string]interface{}{
+			layoutName: func() (string, error) {
+				if embedded {
+					return "", errors.New("layout embedded recursively")
+				}
+				embedded = true
+				err := tmpl.Execute(out, binding)
+				embedded = false
+				return "", err
 			},
 		})
 		return lay.Execute(out, binding)
+	}
+
+	tmpl := templates.Lookup(name)
+	if tmpl == nil {
+		return fmt.Errorf("render: template %s does not exist", name)
 	}
 
 	return tmpl.Execute(out, binding)

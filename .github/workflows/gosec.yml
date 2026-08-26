@@ -29,14 +29,15 @@ permissions:
 
 jobs:
   detect-changes:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 15
     outputs:
       matrix: ${{ steps.changed-files.outputs.all_changed_files }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # changed-files diffs against the PR base
+          filter: blob:none # it only needs the file names, not the old contents
       - name: Changed Files
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         id: changed-files
@@ -50,7 +51,7 @@ jobs:
           dir_names_max_depth: '1'
           dir_names_exclude_current_dir: true
   gosec-scan:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 15
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.matrix != 'null' && needs.detect-changes.outputs.matrix != '[]' && needs.detect-changes.outputs.matrix != '' }}
@@ -61,9 +62,9 @@ jobs:
         modules: ${{ fromJSON(needs.detect-changes.outputs.matrix) }}
     steps:
       - name: Fetch Repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: '1.25.x'
           check-latest: true

@@ -303,3 +303,27 @@ func Benchmark_Handlebars_Parallel(b *testing.B) {
 		})
 	})
 }
+
+func Test_Load_Retry(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	views := dir + "/views"
+	engine := New(views, ".hbs")
+	require.Error(t, engine.Load())
+
+	// Once the cause is gone, the next render has to reload and serve.
+	require.NoError(t, os.MkdirAll(views, 0o700))
+	require.NoError(t, os.WriteFile(views+"/index.hbs", []byte(`OK-{{Title}}`), 0o600))
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "1"}))
+	require.Equal(t, "OK-1", trim(buf.String()))
+}

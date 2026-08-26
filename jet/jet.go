@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/CloudyKit/jet/v6"
 	"github.com/CloudyKit/jet/v6/loaders/httpfs"
 	core "github.com/gofiber/template/v2"
+	"github.com/gofiber/utils/v2"
 )
 
 // Engine struct
@@ -66,6 +67,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	// parse templates
 	// e.Templates = jet.NewHTMLSet(e.Directory)
 	var loader jet.Loader
@@ -110,17 +112,16 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template Extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
 
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
 
-		name := strings.TrimSuffix(rel, e.Extension)
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -128,7 +129,7 @@ func (e *Engine) Load() error {
 			return err
 		}
 
-		l.Set(name, string(buf))
+		l.Set(name, utils.UnsafeString(buf))
 		if e.Verbose {
 			log.Printf("views: parsed template: %s\n", name)
 		}
@@ -136,14 +137,15 @@ func (e *Engine) Load() error {
 		return err
 	}
 
-	// notify Engine that we parsed all templates
-	e.Loaded = true
-
 	if _, ok := loader.(*jet.InMemLoader); ok {
-		return filepath.Walk(e.Directory, walkFn)
+		if err := filepath.Walk(e.Directory, walkFn); err != nil {
+			return err
+		}
 	}
 
-	return err
+	// A load that failed leaves Loaded unset, so the next render retries.
+	e.Loaded = true
+	return nil
 }
 
 // Render will render the template by name
@@ -155,26 +157,23 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
+	// A jet template is immutable once parsed, so renders share the lock.
 	e.Mutex.RLock()
-	tmpl, err := e.Templates.GetTemplate(name)
-	e.Mutex.RUnlock()
+	defer e.Mutex.RUnlock()
 
+	tmpl, err := e.Templates.GetTemplate(name)
 	if err != nil || tmpl == nil {
 		return fmt.Errorf("render: template %s could not be Loaded: %w", name, err)
 	}
-
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
-
-	bind := jetVarMap(binding)
 
 	if len(layout) > 0 && layout[0] != "" {
 		lay, err := e.Templates.GetTemplate(layout[0])
 		if err != nil {
 			return err
 		}
+
+		// Our own VarMap: the embed closure must not land in the caller's.
+		bind := jetVarMap(binding, 1)
 		var renderingError error
 		bind.Set(e.LayoutName, func() {
 			renderingError = tmpl.Execute(out, bind, nil)
@@ -185,22 +184,23 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 		return err
 	}
-	return tmpl.Execute(out, bind, nil)
+
+	return tmpl.Execute(out, jetVarMap(binding, 0), nil)
 }
 
-func jetVarMap(binding interface{}) jet.VarMap {
-	if binding == nil {
-		return make(jet.VarMap)
-	}
-
-	if bind, ok := binding.(jet.VarMap); ok {
+// jetVarMap resolves binding into a VarMap the engine owns - jet assigns back
+// into the map it is handed, so a caller-supplied one is copied, never shared.
+func jetVarMap(binding interface{}, extra int) jet.VarMap {
+	if caller, ok := binding.(jet.VarMap); ok {
+		bind := make(jet.VarMap, len(caller)+extra)
+		maps.Copy(bind, caller)
 		return bind
 	}
 
-	data := core.AcquireViewContext(binding)
-	bind := make(jet.VarMap, len(data))
-	for key, value := range data {
+	// Filled straight from the binding, skipping an intermediate map.
+	bind := make(jet.VarMap, core.ViewContextLen(binding)+extra)
+	core.RangeViewContext(binding, func(key string, value interface{}) {
 		bind.Set(key, value)
-	}
+	})
 	return bind
 }

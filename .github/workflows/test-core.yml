@@ -4,7 +4,6 @@ on:
             - master
             - main
         paths:
-            - 'django/**'
             - '*.go'
             - 'go.mod'
             - 'go.sum'
@@ -12,12 +11,11 @@ on:
         branches:
             - '*'
         paths:
-            - 'django/**'
             - '*.go'
             - 'go.mod'
             - 'go.sum'
     workflow_dispatch:
-name: Tests Django
+name: Tests Core
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
@@ -43,11 +41,11 @@ jobs:
                 with:
                     go-version: '${{ matrix.go-version }}'
                     check-latest: true
-                    cache-dependency-path: django/go.sum
+                    cache-dependency-path: go.sum
             -   name: Run Test
                 uses: gofiber/.github/.github/actions/gotestsum@main
                 with:
-                    working-directory: ./django
+                    working-directory: .
                     packages: ./...
                     rerun-fails: '2'
                     args: -race -count=1

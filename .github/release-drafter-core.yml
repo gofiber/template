@@ -1,0 +1,19 @@
+# Root module ("core"): tags are unprefixed (v2.1.0), sources sit at the repo root,
+# so the shared {{MODULE}} template (core/v..., core/**) does not fit.
+_extends:
+  from: gofiber/.github:release-drafter.yml
+  strategy:
+    categories: append
+# Latest core release is named "core - v2.1.0"; keep that and match the engines.
+name-template: 'core - v$RESOLVED_VERSION'
+tag-prefix: v
+categories:
+  - type: pre-include
+    when:
+      # Leading slash anchors to the root; gitignore semantics would otherwise
+      # match ace/ace.go, django/README.md, ...
+      paths:
+        - '/*.go'
+        - '/*.md'
+        - '/go.mod'
+        - '/go.sum'

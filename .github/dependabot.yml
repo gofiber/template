@@ -18,6 +18,7 @@ updates:
       allow:
           - dependency-type: "all"
       directories:
+          - "/"
           - "/a*"
           - "/b*"
           - "/c*"
@@ -30,6 +31,10 @@ updates:
           - "🤖 Dependencies"
       schedule:
           interval: "daily"
+      cooldown:
+          exclude:
+              - "github.com/gofiber/*"
+              - "github.com/valyala/fasthttp*"
       groups:
           gofiber:
               patterns:
@@ -76,6 +81,10 @@ updates:
           - "🤖 Dependencies"
       schedule:
           interval: "daily"
+      cooldown:
+          exclude:
+              - "github.com/gofiber/*"
+              - "github.com/valyala/fasthttp*"
       groups:
           gofiber:
               patterns:

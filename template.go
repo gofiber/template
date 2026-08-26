@@ -4,12 +4,22 @@ package template
 import (
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
 
 	"github.com/gofiber/utils/v2"
+)
+
+// Reflect types the binding helpers compare against.
+var (
+	stringType       = reflect.TypeFor[string]()
+	anyType          = reflect.TypeFor[interface{}]()
+	mapStringAnyType = reflect.TypeFor[map[string]interface{}]()
 )
 
 // IEngine interface, to be implemented for any templating engine added to the repository
@@ -120,9 +130,17 @@ func (e *Engine) Reload(enabled bool) IEngineCore {
 
 // PreRenderCheck determines if the engine should reload the templates before rendering.
 // Explicit mutex unlock vs defer offers better performance.
+//
+// The steady state - loaded, reloading off - is answered under the shared lock.
 func (e *Engine) PreRenderCheck() bool {
-	e.Mutex.Lock()
+	e.Mutex.RLock()
+	if e.Loaded && !e.ShouldReload {
+		e.Mutex.RUnlock()
+		return false
+	}
+	e.Mutex.RUnlock()
 
+	e.Mutex.Lock()
 	if !e.Loaded || e.ShouldReload {
 		if e.ShouldReload {
 			e.Loaded = false
@@ -143,32 +161,127 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 		return binds
 	}
 
+	return NewViewContext(binding, 0)
+}
+
+// NewViewContext resolves binding like AcquireViewContext, but always returns a
+// map the caller owns, sized for extra entries beyond the binding's own.
+func NewViewContext(binding interface{}, extra int) map[string]interface{} {
+	if binds, ok := binding.(map[string]interface{}); ok {
+		result := make(map[string]interface{}, len(binds)+extra)
+		maps.Copy(result, binds)
+		return result
+	}
+
+	val, ok := bindingMap(binding)
+	if !ok {
+		return make(map[string]interface{}, extra)
+	}
+
+	result := make(map[string]interface{}, val.Len()+extra)
+	rangeMap(val, func(key string, value interface{}) {
+		result[key] = value
+	})
+	return result
+}
+
+// ViewContextLen reports how many key/value pairs RangeViewContext yields for
+// binding, so engines can size their own context type before filling it.
+func ViewContextLen(binding interface{}) int {
+	if binds, ok := binding.(map[string]interface{}); ok {
+		return len(binds)
+	}
+
+	val, ok := bindingMap(binding)
+	if !ok {
+		return 0
+	}
+	return val.Len()
+}
+
+// RangeViewContext resolves binding like AcquireViewContext and hands every
+// key/value pair to fn.
+func RangeViewContext(binding interface{}, fn func(key string, value interface{})) {
+	if binds, ok := binding.(map[string]interface{}); ok {
+		for key, value := range binds {
+			fn(key, value)
+		}
+		return
+	}
+
+	val, ok := bindingMap(binding)
+	if !ok {
+		return
+	}
+	rangeMap(val, fn)
+}
+
+// directMap returns val as a plain map[string]interface{} when its type
+// converts without copying - fiber.Map and other named map types.
+func directMap(val reflect.Value) (map[string]interface{}, bool) {
+	typ := val.Type()
+	if typ.Kind() != reflect.Map || typ.Key() != stringType || typ.Elem() != anyType {
+		return nil, false
+	}
+	binds, ok := val.Convert(mapStringAnyType).Interface().(map[string]interface{})
+	return binds, ok
+}
+
+// rangeMap hands every entry of the string-keyed map value val to fn, avoiding
+// reflect's map iterator - which heap-allocates - where the type allows it.
+func rangeMap(val reflect.Value, fn func(key string, value interface{})) {
+	if binds, ok := directMap(val); ok {
+		for key, value := range binds {
+			fn(key, value)
+		}
+		return
+	}
+
+	iter := val.MapRange()
+	for iter.Next() {
+		fn(iter.Key().String(), iter.Value().Interface())
+	}
+}
+
+// bindingMap resolves binding to the non-nil, string-keyed map value it wraps,
+// dereferencing a pointer on the way.
+func bindingMap(binding interface{}) (reflect.Value, bool) {
 	if binding == nil {
-		return make(map[string]interface{})
+		return reflect.Value{}, false
 	}
 
 	val := reflect.ValueOf(binding)
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
-			return make(map[string]interface{})
+			return reflect.Value{}, false
 		}
 		val = val.Elem()
 	}
 
 	if val.Kind() != reflect.Map || val.IsNil() {
-		return make(map[string]interface{})
+		return reflect.Value{}, false
 	}
 
 	if val.Type().Key().Kind() != reflect.String {
-		return make(map[string]interface{})
+		return reflect.Value{}, false
 	}
+	return val, true
+}
 
-	result := make(map[string]interface{}, val.Len())
-	iter := val.MapRange()
-	for iter.Next() {
-		result[iter.Key().String()] = iter.Value().Interface()
+// HasExtension reports whether path is a template file for extension: it has to
+// end in extension and carry a name in front of it.
+func HasExtension(path, extension string) bool {
+	return len(path) > len(extension) && strings.HasSuffix(path, extension)
+}
+
+// TemplateName derives the name a template file is registered under:
+// ./views/partials/footer.html relative to ./views becomes partials/footer.
+func TemplateName(directory, path, extension string) (string, error) {
+	rel, err := filepath.Rel(directory, path)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve template path: %w", err)
 	}
-	return result
+	return strings.TrimSuffix(filepath.ToSlash(rel), extension), nil
 }
 
 // ReadFile reads a file from the file system or http.FileSystem.

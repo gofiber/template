@@ -6,8 +6,10 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
+	"github.com/CloudyKit/jet/v6"
 	"github.com/stretchr/testify/require"
 )
 
@@ -89,6 +91,55 @@ func Test_Empty_Layout(t *testing.T) {
 	expect := `<h2>Header</h2><h1>Hello, World!</h1><h2>Footer</h2>`
 	result := trim(buf.String())
 	require.Equal(t, expect, result)
+}
+
+func Test_VarMap_Isolation(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/page.jet", []byte(`{{ Title = "MUTATED" }}<p>{{ Title }}</p>`), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".jet")
+	require.NoError(t, engine.Load())
+
+	// jet writes back into the VarMap it is handed; the engine must use its own copy.
+	shared := jet.VarMap{}
+	shared.Set("Title", "original")
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "page", shared))
+	require.Equal(t, "original", shared["Title"].String())
+	before := buf.String()
+
+	// Keep each render's result: a contention-only failure would otherwise pass.
+	const rounds = 20
+	errs := make([]error, rounds)
+	outs := make([]string, rounds)
+	var wg sync.WaitGroup
+	for i := range rounds {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var buf bytes.Buffer
+			errs[i] = engine.Render(&buf, "page", shared)
+			outs[i] = buf.String()
+		}()
+	}
+	wg.Wait()
+	require.Equal(t, "original", shared["Title"].String())
+
+	for i := range rounds {
+		require.NoError(t, errs[i])
+		require.Equal(t, before, outs[i])
+	}
 }
 
 func Test_FileSystem(t *testing.T) {
@@ -305,4 +356,28 @@ func Benchmark_Jet_Parallel(b *testing.B) {
 			}
 		})
 	})
+}
+
+func Test_Load_Retry(t *testing.T) {
+	t.Parallel()
+
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	views := dir + "/views"
+	engine := New(views, ".jet")
+	require.Error(t, engine.Load())
+
+	// Once the cause is gone, the next render has to reload and serve.
+	require.NoError(t, os.MkdirAll(views, 0o700))
+	require.NoError(t, os.WriteFile(views+"/index.jet", []byte(`OK-{{ Title }}`), 0o600))
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "index", map[string]interface{}{"Title": "1"}))
+	require.Equal(t, "OK-1", trim(buf.String()))
 }

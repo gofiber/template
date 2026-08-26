@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	core "github.com/gofiber/template/v2"
 	"github.com/mattn/go-slim"
@@ -56,6 +55,7 @@ func (e *Engine) Load() error {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
+	e.Loaded = false
 	e.Templates = make(map[string]*slim.Template)
 
 	// Loop trough each Directory and register template files
@@ -69,20 +69,14 @@ func (e *Engine) Load() error {
 			return nil
 		}
 		// Skip file if it does not equal the given template Extension
-		if len(e.Extension) >= len(path) || path[len(path)-len(e.Extension):] != e.Extension {
+		if !core.HasExtension(path, e.Extension) {
 			return nil
 		}
-		// Get the relative file path
-		// ./views/html/index.tmpl -> index.tmpl
-		rel, err := filepath.Rel(e.Directory, path)
+		// ./views/html/index.tmpl -> index
+		name, err := core.TemplateName(e.Directory, path, e.Extension)
 		if err != nil {
 			return err
 		}
-		// Reverse slashes '\' -> '/' and
-		// partials\footer.tmpl -> partials/footer.tmpl
-		name := filepath.ToSlash(rel)
-		// Remove ext from name 'index.tmpl' -> 'index'
-		name = strings.ReplaceAll(name, e.Extension, "")
 		// Read the file
 		// #gosec G304
 		buf, err := core.ReadFile(path, e.FileSystem)
@@ -113,13 +107,19 @@ func (e *Engine) Load() error {
 		return err
 	}
 
-	// notify Engine that we parsed all templates
-	e.Loaded = true
-
+	var err error
 	if e.FileSystem != nil {
-		return core.Walk(e.FileSystem, e.Directory, walkFn)
+		err = core.Walk(e.FileSystem, e.Directory, walkFn)
+	} else {
+		err = filepath.Walk(e.Directory, walkFn)
 	}
-	return filepath.Walk(e.Directory, walkFn)
+	if err != nil {
+		return err
+	}
+
+	// A load that failed leaves Loaded unset, so the next render retries.
+	e.Loaded = true
+	return nil
 }
 
 // Render will render the template by name
@@ -131,18 +131,14 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		}
 	}
 
-	// Acquire read lock for accessing the template
-	e.Mutex.RLock()
-	tmpl := e.Templates[name]
-	e.Mutex.RUnlock()
+	// Exclusive: go-slim's Execute writes nested templates into engine state.
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 
+	tmpl := e.Templates[name]
 	if tmpl == nil {
 		return fmt.Errorf("render: template %s does not exist", name)
 	}
-
-	// Lock while executing layout
-	e.Mutex.Lock()
-	defer e.Mutex.Unlock()
 
 	if len(layout) > 0 && layout[0] != "" {
 		buf := bytebufferpool.Get()
@@ -150,12 +146,8 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if err := tmpl.Execute(buf, binding); err != nil {
 			return err
 		}
-		var bind map[string]interface{}
-		if context, ok := binding.(map[string]interface{}); ok {
-			bind = context
-		} else {
-			bind = make(map[string]interface{}, 1)
-		}
+		// Our own context: the caller's map must not be written to.
+		bind := core.NewViewContext(binding, 1)
 		bind[e.LayoutName] = buf.String()
 		lay := e.Templates[layout[0]]
 		if lay == nil {
