@@ -1,0 +1,89 @@
+name: Update core dependency
+
+on:
+  schedule:
+    - cron: '0 0 * * 3'   # 8h before the weekly release; schedules can lag badly
+  repository_dispatch:
+    types: [trigger-dependabot]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ secrets.PR_TOKEN }}
+      - name: Install Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.25.x'
+          check-latest: true
+          cache-dependency-path: '**/go.sum'
+
+      - name: Bump every module to the newest core release
+        run: |
+          set -euo pipefail
+
+          core=$(go mod edit -json | jq -r .Module.Path)
+          # ls-remote patterns tail-match, so anchor at refs/tags or engine tags match too.
+          tag=$(git ls-remote --tags --refs --sort=-v:refname origin "refs/tags/${core##*/}.*" \
+                | sed 's#.*refs/tags/##' | awk '!/-/{print; exit}' || true)
+          [ -n "$tag" ] || { echo "::error::no ${core##*/}.* release tag on origin"; exit 1; }
+          echo "core module: $core, newest release: $tag"
+
+          for mod in $(git ls-files '*/go.mod'); do
+            d=${mod%/go.mod}
+            go -C "$d" mod edit -json | jq -e --arg c "$core" '.Require[]? | select(.Path == $c)' >/dev/null || continue
+            go -C "$d" mod edit -require="$core@$tag"
+          done
+          git --no-pager diff --stat
+
+          # Runs even when the bump was a no-op: replaces are ignored by consumers,
+          # so the requires can be current while the engines use unreleased core API.
+          work=$(mktemp -d)
+          tar -c --exclude=.git . | tar -x -C "$work"
+
+          # The cron fires before the core release, so a miss there is expected.
+          level=error
+          if [ "$GITHUB_EVENT_NAME" = schedule ]; then level=warning; fi
+
+          fail=
+          for mod in $(git ls-files '*/go.mod'); do
+            echo "::group::verify ${mod%/go.mod}"
+            (
+              cd "$work/${mod%/go.mod}"
+              go mod edit -json \
+                | jq -r '.Replace[]? | select(.New.Path | startswith(".")) | .Old.Path' \
+                | xargs -r -I{} go mod edit -dropreplace={}
+              GOWORK=off GOFLAGS=-mod=mod go build ./...
+            ) || { echo "::$level file=$mod::${mod%/go.mod} does not build against $tag"; fail=1; }
+            echo "::endgroup::"
+          done
+          if [ -n "$fail" ] && [ "$level" = error ]; then exit 1; fi
+
+          if git diff --quiet; then
+            echo "requires already point at $tag"
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -am "chore(deps): update $core to $tag"
+
+          # dependabot-on-demand answers the same dispatch and pushes to master too.
+          for _ in 1 2 3; do
+            git push && exit 0
+            git fetch origin "$GITHUB_REF_NAME"
+            git rebase "origin/$GITHUB_REF_NAME"
+          done
+          exit 1
