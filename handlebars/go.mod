@@ -3,7 +3,7 @@ module github.com/gofiber/template/handlebars/v3
 go 1.25.0
 
 require (
-	github.com/gofiber/template/v2 v2.1.0
+	github.com/gofiber/template/v2 v2.1.1
 	github.com/gofiber/utils/v2 v2.4.2
 	github.com/mailgun/raymond/v2 v2.0.48
 	github.com/stretchr/testify v1.12.1

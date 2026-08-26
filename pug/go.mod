@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/Joker/hpp v1.0.0
 	github.com/Joker/jade v1.1.3
-	github.com/gofiber/template/v2 v2.1.0
+	github.com/gofiber/template/v2 v2.1.1
 	github.com/stretchr/testify v1.12.1
 )
 
