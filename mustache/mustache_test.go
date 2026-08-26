@@ -56,8 +56,6 @@ func Test_Render_RelativePartials(t *testing.T) {
 	engine := New("./views", ".mustache")
 	require.NoError(t, engine.Load())
 
-	// nested/relative.mustache includes partials/header, so the partial has to
-	// resolve against the engine directory rather than the including template.
 	var buf bytes.Buffer
 	err := engine.Render(&buf, "nested/relative", customMap{
 		"Title": "Hello, Relative!",
@@ -109,8 +107,6 @@ func Test_LookupCandidates(t *testing.T) {
 			expect:  []string{filepath.Join("views", "partials", "header.mustache")},
 		},
 		{
-			// The name as written would reach ./secrets, a sibling of the
-			// engine directory, so only the scoped candidate survives.
 			name:    "sibling of the engine directory is dropped",
 			baseDir: "./views",
 			partial: "secrets/config",
@@ -157,8 +153,6 @@ func Test_LookupCandidates(t *testing.T) {
 	}
 
 	if runtime.GOOS == "windows" {
-		// Cleaning the root through slash paths used to turn the share into a
-		// drive rooted path, which pointed the lookup at the wrong volume.
 		tests = append(tests, candidateCase{
 			name:    "unc engine directory keeps its share",
 			baseDir: `\\server\share\views`,
@@ -189,8 +183,6 @@ func Test_Render_MissingPartial(t *testing.T) {
 	engine := New(dir, ".mustache")
 	require.NoError(t, engine.Load())
 
-	// A missing partial must not render empty: it has to name the partial and
-	// every path that was tried.
 	var buf bytes.Buffer
 	err := engine.Render(&buf, "broken", nil)
 	require.Error(t, err)
@@ -212,7 +204,6 @@ func Test_Render_PartialPathTraversal(t *testing.T) {
 	engine := New(views, ".mustache")
 	require.NoError(t, engine.Load())
 
-	// A partial must not climb out of the engine directory.
 	var buf bytes.Buffer
 	err := engine.Render(&buf, "escape", nil)
 	require.Error(t, err)
@@ -224,8 +215,6 @@ func Test_Render_PartialPathTraversal(t *testing.T) {
 func Test_Render_PartialOutsideEngineDirectory(t *testing.T) {
 	t.Parallel()
 
-	// The name as written is resolved against the process working directory, so
-	// it must not be able to reach a sibling of the engine directory.
 	dir, err := os.MkdirTemp(".", "")
 	require.NoError(t, err)
 

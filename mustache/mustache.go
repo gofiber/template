@@ -25,19 +25,15 @@ type Engine struct {
 	Templates map[string]*mustache.Template
 }
 
-// fileSystemPartialProvider resolves the partials a template includes, either
-// from disk or from the engine's http.FileSystem.
+// fileSystemPartialProvider resolves the partials a template includes.
 type fileSystemPartialProvider struct {
 	fileSystem http.FileSystem
 	extension  string
-	// baseDir is the engine directory partials are confined to. It is empty
-	// when fileSystem is set, which confines them to its own root instead.
-	baseDir string
-	verbose bool
+	baseDir    string // engine directory; empty when fileSystem is set
+	verbose    bool
 }
 
-// Get returns the source of a partial, trying each candidate path in turn and
-// reporting every path it tried when none of them holds the partial.
+// Get returns the source of a partial, or an error naming every path tried.
 func (p fileSystemPartialProvider) Get(partial string) (string, error) {
 	candidates := p.lookupCandidates(partial)
 	if len(candidates) == 0 {
@@ -68,11 +64,7 @@ func (p fileSystemPartialProvider) Get(partial string) (string, error) {
 	return "", fmt.Errorf("render: partial %q does not exist (tried: %s): %w", partial, strings.Join(candidates, ", "), firstErr)
 }
 
-// lookupCandidates lists the files that may hold the partial. The engine
-// directory comes first so a configured directory wins over the process working
-// directory, and the name as written follows it to keep templates that already
-// spell out the full path working. Every candidate stays inside the engine
-// directory.
+// lookupCandidates lists the files that may hold the partial, engine dir first.
 func (p fileSystemPartialProvider) lookupCandidates(partial string) []string {
 	name := sanitizePartial(partial)
 	if name == "" {
@@ -82,19 +74,15 @@ func (p fileSystemPartialProvider) lookupCandidates(partial string) []string {
 		name += p.extension
 	}
 
-	// An http.FileSystem addresses its files with slash paths below its own
-	// root, and refuses to serve anything above it.
+	// An http.FileSystem addresses its files with slash paths below its root.
 	if p.fileSystem != nil {
 		return []string{name}
 	}
 
-	// On disk the candidates are operating system paths, so that a Windows UNC
-	// root such as \\server\share\views keeps its share.
+	// Operating system paths keep a Windows UNC root's share.
 	local := filepath.FromSlash(name)
 	base := localBaseDir(p.baseDir)
 	if base == "" {
-		// The engine reads from the working directory, which the name is
-		// already relative to.
 		return []string{local}
 	}
 
@@ -105,9 +93,7 @@ func (p fileSystemPartialProvider) lookupCandidates(partial string) []string {
 	return candidates
 }
 
-// sanitizePartial normalizes a partial reference and rejects the ones that would
-// leave the template root behind, either through an absolute path or through
-// ".." segments.
+// sanitizePartial rejects a partial that is absolute or climbs out with "..".
 func sanitizePartial(partial string) string {
 	name := filepath.ToSlash(strings.TrimSpace(partial))
 	if name == "" {
@@ -125,9 +111,7 @@ func sanitizePartial(partial string) string {
 	return name
 }
 
-// localBaseDir cleans the engine directory into an operating system path
-// prefix. The working directory needs no prefix, because the names are already
-// relative to it.
+// localBaseDir cleans the engine directory into a prefix, empty for ".".
 func localBaseDir(directory string) string {
 	base := strings.TrimSpace(directory)
 	if base == "" {
@@ -141,8 +125,7 @@ func localBaseDir(directory string) string {
 	return base
 }
 
-// withinDir reports whether a working directory relative name lands inside dir.
-// Both are compared lexically, the way http.Dir confines its own lookups.
+// withinDir reports lexically whether name lands inside dir.
 func withinDir(dir, name string) bool {
 	absDir, err := filepath.Abs(dir)
 	if err != nil {
