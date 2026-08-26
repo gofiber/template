@@ -56,19 +56,19 @@ package main
 
 import (
 	"log"
-	
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/mustache/v3"
+
+	// "net/http" // embedded system
 )
 
 func main() {
 	// Create a new engine
 	engine := mustache.New("./views", ".mustache")
 
-  // Or from an embedded system
-  //   Partials are resolved relative to the engine directory / filesystem root.
-  //   For compatibility, full paths also work when present in your templates.
-  // engine := mustache.NewFileSystem(http.Dir("./views"), ".mustache")
+	// Or from an embedded system
+	// engine := mustache.NewFileSystem(http.Dir("./views"), ".mustache")
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
@@ -93,3 +93,17 @@ func main() {
 }
 
 ```
+
+## Partials
+
+A `{{> name }}` include is looked up in the engine directory first, so
+`{{> partials/header }}` reads `./views/partials/header.mustache` for an engine
+created with `mustache.New("./views", ".mustache")`. The name is then tried as
+given, which keeps templates that already spell out the full path
+(`{{> views/partials/header }}`) working. With `mustache.NewFileSystem` the
+lookup is relative to the filesystem root.
+
+Partials cannot leave the template root: a name that is absolute or that climbs
+out with `..` is rejected. When a partial is nowhere to be found, rendering fails
+with an error listing the name and every path that was tried instead of silently
+rendering nothing. Set `engine.Debug(true)` to log each attempt.
