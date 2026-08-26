@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
+	slashpath "path"
 	"path/filepath"
 	"strings"
 
@@ -25,6 +25,8 @@ type Engine struct {
 	Templates map[string]*mustache.Template
 }
 
+// fileSystemPartialProvider resolves the partials a template includes, either
+// from disk or from the engine's http.FileSystem.
 type fileSystemPartialProvider struct {
 	fileSystem http.FileSystem
 	extension  string
@@ -32,8 +34,17 @@ type fileSystemPartialProvider struct {
 	verbose    bool
 }
 
+// Get returns the source of a partial, trying each candidate path in turn and
+// reporting every path it tried when none of them holds the partial.
 func (p fileSystemPartialProvider) Get(partial string) (string, error) {
 	candidates := p.lookupCandidates(partial)
+	if len(candidates) == 0 {
+		if p.verbose {
+			log.Printf("views: partial rejected: partial=%q", partial)
+		}
+		return "", fmt.Errorf("render: partial %q is not a valid path inside the template root", partial)
+	}
+
 	var firstErr error
 	for _, candidate := range candidates {
 		buf, err := core.ReadFile(candidate, p.fileSystem)
@@ -52,48 +63,63 @@ func (p fileSystemPartialProvider) Get(partial string) (string, error) {
 	if p.verbose {
 		log.Printf("views: partial not found: partial=%q candidates=%v", partial, candidates)
 	}
-
-	if firstErr == nil {
-		firstErr = fmt.Errorf("no partial candidates generated")
-	}
 	return "", fmt.Errorf("render: partial %q does not exist (tried: %s): %w", partial, strings.Join(candidates, ", "), firstErr)
 }
 
+// lookupCandidates lists the files that may hold the partial. The engine
+// directory comes first so a configured directory wins over the process working
+// directory, and the bare name follows it to keep templates that already spell
+// out the full path working.
 func (p fileSystemPartialProvider) lookupCandidates(partial string) []string {
-	addCandidate := func(candidates []string, candidate string) []string {
-		for _, existing := range candidates {
-			if existing == candidate {
-				return candidates
-			}
-		}
-		return append(candidates, candidate)
+	name := sanitizePartial(partial)
+	if name == "" {
+		return nil
+	}
+	if !core.HasExtension(name, p.extension) {
+		name += p.extension
 	}
 
-	addExtension := func(raw string) string {
-		if strings.HasSuffix(raw, p.extension) {
-			return raw
-		}
-		return raw + p.extension
-	}
-
-	base := filepath.ToSlash(strings.TrimSpace(p.baseDir))
-	base = strings.TrimSuffix(base, "/")
-	if base == "." || base == "/" {
-		base = ""
-	}
-
-	clean := filepath.ToSlash(strings.TrimSpace(partial))
-	clean = strings.TrimPrefix(clean, "./")
-
+	base := normalizeBaseDir(p.baseDir)
 	candidates := make([]string, 0, 2)
-	if clean != "" {
-		candidates = addCandidate(candidates, addExtension(clean))
-		if base != "" {
-			candidates = addCandidate(candidates, addExtension(path.Join(base, clean)))
-		}
+	if base != "" {
+		candidates = append(candidates, slashpath.Join(base, name))
+	}
+	return append(candidates, name)
+}
+
+// sanitizePartial normalizes a partial reference and rejects the ones that would
+// leave the template root behind, either through an absolute path or through
+// ".." segments.
+func sanitizePartial(partial string) string {
+	name := filepath.ToSlash(strings.TrimSpace(partial))
+	if name == "" {
+		return ""
 	}
 
-	return candidates
+	if slashpath.IsAbs(name) || filepath.IsAbs(name) || filepath.VolumeName(name) != "" {
+		return ""
+	}
+
+	name = slashpath.Clean(name)
+	if name == "." || name == ".." || strings.HasPrefix(name, "../") {
+		return ""
+	}
+	return name
+}
+
+// normalizeBaseDir turns the engine directory into a slash prefix, with the
+// working directory and the filesystem root reduced to no prefix at all.
+func normalizeBaseDir(directory string) string {
+	base := strings.TrimSpace(filepath.ToSlash(directory))
+	if base == "" {
+		return ""
+	}
+
+	base = slashpath.Clean(base)
+	if base == "." || base == "/" {
+		return ""
+	}
+	return base
 }
 
 // New returns a Mustache render engine for Fiber
