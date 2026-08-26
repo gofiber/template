@@ -1,0 +1,46 @@
+name: Release compat
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Local replace directives are ignored by consumers, so a module can be green
+  # here and still break on `go get`. Build it the way a consumer resolves it.
+  build-as-published:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.25.x'
+          check-latest: true
+      - name: Build every module without its local replaces
+        run: |
+          fail=0
+          for mod in $(git ls-files '*/go.mod'); do
+            dir="${mod%/go.mod}"
+            echo "::group::$dir"
+            (
+              cd "$dir"
+              go mod edit -json \
+                | jq -r '.Replace[]? | select(.New.Path | startswith(".")) | .Old.Path' \
+                | xargs -r -I{} go mod edit -dropreplace={}
+              GOFLAGS=-mod=mod go build ./...
+            ) || { echo "::error file=$mod::$dir does not build against the versions it requires"; fail=1; }
+            echo "::endgroup::"
+          done
+          exit $fail
