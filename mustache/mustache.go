@@ -110,7 +110,7 @@ func (e *Engine) Load() error {
 	for _, src := range all {
 		tmpl, err := mustache.ParseStringPartials(src.body, provider)
 		if err != nil {
-			return err
+			return fmt.Errorf("views: template %s: %w", src.name, err)
 		}
 
 		parsed[src.name] = tmpl

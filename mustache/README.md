@@ -111,8 +111,10 @@ passing `http.Dir("./views")`, makes it `{{> partials/header }}`.
 from `partialsFS` as well, for partials that do not sit beside the templates.
 
 Because the partials come from what was loaded, an include cannot reach outside
-the engine directory: a name that is absolute, that climbs out with `..`, or that
-points through a symbolic link the loader did not walk simply is not there.
+the engine directory. The leading slash in `{{> /partials/header }}` anchors the
+name to that root, not to the filesystem, so a filesystem path such as
+`/etc/passwd`, a name that climbs out with `..`, and one that points through a
+symbolic link the loader did not walk are all simply not there.
 `Load` reports it rather than rendering nothing, naming the template and the
 partial, and it reports an include cycle the same way instead of letting the
 render recurse. Both are load-time failures, so a bad include shows up when the

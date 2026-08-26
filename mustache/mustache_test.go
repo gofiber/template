@@ -145,6 +145,18 @@ func Test_Load_MissingPartialInsideSection(t *testing.T) {
 	require.ErrorContains(t, err, `includes partial "nope", which does not exist`)
 }
 
+func Test_Load_MalformedTemplate(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "broken.mustache"), []byte("{{#open}}never closed"), 0o600))
+
+	engine := New(dir, ".mustache")
+	err := engine.Load()
+	require.Error(t, err)
+	require.ErrorContains(t, err, "views: template broken:")
+}
+
 func Test_Load_SelfIncludingPartial(t *testing.T) {
 	t.Parallel()
 
