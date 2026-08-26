@@ -14,7 +14,7 @@ Mustache is a template engine created by [hoisie/cbroglie](https://github.com/cb
 Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
 
 ```
-go get github.com/gofiber/template/mustache/v4
+go get github.com/gofiber/template/mustache/v3
 ```
 
 ## Basic Example
@@ -99,11 +99,13 @@ func main() {
 A `{{> name }}` include is looked up in the engine directory first, so
 `{{> partials/header }}` reads `./views/partials/header.mustache` for an engine
 created with `mustache.New("./views", ".mustache")`. The name is then tried as
-given, which keeps templates that already spell out the full path
-(`{{> views/partials/header }}`) working. With `mustache.NewFileSystem` the
-lookup is relative to the filesystem root.
+written, which keeps templates that already spell out the full path
+(`{{> views/partials/header }}`) working, but only while it still lands inside
+the engine directory. With `mustache.NewFileSystem` the lookup is relative to
+the filesystem root, which the filesystem confines on its own.
 
-Partials cannot leave the template root: a name that is absolute or that climbs
-out with `..` is rejected. When a partial is nowhere to be found, rendering fails
-with an error listing the name and every path that was tried instead of silently
-rendering nothing. Set `engine.Debug(true)` to log each attempt.
+No partial can leave that root: a name that is absolute, that climbs out with
+`..`, or that would resolve outside the engine directory is never read. When a
+partial is nowhere to be found, rendering fails with an error naming it and
+every path that was tried, instead of silently rendering nothing. Set
+`engine.Debug(true)` to log each attempt.

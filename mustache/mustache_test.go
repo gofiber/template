@@ -73,16 +73,17 @@ func Test_LookupCandidates(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name    string
-		baseDir string
-		partial string
-		expect  []string
+		fileSystem http.FileSystem
+		name       string
+		baseDir    string
+		partial    string
+		expect     []string
 	}{
 		{
-			name:    "engine directory first",
+			name:    "engine directory only",
 			baseDir: "./views",
 			partial: "partials/header",
-			expect:  []string{"views/partials/header.mustache", "partials/header.mustache"},
+			expect:  []string{"views/partials/header.mustache"},
 		},
 		{
 			name:    "full path stays supported",
@@ -94,17 +95,37 @@ func Test_LookupCandidates(t *testing.T) {
 			name:    "extension is not doubled",
 			baseDir: "./views",
 			partial: "partials/header.mustache",
-			expect:  []string{"views/partials/header.mustache", "partials/header.mustache"},
+			expect:  []string{"views/partials/header.mustache"},
 		},
 		{
 			name:    "leading dot slash is dropped",
 			baseDir: "./views",
 			partial: "./partials/header",
-			expect:  []string{"views/partials/header.mustache", "partials/header.mustache"},
+			expect:  []string{"views/partials/header.mustache"},
 		},
 		{
-			name:    "filesystem root adds no prefix",
-			baseDir: "/",
+			// The name as written would reach ./secrets, a sibling of the
+			// engine directory, so only the scoped candidate survives.
+			name:    "sibling of the engine directory is dropped",
+			baseDir: "./views",
+			partial: "secrets/config",
+			expect:  []string{"views/secrets/config.mustache"},
+		},
+		{
+			name:    "absolute engine directory is kept",
+			baseDir: "/srv/app/views",
+			partial: "partials/header",
+			expect:  []string{"/srv/app/views/partials/header.mustache"},
+		},
+		{
+			name:       "http.FileSystem resolves from its own root",
+			fileSystem: http.Dir("./views"),
+			partial:    "partials/header",
+			expect:     []string{"partials/header.mustache"},
+		},
+		{
+			name:    "working directory needs no prefix",
+			baseDir: ".",
 			partial: "partials/header",
 			expect:  []string{"partials/header.mustache"},
 		},
@@ -133,7 +154,11 @@ func Test_LookupCandidates(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			provider := fileSystemPartialProvider{extension: ".mustache", baseDir: tc.baseDir}
+			provider := fileSystemPartialProvider{
+				fileSystem: tc.fileSystem,
+				extension:  ".mustache",
+				baseDir:    tc.baseDir,
+			}
 			require.Equal(t, tc.expect, provider.lookupCandidates(tc.partial))
 		})
 	}
@@ -154,30 +179,58 @@ func Test_Render_MissingPartial(t *testing.T) {
 	err := engine.Render(&buf, "broken", nil)
 	require.Error(t, err)
 	require.ErrorContains(t, err, `partial "partials/missing" does not exist`)
-	require.ErrorContains(t, err, "tried: "+path.Join(filepath.ToSlash(dir), "partials/missing.mustache")+", partials/missing.mustache")
+	require.ErrorContains(t, err, "(tried: "+path.Join(filepath.ToSlash(dir), "partials/missing.mustache")+")")
 }
 
 func Test_Render_PartialPathTraversal(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
-	const secret = "top-secret"
-	require.NoError(t, os.WriteFile(filepath.Join(root, "secret.mustache"), []byte(secret), 0o600))
+	const marker = "outside-the-root"
+	require.NoError(t, os.WriteFile(filepath.Join(root, "sibling.mustache"), []byte(marker), 0o600))
 
 	views := filepath.Join(root, "views")
 	require.NoError(t, os.MkdirAll(views, 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(views, "escape.mustache"), []byte("{{> ../secret }}"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(views, "escape.mustache"), []byte("{{> ../sibling }}"), 0o600))
 
 	engine := New(views, ".mustache")
 	require.NoError(t, engine.Load())
 
-	// A partial must not read its way out of the engine directory.
+	// A partial must not climb out of the engine directory.
 	var buf bytes.Buffer
 	err := engine.Render(&buf, "escape", nil)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "is not a valid path inside the template root")
-	require.NotContains(t, err.Error(), secret)
-	require.NotContains(t, buf.String(), secret)
+	require.NotContains(t, err.Error(), marker)
+	require.NotContains(t, buf.String(), marker)
+}
+
+func Test_Render_PartialOutsideEngineDirectory(t *testing.T) {
+	t.Parallel()
+
+	// The name as written is resolved against the process working directory, so
+	// it must not be able to reach a sibling of the engine directory.
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	const marker = "outside-the-engine-directory"
+	require.NoError(t, os.MkdirAll(dir+"/outside", 0o700))
+	require.NoError(t, os.WriteFile(dir+"/outside/config.mustache", []byte(marker), 0o600))
+	require.NoError(t, os.MkdirAll(dir+"/views", 0o700))
+	require.NoError(t, os.WriteFile(dir+"/views/escape.mustache", []byte("{{> "+dir+"/outside/config }}"), 0o600))
+
+	engine := New(dir+"/views", ".mustache")
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err = engine.Render(&buf, "escape", nil)
+	require.Error(t, err)
+	require.NotContains(t, buf.String(), marker)
 }
 
 func Test_Layout(t *testing.T) {

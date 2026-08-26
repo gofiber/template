@@ -30,8 +30,10 @@ type Engine struct {
 type fileSystemPartialProvider struct {
 	fileSystem http.FileSystem
 	extension  string
-	baseDir    string
-	verbose    bool
+	// baseDir is the engine directory partials are confined to. It is empty
+	// when fileSystem is set, which confines them to its own root instead.
+	baseDir string
+	verbose bool
 }
 
 // Get returns the source of a partial, trying each candidate path in turn and
@@ -68,8 +70,9 @@ func (p fileSystemPartialProvider) Get(partial string) (string, error) {
 
 // lookupCandidates lists the files that may hold the partial. The engine
 // directory comes first so a configured directory wins over the process working
-// directory, and the bare name follows it to keep templates that already spell
-// out the full path working.
+// directory, and the name as written follows it to keep templates that already
+// spell out the full path working. Every candidate stays inside the engine
+// directory.
 func (p fileSystemPartialProvider) lookupCandidates(partial string) []string {
 	name := sanitizePartial(partial)
 	if name == "" {
@@ -79,12 +82,24 @@ func (p fileSystemPartialProvider) lookupCandidates(partial string) []string {
 		name += p.extension
 	}
 
-	base := normalizeBaseDir(p.baseDir)
-	candidates := make([]string, 0, 2)
-	if base != "" {
-		candidates = append(candidates, slashpath.Join(base, name))
+	// An http.FileSystem resolves names against its own root and refuses to
+	// serve anything above it, so the name as written is already confined.
+	if p.fileSystem != nil {
+		return []string{name}
 	}
-	return append(candidates, name)
+
+	base := localBaseDir(p.baseDir)
+	if base == "" {
+		// The engine reads from the working directory, which the name is
+		// already relative to.
+		return []string{name}
+	}
+
+	candidates := []string{slashpath.Join(base, name)}
+	if withinDir(base, name) {
+		candidates = append(candidates, name)
+	}
+	return candidates
 }
 
 // sanitizePartial normalizes a partial reference and rejects the ones that would
@@ -107,19 +122,39 @@ func sanitizePartial(partial string) string {
 	return name
 }
 
-// normalizeBaseDir turns the engine directory into a slash prefix, with the
-// working directory and the filesystem root reduced to no prefix at all.
-func normalizeBaseDir(directory string) string {
+// localBaseDir turns the engine directory into a slash prefix. The working
+// directory needs no prefix, because the names are already relative to it.
+func localBaseDir(directory string) string {
 	base := strings.TrimSpace(filepath.ToSlash(directory))
 	if base == "" {
 		return ""
 	}
 
 	base = slashpath.Clean(base)
-	if base == "." || base == "/" {
+	if base == "." {
 		return ""
 	}
 	return base
+}
+
+// withinDir reports whether a working directory relative name lands inside dir.
+// Both are compared lexically, the way http.Dir confines its own lookups.
+func withinDir(dir, name string) bool {
+	absDir, err := filepath.Abs(filepath.FromSlash(dir))
+	if err != nil {
+		return false
+	}
+
+	absName, err := filepath.Abs(filepath.FromSlash(name))
+	if err != nil {
+		return false
+	}
+
+	rel, err := filepath.Rel(absDir, absName)
+	if err != nil {
+		return false
+	}
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
 }
 
 // New returns a Mustache render engine for Fiber
@@ -149,7 +184,6 @@ func NewFileSystemPartials(fs http.FileSystem, extension string, partialsFS http
 		partialsProvider: &fileSystemPartialProvider{
 			fileSystem: partialsFS,
 			extension:  extension,
-			baseDir:    "/",
 		},
 		Engine: core.Engine{
 			Directory:  "/",
