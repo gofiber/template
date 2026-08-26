@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"os"
-	slashpath "path"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/cbroglie/mustache"
@@ -19,138 +20,22 @@ import (
 // Engine struct
 type Engine struct {
 	core.Engine
-	// partialsProvider supports partials for embedded files
-	partialsProvider *fileSystemPartialProvider
+	// partialsFS serves partials that do not live beside the templates
+	partialsFS http.FileSystem
 	//  templates
 	Templates map[string]*mustache.Template
 }
 
-// fileSystemPartialProvider resolves the partials a template includes.
-type fileSystemPartialProvider struct {
-	fileSystem http.FileSystem
-	extension  string
-	baseDir    string // engine directory; empty when fileSystem is set
-	verbose    bool
-}
-
-// Get returns the source of a partial, or an error naming every path tried.
-func (p fileSystemPartialProvider) Get(partial string) (string, error) {
-	candidates := p.lookupCandidates(partial)
-	if len(candidates) == 0 {
-		if p.verbose {
-			log.Printf("views: partial rejected: partial=%q", partial)
-		}
-		return "", fmt.Errorf("render: partial %q is not a valid path inside the template root", partial)
-	}
-
-	var firstErr error
-	for _, candidate := range candidates {
-		buf, err := core.ReadFile(candidate, p.fileSystem)
-		if err == nil {
-			return utils.UnsafeString(buf), nil
-		}
-
-		if firstErr == nil {
-			firstErr = err
-		}
-		if p.verbose {
-			log.Printf("views: partial lookup failed: partial=%q candidate=%q err=%v", partial, candidate, err)
-		}
-	}
-
-	if p.verbose {
-		log.Printf("views: partial not found: partial=%q candidates=%v", partial, candidates)
-	}
-	return "", fmt.Errorf("render: partial %q does not exist (tried: %s): %w", partial, strings.Join(candidates, ", "), firstErr)
-}
-
-// lookupCandidates lists the files that may hold the partial, engine dir first.
-func (p fileSystemPartialProvider) lookupCandidates(partial string) []string {
-	name := sanitizePartial(partial)
-	if name == "" {
-		return nil
-	}
-	if !core.HasExtension(name, p.extension) {
-		name += p.extension
-	}
-
-	// An http.FileSystem addresses its files with slash paths below its root.
-	if p.fileSystem != nil {
-		return []string{name}
-	}
-
-	// Operating system paths keep a Windows UNC root's share.
-	local := filepath.FromSlash(name)
-	base := localBaseDir(p.baseDir)
-	if base == "" {
-		return []string{local}
-	}
-
-	candidates := []string{filepath.Join(base, local)}
-	if withinDir(base, local) {
-		candidates = append(candidates, local)
-	}
-	return candidates
-}
-
-// sanitizePartial rejects a partial that is absolute or climbs out with "..".
-func sanitizePartial(partial string) string {
-	name := filepath.ToSlash(strings.TrimSpace(partial))
-	if name == "" {
-		return ""
-	}
-
-	if slashpath.IsAbs(name) || filepath.IsAbs(name) || filepath.VolumeName(name) != "" {
-		return ""
-	}
-
-	name = slashpath.Clean(name)
-	if name == "." || name == ".." || strings.HasPrefix(name, "../") {
-		return ""
-	}
-	return name
-}
-
-// localBaseDir cleans the engine directory into a prefix, empty for ".".
-func localBaseDir(directory string) string {
-	base := strings.TrimSpace(directory)
-	if base == "" {
-		return ""
-	}
-
-	base = filepath.Clean(base)
-	if base == "." {
-		return ""
-	}
-	return base
-}
-
-// withinDir reports lexically whether name lands inside dir.
-func withinDir(dir, name string) bool {
-	absDir, err := filepath.Abs(dir)
-	if err != nil {
-		return false
-	}
-
-	absName, err := filepath.Abs(name)
-	if err != nil {
-		return false
-	}
-
-	rel, err := filepath.Rel(absDir, absName)
-	if err != nil {
-		return false
-	}
-	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+// source is one loaded file and every name an include may reach it by.
+type source struct {
+	name string
+	keys []string
+	body string
 }
 
 // New returns a Mustache render engine for Fiber
 func New(directory, extension string) *Engine {
 	engine := &Engine{
-		partialsProvider: &fileSystemPartialProvider{
-			extension: extension,
-			baseDir:   directory,
-		},
 		Engine: core.Engine{
 			Directory:  directory,
 			Extension:  extension,
@@ -162,16 +47,13 @@ func New(directory, extension string) *Engine {
 
 // NewFileSystem returns a Mustache render engine for Fiber that supports embedded files
 func NewFileSystem(fs http.FileSystem, extension string) *Engine {
-	return NewFileSystemPartials(fs, extension, fs)
+	return NewFileSystemPartials(fs, extension, nil)
 }
 
 // NewFileSystemPartials returns a Handlebar render engine for Fiber that supports embedded files
 func NewFileSystemPartials(fs http.FileSystem, extension string, partialsFS http.FileSystem) *Engine {
 	engine := &Engine{
-		partialsProvider: &fileSystemPartialProvider{
-			fileSystem: partialsFS,
-			extension:  extension,
-		},
+		partialsFS: partialsFS,
 		Engine: core.Engine{
 			Directory:  "/",
 			FileSystem: fs,
@@ -191,12 +73,71 @@ func (e *Engine) Load() error {
 
 	e.Loaded = false
 	e.Templates = make(map[string]*mustache.Template)
-	if e.partialsProvider != nil {
-		e.partialsProvider.verbose = e.Verbose
+
+	// Every template doubles as a partial, so read the whole tree before parsing.
+	var partials []source
+	if e.partialsFS != nil {
+		var err error
+		if partials, err = e.collect(e.partialsFS, "/"); err != nil {
+			return err
+		}
 	}
 
-	// Loop trough each directory and register template files
-	walkFn := func(path string, info os.FileInfo, err error) error {
+	templates, err := e.collect(e.FileSystem, e.Directory)
+	if err != nil {
+		return err
+	}
+
+	// A partial reaches only what was loaded, so includes stay inside the root.
+	bodies := make(map[string]string, len(partials)+len(templates))
+	canonical := make(map[string]string, len(partials)+len(templates))
+	all := slices.Concat(partials, templates)
+	for _, src := range all {
+		for _, key := range src.keys {
+			bodies[key] = src.body
+			canonical[key] = src.name
+		}
+	}
+	// A template always wins its own name, whatever alias another one claims.
+	for _, src := range all {
+		bodies[src.name] = src.body
+		canonical[src.name] = src.name
+	}
+
+	provider := &mustache.StaticProvider{Partials: bodies}
+	parsed := make(map[string]*mustache.Template, len(all))
+	includes := make(map[string][]string, len(all))
+	for _, src := range all {
+		tmpl, err := mustache.ParseStringPartials(src.body, provider)
+		if err != nil {
+			return err
+		}
+
+		parsed[src.name] = tmpl
+		includes[src.name] = partialNames(tmpl.Tags())
+	}
+
+	if err := checkIncludes(canonical, includes); err != nil {
+		return err
+	}
+
+	for _, src := range templates {
+		e.Templates[src.name] = parsed[src.name]
+		if e.Verbose {
+			log.Printf("views: parsed template: %s\n", src.name)
+		}
+	}
+
+	// A load that failed leaves Loaded unset, so the next render retries.
+	e.Loaded = true
+	return nil
+}
+
+// collect reads every template below directory, keeping its source for includes.
+func (e *Engine) collect(fs http.FileSystem, directory string) ([]source, error) {
+	var sources []source
+
+	walkFn := func(file string, info os.FileInfo, err error) error {
 		// Return error if exist
 		if err != nil {
 			return err
@@ -208,55 +149,109 @@ func (e *Engine) Load() error {
 		}
 
 		// Skip file if it does not equal the given template extension
-		if !core.HasExtension(path, e.Extension) {
+		if !core.HasExtension(file, e.Extension) {
 			return nil
 		}
 
 		// ./views/html/index.tmpl -> index
-		name, err := core.TemplateName(e.Directory, path, e.Extension)
+		name, err := core.TemplateName(directory, file, e.Extension)
 		if err != nil {
 			return err
 		}
 
 		// Read the file
 		// #gosec G304
-		buf, err := core.ReadFile(path, e.FileSystem)
+		buf, err := core.ReadFile(file, fs)
 		if err != nil {
 			return err
 		}
 
-		// Create new template associated with the current one
-		// This enable use to invoke other templates {{ template .. }}
-		source := utils.UnsafeString(buf)
-		var tmpl *mustache.Template
-		if e.partialsProvider != nil {
-			tmpl, err = mustache.ParseStringPartials(source, e.partialsProvider)
-		} else {
-			tmpl, err = mustache.ParseString(source)
+		sources = append(sources, source{
+			name: name,
+			keys: includeKeys(directory, file, name, e.Extension),
+			body: utils.UnsafeString(buf),
+		})
+		return nil
+	}
+
+	if fs != nil {
+		if err := core.Walk(fs, directory, walkFn); err != nil {
+			return nil, err
 		}
-		if err != nil {
+		return sources, nil
+	}
+	if err := filepath.Walk(directory, walkFn); err != nil {
+		return nil, err
+	}
+	return sources, nil
+}
+
+// includeKeys lists the names an include may reach a template by.
+func includeKeys(directory, file, name, extension string) []string {
+	keys := []string{name, "/" + name, strings.TrimSuffix(filepath.ToSlash(file), extension)}
+
+	// Base keeps the qualified form working for an absolute directory too.
+	if base := filepath.Base(filepath.Clean(directory)); base != "." && base != "/" && base != string(filepath.Separator) {
+		keys = append(keys, base+"/"+name)
+	}
+	return keys
+}
+
+// partialNames collects the partials a template includes, sections included.
+func partialNames(tags []mustache.Tag) []string {
+	var names []string
+	for _, tag := range tags {
+		switch tag.Type() {
+		case mustache.Partial:
+			names = append(names, tag.Name())
+		case mustache.Section, mustache.InvertedSection:
+			names = append(names, partialNames(tag.Tags())...)
+		default:
+			// A variable holds no partials, and panics if asked for tags.
+		}
+	}
+	return names
+}
+
+// checkIncludes rejects an unknown include, and a cycle that would blow the stack.
+func checkIncludes(canonical map[string]string, includes map[string][]string) error {
+	const (
+		visiting = iota + 1
+		visited
+	)
+
+	state := make(map[string]int, len(includes))
+
+	var visit func(name string, stack []string) error
+	visit = func(name string, stack []string) error {
+		if state[name] == visiting {
+			return fmt.Errorf("views: partial cycle: %s", strings.Join(append(stack, name), " -> "))
+		}
+		if state[name] == visited {
+			return nil
+		}
+
+		state[name] = visiting
+		stack = append(stack, name)
+		for _, include := range includes[name] {
+			target, ok := canonical[include]
+			if !ok {
+				return fmt.Errorf("views: template %s includes partial %q, which does not exist", name, include)
+			}
+			if err := visit(target, stack); err != nil {
+				return err
+			}
+		}
+
+		state[name] = visited
+		return nil
+	}
+
+	for _, name := range slices.Sorted(maps.Keys(includes)) {
+		if err := visit(name, nil); err != nil {
 			return err
 		}
-
-		e.Templates[name] = tmpl
-		if e.Verbose {
-			log.Printf("views: parsed template: %s\n", name)
-		}
-		return err
 	}
-
-	var err error
-	if e.FileSystem != nil {
-		err = core.Walk(e.FileSystem, e.Directory, walkFn)
-	} else {
-		err = filepath.Walk(e.Directory, walkFn)
-	}
-	if err != nil {
-		return err
-	}
-
-	// A load that failed leaves Loaded unset, so the next render retries.
-	e.Loaded = true
 	return nil
 }
 

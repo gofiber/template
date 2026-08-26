@@ -94,20 +94,26 @@ func main() {
 
 ```
 
-## Partials
+### Partials
 
-A `{{> name }}` include is looked up in the engine directory first, so
-`{{> partials/header }}` reads `./views/partials/header.mustache` for an engine
-created with `mustache.New("./views", ".mustache")`. The name is then tried as
-written, which keeps templates that already spell out the full path
-(`{{> views/partials/header }}`) working, but only while it still lands inside
-the engine directory. With `mustache.NewFileSystem` the lookup is relative to
-the filesystem root, which the filesystem confines on its own.
+A `{{> name }}` include is served from the templates the engine loaded, so a
+partial is named exactly the way `Render` names a template: `{{> partials/header }}`
+for `./views/partials/header.mustache` under `mustache.New("./views", ".mustache")`.
+The directory-qualified form (`{{> views/partials/header }}`) and the root-anchored
+form (`{{> /partials/header }}`) resolve to the same file, so templates written
+against earlier versions keep working.
 
-No partial name can leave that root: one that is absolute, one that climbs out
-with `..`, and one that would resolve outside the engine directory are all
-refused. Symbolic links under the template directory are followed, the way
-`http.Dir` and template loading itself follow them, so keep that directory to
-content you trust. When a partial is nowhere to be found, rendering fails with
-an error naming it and every path that was tried, instead of silently rendering
-nothing. Set `engine.Debug(true)` to log each attempt.
+With an embedded filesystem the names are relative to the filesystem's root, not
+to the working directory, so `//go:embed views` makes the partial above
+`{{> views/partials/header }}`. Embedding the contents of `views` instead, or
+passing `http.Dir("./views")`, makes it `{{> partials/header }}`.
+`mustache.NewFileSystemPartials(fs, ".mustache", partialsFS)` takes the partials
+from `partialsFS` as well, for partials that do not sit beside the templates.
+
+Because the partials come from what was loaded, an include cannot reach outside
+the engine directory: a name that is absolute, that climbs out with `..`, or that
+points through a symbolic link the loader did not walk simply is not there.
+`Load` reports it rather than rendering nothing, naming the template and the
+partial, and it reports an include cycle the same way instead of letting the
+render recurse. Both are load-time failures, so a bad include shows up when the
+engine starts rather than once per request.
