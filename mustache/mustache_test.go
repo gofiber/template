@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -49,6 +51,180 @@ func Test_Render(t *testing.T) {
 	require.Equal(t, expect, result)
 }
 
+func Test_Render_PartialsFromNestedTemplate(t *testing.T) {
+	t.Parallel()
+	engine := New("./views", ".mustache")
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "nested/relative", customMap{
+		"Title": "Hello, Nested!",
+	})
+	require.NoError(t, err)
+
+	expect := `<h2>Header</h2><h1>Hello, Nested!</h1>`
+	result := trim(buf.String())
+	require.Equal(t, expect, result)
+}
+
+func Test_Render_RootAnchoredPartial(t *testing.T) {
+	t.Parallel()
+	engine := NewFileSystem(http.Dir("./views"), ".mustache")
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "rooted", customMap{
+		"Title": "Hello, Root!",
+	})
+	require.NoError(t, err)
+
+	expect := `<h2>Header</h2><h1>Hello, Root!</h1>`
+	result := trim(buf.String())
+	require.Equal(t, expect, result)
+}
+
+func Test_Render_FullPathPartial(t *testing.T) {
+	t.Parallel()
+
+	views := filepath.Join(t.TempDir(), "views")
+	require.NoError(t, os.MkdirAll(filepath.Join(views, "partials"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(views, "partials", "header.mustache"), []byte("<h2>Header</h2>"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(views, "index.mustache"), []byte("{{> views/partials/header }}<h1>{{Title}}</h1>"), 0o600))
+
+	engine := New(views, ".mustache")
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "index", customMap{
+		"Title": "Hello, Full!",
+	})
+	require.NoError(t, err)
+
+	expect := `<h2>Header</h2><h1>Hello, Full!</h1>`
+	result := trim(buf.String())
+	require.Equal(t, expect, result)
+}
+
+func Test_FileSystem_SeparatePartials(t *testing.T) {
+	t.Parallel()
+	engine := NewFileSystemPartials(http.Dir("./views/nested"), ".mustache", http.Dir("./views"))
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	err := engine.Render(&buf, "relative", customMap{
+		"Title": "Hello, Partials!",
+	})
+	require.NoError(t, err)
+
+	expect := `<h2>Header</h2><h1>Hello, Partials!</h1>`
+	result := trim(buf.String())
+	require.Equal(t, expect, result)
+}
+
+func Test_Load_MissingPartial(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "broken.mustache"), []byte("{{> partials/missing }}"), 0o600))
+
+	engine := New(dir, ".mustache")
+	err := engine.Load()
+	require.Error(t, err)
+	require.ErrorContains(t, err, `views: template broken includes partial "partials/missing", which does not exist`)
+}
+
+func Test_Load_MissingPartialInsideSection(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "broken.mustache"), []byte("{{#Show}}{{> nope }}{{/Show}}"), 0o600))
+
+	engine := New(dir, ".mustache")
+	err := engine.Load()
+	require.Error(t, err)
+	require.ErrorContains(t, err, `includes partial "nope", which does not exist`)
+}
+
+func Test_Load_MalformedTemplate(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "broken.mustache"), []byte("{{#open}}never closed"), 0o600))
+
+	engine := New(dir, ".mustache")
+	err := engine.Load()
+	require.Error(t, err)
+	require.ErrorContains(t, err, "views: template broken:")
+}
+
+func Test_Load_SelfIncludingPartial(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "a.mustache"), []byte("A{{> a }}"), 0o600))
+
+	engine := New(dir, ".mustache")
+	err := engine.Load()
+	require.Error(t, err)
+	require.ErrorContains(t, err, "views: partial cycle: a -> a")
+}
+
+func Test_Load_PartialCycle(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "a.mustache"), []byte("A{{> b }}"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "b.mustache"), []byte("B{{> a }}"), 0o600))
+
+	engine := New(dir, ".mustache")
+	err := engine.Load()
+	require.Error(t, err)
+	require.ErrorContains(t, err, "views: partial cycle: a -> b -> a")
+}
+
+func Test_Load_PartialOutsideRoot(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	const marker = "outside-the-root"
+	require.NoError(t, os.WriteFile(filepath.Join(root, "sibling.mustache"), []byte(marker), 0o600))
+
+	views := filepath.Join(root, "views")
+	require.NoError(t, os.MkdirAll(views, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(views, "escape.mustache"), []byte("{{> ../sibling }}"), 0o600))
+
+	engine := New(views, ".mustache")
+	err := engine.Load()
+	require.Error(t, err)
+	require.ErrorContains(t, err, `includes partial "../sibling", which does not exist`)
+	require.NotContains(t, err.Error(), marker)
+}
+
+func Test_Load_PartialThroughSymlink(t *testing.T) {
+	t.Parallel()
+
+	if runtime.GOOS == "windows" {
+		t.Skip("creating a symlink needs a privilege the runner may not hold")
+	}
+
+	root := t.TempDir()
+	const marker = "outside-the-root"
+	outside := filepath.Join(root, "outside")
+	require.NoError(t, os.MkdirAll(outside, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(outside, "creds.mustache"), []byte(marker), 0o600))
+
+	views := filepath.Join(root, "views")
+	require.NoError(t, os.MkdirAll(views, 0o700))
+	require.NoError(t, os.Symlink(outside, filepath.Join(views, "link")))
+	require.NoError(t, os.WriteFile(filepath.Join(views, "page.mustache"), []byte("{{> link/creds }}"), 0o600))
+
+	engine := New(views, ".mustache")
+	err := engine.Load()
+	require.Error(t, err)
+	require.ErrorContains(t, err, `includes partial "link/creds", which does not exist`)
+	require.NotContains(t, err.Error(), marker)
+}
+
 func Test_Layout(t *testing.T) {
 	t.Parallel()
 	engine := New("./views", ".mustache")
@@ -83,7 +259,7 @@ func Test_Empty_Layout(t *testing.T) {
 
 func Test_FileSystem(t *testing.T) {
 	t.Parallel()
-	engine := NewFileSystemPartials(http.Dir("./views"), ".mustache", http.Dir("."))
+	engine := NewFileSystemPartials(http.Dir("./views"), ".mustache", http.Dir("./views"))
 	require.NoError(t, engine.Load())
 
 	var buf bytes.Buffer

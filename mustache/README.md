@@ -14,18 +14,18 @@ Mustache is a template engine created by [hoisie/cbroglie](https://github.com/cb
 Go version support: We only support the latest two versions of Go. Visit https://go.dev/doc/devel/release for more information.
 
 ```
-go get github.com/gofiber/template/mustache/v4
+go get github.com/gofiber/template/mustache/v3
 ```
 
 ## Basic Example
 
 _**./views/index.mustache**_
 ```html
-{{> views/partials/header }}
+{{> partials/header }}
 
 <h1>{{Title}}</h1>
 
-{{> views/partials/footer }}
+{{> partials/footer }}
 ```
 _**./views/partials/header.mustache**_
 ```html
@@ -56,19 +56,19 @@ package main
 
 import (
 	"log"
-	
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/template/mustache/v3"
+
+	// "net/http" // embedded system
 )
 
 func main() {
 	// Create a new engine
 	engine := mustache.New("./views", ".mustache")
 
-  // Or from an embedded system
-  //   Note that with an embedded system the partials included from template files must be
-  //   specified relative to the filesystem's root, not the current working directory
-  // engine := mustache.NewFileSystem(http.Dir("./views", ".mustache"), ".mustache")
+	// Or from an embedded system
+	// engine := mustache.NewFileSystem(http.Dir("./views"), ".mustache")
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
@@ -93,3 +93,29 @@ func main() {
 }
 
 ```
+
+### Partials
+
+A `{{> name }}` include is served from the templates the engine loaded, so a
+partial is named exactly the way `Render` names a template: `{{> partials/header }}`
+for `./views/partials/header.mustache` under `mustache.New("./views", ".mustache")`.
+The directory-qualified form (`{{> views/partials/header }}`) and the root-anchored
+form (`{{> /partials/header }}`) resolve to the same file, so templates written
+against earlier versions keep working.
+
+With an embedded filesystem the names are relative to the filesystem's root, not
+to the working directory, so `//go:embed views` makes the partial above
+`{{> views/partials/header }}`. Embedding the contents of `views` instead, or
+passing `http.Dir("./views")`, makes it `{{> partials/header }}`.
+`mustache.NewFileSystemPartials(fs, ".mustache", partialsFS)` takes the partials
+from `partialsFS` as well, for partials that do not sit beside the templates.
+
+Because the partials come from what was loaded, an include cannot reach outside
+the engine directory. The leading slash in `{{> /partials/header }}` anchors the
+name to that root, not to the filesystem, so a filesystem path such as
+`/etc/passwd`, a name that climbs out with `..`, and one that points through a
+symbolic link the loader did not walk are all simply not there.
+`Load` reports it rather than rendering nothing, naming the template and the
+partial, and it reports an include cycle the same way instead of letting the
+render recurse. Both are load-time failures, so a bad include shows up when the
+engine starts rather than once per request.
