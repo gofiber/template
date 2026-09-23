@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/cbroglie/mustache v1.4.2
 	github.com/gofiber/template/v2 v2.1.2
-	github.com/gofiber/utils/v2 v2.5.3
+	github.com/gofiber/utils/v2 v2.6.0
 	github.com/stretchr/testify v1.12.1
 	github.com/valyala/bytebufferpool v1.0.0
 )
