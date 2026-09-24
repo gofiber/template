@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/gofiber/template/v2 v2.1.2
-	github.com/gofiber/utils/v2 v2.6.0
+	github.com/gofiber/utils/v2 v2.6.1
 	github.com/mailgun/raymond/v2 v2.0.48
 	github.com/stretchr/testify v1.12.1
 )
