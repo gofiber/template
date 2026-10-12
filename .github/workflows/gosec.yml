@@ -70,7 +70,8 @@ jobs:
           check-latest: true
           cache-dependency-path: '**/go.sum'
       - name: Install gosec
-        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+        # v2.29.0 cannot read Go 1.27.2 export data; back to @latest once securego/gosec#1771 is released
+        run: go install github.com/securego/gosec/v2/cmd/gosec@7b1b5cebe007d62fb58eacb90fc571112939ec30
       - name: Run gosec
         working-directory: ${{ matrix.modules }}
         run: gosec ./...
