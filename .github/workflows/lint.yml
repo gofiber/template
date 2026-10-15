@@ -31,4 +31,6 @@ jobs:
   lint:
     uses: gofiber/.github/.github/workflows/go-lint-multi.yml@main
     with:
+      # sync with Makefile
+      golangci-lint-version: v2.14.0
       golangci-lint-args: "--tests=false --timeout=5m"

@@ -43,7 +43,7 @@ func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 	return engine
@@ -123,7 +123,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
 	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {

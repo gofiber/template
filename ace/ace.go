@@ -36,7 +36,7 @@ func New(directory, extension string) *Engine {
 			Directory:  directory,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 	engine.AddFunc(engine.LayoutName, layoutUnexpected)
@@ -53,7 +53,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 	engine.AddFunc(engine.LayoutName, layoutUnexpected)
@@ -152,7 +152,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
 	if e.PreRenderCheck() {
 		ace.FlushCache()
@@ -189,7 +189,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if pool != nil {
 			// The closure holds this render's writer; the sentinel replaces it in the pool.
 			defer func() {
-				set.Funcs(map[string]interface{}{layoutName: layoutUnexpected})
+				set.Funcs(map[string]any{layoutName: layoutUnexpected})
 				pool.Put(set)
 			}()
 		}
@@ -206,7 +206,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 
 		// A self-embedding page would recurse without end through the func map.
 		var embedded bool
-		set.Funcs(map[string]interface{}{
+		set.Funcs(map[string]any{
 			layoutName: func() (string, error) {
 				if embedded {
 					return "", errors.New("content embedded recursively")

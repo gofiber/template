@@ -256,7 +256,7 @@ func checkIncludes(canonical map[string]string, includes map[string][]string) er
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
 	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {

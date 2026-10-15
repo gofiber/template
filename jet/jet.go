@@ -34,7 +34,7 @@ func New(directory, extension string) *Engine {
 			Directory:  directory,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 
@@ -54,7 +54,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 
@@ -149,7 +149,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
 	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
@@ -190,7 +190,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 
 // jetVarMap resolves binding into a VarMap the engine owns - jet assigns back
 // into the map it is handed, so a caller-supplied one is copied, never shared.
-func jetVarMap(binding interface{}, extra int) jet.VarMap {
+func jetVarMap(binding any, extra int) jet.VarMap {
 	if caller, ok := binding.(jet.VarMap); ok {
 		bind := make(jet.VarMap, len(caller)+extra)
 		maps.Copy(bind, caller)
@@ -199,7 +199,7 @@ func jetVarMap(binding interface{}, extra int) jet.VarMap {
 
 	// Filled straight from the binding, skipping an intermediate map.
 	bind := make(jet.VarMap, core.ViewContextLen(binding)+extra)
-	core.RangeViewContext(binding, func(key string, value interface{}) {
+	core.RangeViewContext(binding, func(key string, value any) {
 		bind.Set(key, value)
 	})
 	return bind

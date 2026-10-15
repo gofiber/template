@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -33,7 +34,7 @@ func New(directory, extension string) *Engine {
 			Directory:  directory,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 	engine.AddFunc(engine.LayoutName, layoutUnexpected)
@@ -48,7 +49,7 @@ func NewFileSystem(fs http.FileSystem, extension string) *Engine {
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 	engine.AddFunc(engine.LayoutName, layoutUnexpected)
@@ -74,13 +75,10 @@ func (e *Engine) Load() error {
 	// prepare the global amber funcs
 	funcs := template.FuncMap{}
 
-	for k, v := range amber.FuncMap { // add the amber's default funcs
-		funcs[k] = v
-	}
+	// add the amber's default funcs
+	maps.Copy(funcs, amber.FuncMap)
 
-	for k, v := range e.Funcmap {
-		funcs[k] = v
-	}
+	maps.Copy(funcs, e.Funcmap)
 
 	amber.FuncMap = funcs //nolint:reassign // this is fine, as long as it's not run in parallel in a test.
 
@@ -151,7 +149,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will execute the template name along with the given values.
-func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
 	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
@@ -196,11 +194,11 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 		if pool != nil {
 			// The closure holds this render's writer; the sentinel replaces it in the pool.
 			defer func() {
-				lay.Funcs(map[string]interface{}{layoutName: layoutUnexpected})
+				lay.Funcs(map[string]any{layoutName: layoutUnexpected})
 				pool.Put(lay)
 			}()
 		}
-		lay.Funcs(map[string]interface{}{
+		lay.Funcs(map[string]any{
 			layoutName: func() (string, error) {
 				return "", tmpl.Execute(out, binding)
 			},

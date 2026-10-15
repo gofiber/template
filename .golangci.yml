@@ -40,6 +40,7 @@ linters:
     - loggercheck
     - mirror
     - misspell
+    - modernize
     - nakedret
     - nilerr
     - nilnil
@@ -219,4 +220,5 @@ formatters:
   settings:
     gofumpt:
       module-path: github.com/gofiber/template
-      extra-rules: true
+      extra:
+        group-params: true

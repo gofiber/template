@@ -34,7 +34,7 @@ func (e *Engine) initialize(directory, extension string, fs http.FileSystem) {
 	e.Directory = directory
 	e.Extension = extension
 	e.LayoutName = "embed"
-	e.Funcmap = make(map[string]interface{})
+	e.Funcmap = make(map[string]any)
 	e.autoEscape = true
 	e.FileSystem = fs
 }
@@ -155,7 +155,7 @@ func (e *Engine) Load() error {
 // It returns nil if the binding is not one of the supported types.
 //
 // The result may alias binding - pongo2 copies before executing, never writes back.
-func getPongoBinding(binding interface{}) pongo2.Context {
+func getPongoBinding(binding any) pongo2.Context {
 	if binding == nil {
 		return nil
 	}
@@ -163,7 +163,7 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 	switch binds := binding.(type) {
 	case pongo2.Context:
 		return sanitizePongoContext(binds)
-	case map[string]interface{}:
+	case map[string]any:
 		return sanitizePongoContext(binds)
 	}
 
@@ -189,7 +189,7 @@ func getPongoBinding(binding interface{}) pongo2.Context {
 }
 
 // sanitizePongoContext drops invalid keys, aliasing data when all are valid.
-func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
+func sanitizePongoContext(data map[string]any) pongo2.Context {
 	if len(data) == 0 {
 		return make(pongo2.Context)
 	}
@@ -203,7 +203,7 @@ func sanitizePongoContext(data map[string]interface{}) pongo2.Context {
 }
 
 // copyValidPongoKeys copies data without its invalid keys.
-func copyValidPongoKeys(data map[string]interface{}) pongo2.Context {
+func copyValidPongoKeys(data map[string]any) pongo2.Context {
 	bind := make(pongo2.Context, len(data))
 	for key, value := range data {
 		if !isValidKey(key) {
@@ -278,7 +278,7 @@ func withAutoescape(want bool, fn func() error) error {
 }
 
 // Render will render the template by name
-func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
 	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {

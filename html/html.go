@@ -46,7 +46,7 @@ func newEngine(directory, extension string, fs http.FileSystem) *Engine {
 			FileSystem: fs,
 			Extension:  extension,
 			LayoutName: "embed",
-			Funcmap:    make(map[string]interface{}),
+			Funcmap:    make(map[string]any),
 		},
 	}
 	engine.AddFunc(engine.LayoutName, layoutUnexpected)
@@ -137,7 +137,7 @@ func (e *Engine) Load() error {
 }
 
 // Render will execute the template name along with the given values.
-func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, name string, binding any, layout ...string) error {
 	// Check if templates need to be loaded/reloaded
 	if e.PreRenderCheck() {
 		if err := e.Load(); err != nil {
@@ -181,7 +181,7 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 	if pool != nil {
 		// The closures hold this render's writer; the sentinel replaces them in the pool.
 		defer func() {
-			set.Funcs(map[string]interface{}{layoutName: layoutUnexpected})
+			set.Funcs(map[string]any{layoutName: layoutUnexpected})
 			pool.Put(set)
 		}()
 	}
@@ -208,13 +208,13 @@ func (e *Engine) Render(out io.Writer, name string, binding interface{}, layout 
 
 // renderFuncCreate renders tmpl with childRenderFunc as the layout function;
 // the innermost gets layoutUnexpected, so a self-embedding template fails.
-func renderFuncCreate(layoutName string, out io.Writer, binding interface{}, tmpl *template.Template, childRenderFunc func() error) func() error {
+func renderFuncCreate(layoutName string, out io.Writer, binding any, tmpl *template.Template, childRenderFunc func() error) func() error {
 	return func() error {
-		embed := interface{}(layoutUnexpected)
+		embed := any(layoutUnexpected)
 		if childRenderFunc != nil {
 			embed = func() (string, error) { return "", childRenderFunc() }
 		}
-		tmpl.Funcs(map[string]interface{}{
+		tmpl.Funcs(map[string]any{
 			layoutName: embed,
 		})
 		return tmpl.Execute(out, binding)

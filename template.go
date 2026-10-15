@@ -18,24 +18,24 @@ import (
 // Reflect types the binding helpers compare against.
 var (
 	stringType       = reflect.TypeFor[string]()
-	anyType          = reflect.TypeFor[interface{}]()
-	mapStringAnyType = reflect.TypeFor[map[string]interface{}]()
+	anyType          = reflect.TypeFor[any]()
+	mapStringAnyType = reflect.TypeFor[map[string]any]()
 )
 
 // IEngine interface, to be implemented for any templating engine added to the repository
 type IEngine interface {
 	IEngineCore
 	Load() error
-	Render(out io.Writer, template string, binding interface{}, layout ...string) error
+	Render(out io.Writer, template string, binding any, layout ...string) error
 }
 
 // IEngineCore interface
 type IEngineCore interface {
-	AddFunc(name string, fn interface{}) IEngineCore
-	AddFuncMap(m map[string]interface{}) IEngineCore
+	AddFunc(name string, fn any) IEngineCore
+	AddFuncMap(m map[string]any) IEngineCore
 	Debug(enabled bool) IEngineCore
 	Delims(left, right string) IEngineCore
-	FuncMap() map[string]interface{}
+	FuncMap() map[string]any
 	Layout(key string) IEngineCore
 	Reload(enabled bool) IEngineCore
 	PreRenderCheck() bool
@@ -64,12 +64,12 @@ type Engine struct {
 	// lock for funcmap and templates
 	Mutex sync.RWMutex
 	// template funcmap
-	Funcmap map[string]interface{}
+	Funcmap map[string]any
 }
 
 // AddFunc adds the function to the template's function map.
 // It is legal to overwrite elements of the default actions
-func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
+func (e *Engine) AddFunc(name string, fn any) IEngineCore {
 	e.Mutex.Lock()
 	e.Funcmap[name] = fn
 	e.Mutex.Unlock()
@@ -78,11 +78,9 @@ func (e *Engine) AddFunc(name string, fn interface{}) IEngineCore {
 
 // AddFuncMap adds the functions from a map to the template's function map.
 // It is legal to overwrite elements of the default actions
-func (e *Engine) AddFuncMap(m map[string]interface{}) IEngineCore {
+func (e *Engine) AddFuncMap(m map[string]any) IEngineCore {
 	e.Mutex.Lock()
-	for name, fn := range m {
-		e.Funcmap[name] = fn
-	}
+	maps.Copy(e.Funcmap, m)
 	e.Mutex.Unlock()
 	return e
 }
@@ -106,7 +104,7 @@ func (e *Engine) Delims(left, right string) IEngineCore {
 }
 
 // FuncMap returns the template's function map.
-func (e *Engine) FuncMap() map[string]interface{} {
+func (e *Engine) FuncMap() map[string]any {
 	return e.Funcmap
 }
 
@@ -156,8 +154,8 @@ func (e *Engine) PreRenderCheck() bool {
 // so template engines can safely inject layout specific data while preserving the
 // original values. It supports native map[string]interface{} values as well as
 // user-defined map types (for example fiber.Map) with string keys.
-func AcquireViewContext(binding interface{}) map[string]interface{} {
-	if binds, ok := binding.(map[string]interface{}); ok {
+func AcquireViewContext(binding any) map[string]any {
+	if binds, ok := binding.(map[string]any); ok {
 		return binds
 	}
 
@@ -166,20 +164,20 @@ func AcquireViewContext(binding interface{}) map[string]interface{} {
 
 // NewViewContext resolves binding like AcquireViewContext, but always returns a
 // map the caller owns, sized for extra entries beyond the binding's own.
-func NewViewContext(binding interface{}, extra int) map[string]interface{} {
-	if binds, ok := binding.(map[string]interface{}); ok {
-		result := make(map[string]interface{}, len(binds)+extra)
+func NewViewContext(binding any, extra int) map[string]any {
+	if binds, ok := binding.(map[string]any); ok {
+		result := make(map[string]any, len(binds)+extra)
 		maps.Copy(result, binds)
 		return result
 	}
 
 	val, ok := bindingMap(binding)
 	if !ok {
-		return make(map[string]interface{}, extra)
+		return make(map[string]any, extra)
 	}
 
-	result := make(map[string]interface{}, val.Len()+extra)
-	rangeMap(val, func(key string, value interface{}) {
+	result := make(map[string]any, val.Len()+extra)
+	rangeMap(val, func(key string, value any) {
 		result[key] = value
 	})
 	return result
@@ -187,8 +185,8 @@ func NewViewContext(binding interface{}, extra int) map[string]interface{} {
 
 // ViewContextLen reports how many key/value pairs RangeViewContext yields for
 // binding, so engines can size their own context type before filling it.
-func ViewContextLen(binding interface{}) int {
-	if binds, ok := binding.(map[string]interface{}); ok {
+func ViewContextLen(binding any) int {
+	if binds, ok := binding.(map[string]any); ok {
 		return len(binds)
 	}
 
@@ -201,8 +199,8 @@ func ViewContextLen(binding interface{}) int {
 
 // RangeViewContext resolves binding like AcquireViewContext and hands every
 // key/value pair to fn.
-func RangeViewContext(binding interface{}, fn func(key string, value interface{})) {
-	if binds, ok := binding.(map[string]interface{}); ok {
+func RangeViewContext(binding any, fn func(key string, value any)) {
+	if binds, ok := binding.(map[string]any); ok {
 		for key, value := range binds {
 			fn(key, value)
 		}
@@ -218,18 +216,18 @@ func RangeViewContext(binding interface{}, fn func(key string, value interface{}
 
 // directMap returns val as a plain map[string]interface{} when its type
 // converts without copying - fiber.Map and other named map types.
-func directMap(val reflect.Value) (map[string]interface{}, bool) {
+func directMap(val reflect.Value) (map[string]any, bool) {
 	typ := val.Type()
 	if typ.Kind() != reflect.Map || typ.Key() != stringType || typ.Elem() != anyType {
 		return nil, false
 	}
-	binds, ok := val.Convert(mapStringAnyType).Interface().(map[string]interface{})
+	binds, ok := reflect.TypeAssert[map[string]any](val.Convert(mapStringAnyType))
 	return binds, ok
 }
 
 // rangeMap hands every entry of the string-keyed map value val to fn, avoiding
 // reflect's map iterator - which heap-allocates - where the type allows it.
-func rangeMap(val reflect.Value, fn func(key string, value interface{})) {
+func rangeMap(val reflect.Value, fn func(key string, value any)) {
 	if binds, ok := directMap(val); ok {
 		for key, value := range binds {
 			fn(key, value)
@@ -245,13 +243,13 @@ func rangeMap(val reflect.Value, fn func(key string, value interface{})) {
 
 // bindingMap resolves binding to the non-nil, string-keyed map value it wraps,
 // dereferencing a pointer on the way.
-func bindingMap(binding interface{}) (reflect.Value, bool) {
+func bindingMap(binding any) (reflect.Value, bool) {
 	if binding == nil {
 		return reflect.Value{}, false
 	}
 
 	val := reflect.ValueOf(binding)
-	if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		if val.IsNil() {
 			return reflect.Value{}, false
 		}
