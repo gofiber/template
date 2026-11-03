@@ -223,4 +223,4 @@ _**./views/index.html**_
 engine := html.New("./views", ".html").Option("missingkey=error")
 ```
 
-An unknown option panics, as it does in `html/template`.
+Call `Option` before the first `Load` or render: like `Delims` and `AddFunc`, it does not change templates that are already loaded until the next reload. An unknown option panics, as it does in `html/template`.

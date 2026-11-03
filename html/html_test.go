@@ -646,6 +646,7 @@ func Test_Option_MissingKeyError(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(dir, "layouts"), 0o750))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "index.html"), []byte("{{.Title}}"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "layouts", "main.html"), []byte("<main>{{embed}}</main>"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "layouts", "footer.html"), []byte("<main>{{embed}}{{.Footer}}</main>"), 0o600))
 
 	engine := New(dir, ".html").Option("missingkey=error")
 	require.NoError(t, engine.Load())
@@ -658,6 +659,8 @@ func Test_Option_MissingKeyError(t *testing.T) {
 	buf.Reset()
 	require.NoError(t, engine.Render(&buf, "index", map[string]any{"Title": "ok"}, "layouts/main"))
 	require.Equal(t, "<main>ok</main>", buf.String())
+	// the page is fine, the layout itself misses a key
+	require.ErrorContains(t, engine.Render(&buf, "index", map[string]any{"Title": "ok"}, "layouts/footer"), "no entry for key")
 
 	require.Panics(t, func() { New(dir, ".html").Option("missingkey=bogus") })
 }

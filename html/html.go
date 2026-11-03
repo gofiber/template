@@ -61,7 +61,8 @@ func layoutUnexpected() (string, error) {
 }
 
 // Option sets html/template options such as "missingkey=error" for every
-// template the engine loads. An unknown option panics, as in html/template.
+// template the engine loads. Set it before the first load, a loaded set keeps
+// its options until the next reload. An unknown option panics.
 func (e *Engine) Option(opts ...string) *Engine {
 	template.New("").Option(opts...)
 	e.Mutex.Lock()
