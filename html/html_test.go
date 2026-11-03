@@ -664,3 +664,19 @@ func Test_Option_MissingKeyError(t *testing.T) {
 
 	require.Panics(t, func() { New(dir, ".html").Option("missingkey=bogus") })
 }
+
+func Test_Option_AfterLoadAppliesOnReload(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "index.html"), []byte("{{.Title}}"), 0o600))
+
+	engine := New(dir, ".html")
+	require.NoError(t, engine.Load())
+	engine.Option("missingkey=error")
+
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "index", map[string]any{}))
+
+	engine.Reload(true)
+	require.ErrorContains(t, engine.Render(&buf, "index", map[string]any{}), "no entry for key")
+}
