@@ -24,6 +24,7 @@ type Engine struct {
 	// recycles the layout-render clones and their escape work.
 	pristine *template.Template
 	pool     *sync.Pool
+	options  []string
 }
 
 // New returns a HTML render engine for Fiber
@@ -59,6 +60,16 @@ func layoutUnexpected() (string, error) {
 	return "", errors.New("layoutName called unexpectedly")
 }
 
+// Option sets html/template options such as "missingkey=error" for every
+// template the engine loads. An unknown option panics, as in html/template.
+func (e *Engine) Option(opts ...string) *Engine {
+	template.New("").Option(opts...)
+	e.Mutex.Lock()
+	e.options = append(e.options, opts...)
+	e.Mutex.Unlock()
+	return e
+}
+
 // Load parses the templates to the engine.
 func (e *Engine) Load() error {
 	// race safe
@@ -73,6 +84,8 @@ func (e *Engine) Load() error {
 	// Set template settings
 	e.Templates.Delims(e.Left, e.Right)
 	e.Templates.Funcs(e.Funcmap)
+	// Set on the root before parsing, so every template and clone inherits it.
+	e.Templates.Option(e.options...)
 
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		// Return error if exist

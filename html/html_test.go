@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -637,4 +638,26 @@ func Test_Layout_Concurrent_Rename(t *testing.T) {
 	for _, err := range errs {
 		require.NoError(t, err)
 	}
+}
+
+func Test_Option_MissingKeyError(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "layouts"), 0o750))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "index.html"), []byte("{{.Title}}"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "layouts", "main.html"), []byte("<main>{{embed}}</main>"), 0o600))
+
+	engine := New(dir, ".html").Option("missingkey=error")
+	require.NoError(t, engine.Load())
+
+	var buf bytes.Buffer
+	require.ErrorContains(t, engine.Render(&buf, "index", map[string]any{}), "no entry for key")
+	// layout renders run on a clone taken in Load
+	require.ErrorContains(t, engine.Render(&buf, "index", map[string]any{}, "layouts/main"), "no entry for key")
+
+	buf.Reset()
+	require.NoError(t, engine.Render(&buf, "index", map[string]any{"Title": "ok"}, "layouts/main"))
+	require.Equal(t, "<main>ok</main>", buf.String())
+
+	require.Panics(t, func() { New(dir, ".html").Option("missingkey=bogus") })
 }
