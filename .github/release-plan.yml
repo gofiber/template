@@ -5,8 +5,8 @@
 # draft releases (the template engines).
 #
 # Constraint: every engine depends on the root "core" module.
-# Core's post-release hook triggers dependabot in this repo
-# immediately so engines pick up the new version before wave 2.
+# Core's post-release hook triggers dependabot in this repo as soon
+# as the Go proxy lists the new version, so engines pick it up before wave 2.
 #
 # After all modules are published, 'after-release' is dispatched once.
 # The after-release.yml workflow defines which repos to notify.
