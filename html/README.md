@@ -214,3 +214,13 @@ _**./views/index.html**_
 ```html
 <p>Hello, <b>World</b>!</p>
 ```
+
+### Template options
+
+`Option` passes [html/template options](https://pkg.go.dev/text/template#Template.Option) to every template the engine loads, including layout renders and reloads. For example, fail a render when a map key is missing instead of printing `<no value>`:
+
+```go
+engine := html.New("./views", ".html").Option("missingkey=error")
+```
+
+Call `Option` before the first `Load` or render: like `Delims` and `AddFunc`, it does not change templates that are already loaded until the next reload. An unknown option panics, as it does in `html/template`.
