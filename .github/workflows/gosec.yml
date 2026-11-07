@@ -8,7 +8,6 @@ on:
     paths-ignore:
       - "**.md"
       - LICENSE
-      - ".github/ISSUE_TEMPLATE/*.yml"
       - ".github/dependabot.yml"
   pull_request:
     branches:
@@ -16,7 +15,6 @@ on:
     paths-ignore:
       - "**.md"
       - LICENSE
-      - ".github/ISSUE_TEMPLATE/*.yml"
       - ".github/dependabot.yml"
   workflow_dispatch:
 
