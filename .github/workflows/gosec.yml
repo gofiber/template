@@ -5,17 +5,23 @@ on:
     branches:
       - "master"
       - "main"
-    paths-ignore:
-      - "**.md"
-      - LICENSE
-      - ".github/dependabot.yml"
+    paths:
+      - "**"
+      - "!**.md"
+      - "!LICENSE"
+      - "!.github/dependabot.yml"
+      - "!.github/workflows/**"
+      - ".github/workflows/gosec.yml"
   pull_request:
     branches:
       - "*"
-    paths-ignore:
-      - "**.md"
-      - LICENSE
-      - ".github/dependabot.yml"
+    paths:
+      - "**"
+      - "!**.md"
+      - "!LICENSE"
+      - "!.github/dependabot.yml"
+      - "!.github/workflows/**"
+      - ".github/workflows/gosec.yml"
   workflow_dispatch:
 
 concurrency:
