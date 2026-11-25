@@ -226,7 +226,17 @@ func renderFuncCreate(layoutName string, out io.Writer, binding any, tmpl *templ
 	return func() error {
 		embed := any(layoutUnexpected)
 		if childRenderFunc != nil {
-			embed = func() (string, error) { return "", childRenderFunc() }
+			// The function map is shared by every template in the set, so the
+			// child's own binding overwrites this one while it executes. The
+			// closure rebinds itself when the child returns: a layout may use
+			// the embed action more than once.
+			var embedFunc func() (string, error)
+			embedFunc = func() (string, error) {
+				err := childRenderFunc()
+				tmpl.Funcs(map[string]any{layoutName: embedFunc})
+				return "", err
+			}
+			embed = embedFunc
 		}
 		tmpl.Funcs(map[string]any{
 			layoutName: embed,

@@ -680,3 +680,34 @@ func Test_Option_AfterLoadAppliesOnReload(t *testing.T) {
 	engine.Reload(true)
 	require.ErrorContains(t, engine.Render(&buf, "index", map[string]any{}), "no entry for key")
 }
+
+func Test_Layout_RepeatedEmbed(t *testing.T) {
+	t.Parallel()
+	dir, err := os.MkdirTemp(".", "")
+	require.NoError(t, err)
+
+	defer func() {
+		err := os.RemoveAll(dir)
+		require.NoError(t, err)
+	}()
+
+	err = os.WriteFile(dir+"/page.html", []byte("P"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/twice.html", []byte("[1]{{embed}}[2]{{embed}}[3]"), 0o600)
+	require.NoError(t, err)
+	err = os.WriteFile(dir+"/outer.html", []byte("A{{embed}}B{{embed}}C"), 0o600)
+	require.NoError(t, err)
+
+	engine := New(dir, ".html")
+	require.NoError(t, engine.Load())
+
+	// A layout may embed the page content more than once.
+	var buf bytes.Buffer
+	require.NoError(t, engine.Render(&buf, "page", nil, "twice"))
+	require.Equal(t, "[1]P[2]P[3]", trim(buf.String()))
+
+	// Repeated embeds must also survive a nested layout chain.
+	buf.Reset()
+	require.NoError(t, engine.Render(&buf, "page", nil, "twice", "outer"))
+	require.Equal(t, "A[1]P[2]P[3]B[1]P[2]P[3]C", trim(buf.String()))
+}
